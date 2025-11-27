@@ -45,7 +45,7 @@ export class UserCreateDto {
   @IsString()
   @MaxLength(255)
   @ApiProperty({ example: 'strongpassword123' })
-  hashedPassword: string;
+  password: string;
 
   @IsNotEmpty()
   @IsString()

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserCreateDto } from './dto/user.create.dto';
 import { UserUpdateDto } from './dto/user.update.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -38,7 +39,13 @@ export class UserService {
   }
 
   async create(dto: UserCreateDto): Promise<User> {
-    const createdUser = await this.userRepo.save(dto);
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const userToSave = {
+      ...dto,
+      hashedPassword,
+    };
+
+    const createdUser = await this.userRepo.save(userToSave);
     if (!createdUser) {
       this.logger.error(`Error Creating User with Following Data: ${dto}`);
       throw new Error(`User Not Created with Following Data: ${dto}`);
@@ -58,6 +65,21 @@ export class UserService {
       throw new NotFoundException(
         `Error, User with ID ${id} not found when attempting to update user information`,
       );
+    }
+
+    if (dto.password) {
+      const duplicatePassword = await bcrypt.compare(
+        dto.password,
+        existingUser.hashedPassword,
+      );
+      if (duplicatePassword) {
+        this.logger.error(
+          `Error, New password cannot be the same as the old password for User with ID ${id}`,
+        );
+        throw new Error(
+          `Error, New password cannot be the same as the old password for User with ID ${id}`,
+        );
+      }
     }
 
     const mergedUser = this.userRepo.merge(existingUser, dto);
