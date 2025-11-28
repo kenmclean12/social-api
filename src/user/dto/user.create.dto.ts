@@ -35,7 +35,6 @@ export class UserCreateDto {
   phoneNumber?: string;
 
   @IsNotEmpty()
-  @IsString()
   @IsEmail()
   @MaxLength(100)
   @ApiProperty({ example: 'johnappleseed@gmail.com' })
