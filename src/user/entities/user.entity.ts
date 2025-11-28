@@ -1,7 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Follow } from 'src/follow/entities/follow.entity';
 import {
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -42,4 +46,10 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   @ApiProperty()
   description?: string;
+
+  @OneToMany(() => Follow, (follow) => follow.follower)
+  following: Follow[];
+
+  @OneToMany(() => Follow, (follow) => follow.following)
+  followers: Follow[];
 }
