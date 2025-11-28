@@ -60,7 +60,7 @@ export class AuthService {
 
   private async signToken(payload: any): Promise<string> {
     return this.jwtService.signAsync(payload, {
-      expiresIn: '1h',
+      expiresIn: '7d',
       audience: 'social-app',
       issuer: 'social-app',
     });
