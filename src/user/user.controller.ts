@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { UserCreateDto } from './dto/user.create.dto';
 import { UserUpdateDto } from './dto/user.update.dto';
+import { PasswordResetDto } from './dto/password-reset.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -54,5 +55,12 @@ export class UserController {
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<User> {
     return await this.userService.delete(id);
+  }
+
+  @ApiOkResponse({ type: User })
+  @ApiOperation({ summary: 'Reset a Users Password' })
+  @Post('reset-password')
+  async resetPassword(@Body() dto: PasswordResetDto): Promise<User> {
+    return await this.userService.resetPassword(dto);
   }
 }

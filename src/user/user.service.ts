@@ -6,6 +6,7 @@ import { UserCreateDto } from './dto/user.create.dto';
 import { UserUpdateDto } from './dto/user.update.dto';
 import * as bcrypt from 'bcrypt';
 import { assertUnique } from 'src/common/utils/assert-unique';
+import { PasswordResetDto } from './dto/password-reset.dto';
 
 export class UserService {
   private readonly logger: Logger;
@@ -134,12 +135,45 @@ export class UserService {
     return userToDelete;
   }
 
-  // async resetPassword()
+  async resetPassword({ userId, oldPassword, newPassword }: PasswordResetDto): Promise<User> {
+    const existingUser = await this.userRepo.findOne({
+      where: { id: userId },
+    });
 
-  // const passwordMatching = await this.checkPasswords(
-  //   dto.password,
-  //   existingUser.hashedPassword,
-  // );
+    if (!existingUser) {
+      this.logger.error(`Error, User with ID ${userId} not found for password reset`);
+      throw new NotFoundException(
+        `Error, User with ID ${userId} not found for password reset`,
+      );
+    }
+
+    const passwordMatching = await bcrypt.compare(
+      oldPassword,
+      existingUser.hashedPassword,
+    );
+
+    if (!passwordMatching) {
+      this.logger.error(`Error, Old password provided does not match existing password for user ID ${userId}`);
+      throw new Error(
+        `Error, Old password provided does not match existing password for user ID ${userId}`,
+      );
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    existingUser.hashedPassword = hashedNewPassword;
+
+    const updatedUser = await this.userRepo.save(existingUser);
+    if (!updatedUser) {
+      this.logger.error(
+        `Error Saving User When Resetting Password: User: ${existingUser}`,
+      );
+      throw new Error(
+        `Error Saving User When Resetting Password: User: ${existingUser}`,
+      );
+    }
+
+    return updatedUser;
+  }
 
   async assertUserFields(fields: Partial<User>) {
     for (const [field, value] of Object.entries(fields)) {
