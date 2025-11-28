@@ -11,13 +11,15 @@ export class AuthController {
 
   @ApiOperation({ summary: 'Authenticate a user to the application' })
   @Post('login')
-  login(@Body() LoginDto: LoginDto) {
+  login(@Body() LoginDto: LoginDto): Promise<{ access_token: string }> {
     return this.authService.login(LoginDto);
   }
 
   @ApiOperation({ summary: 'Register a user to the application' })
   @Post('register')
-  async register(@Body() dto: UserCreateDto) {
+  async register(
+    @Body() dto: UserCreateDto,
+  ): Promise<{ access_token: string }> {
     return this.authService.register(dto);
   }
 }

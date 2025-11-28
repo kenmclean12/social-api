@@ -15,7 +15,10 @@ export class AuthService {
     this.logger = new Logger(this.constructor.name);
   }
 
-  async login({ email, password }: LoginDto) {
+  async login({
+    email,
+    password,
+  }: LoginDto): Promise<{ access_token: string }> {
     const user = await this.userService.findOneByEmail(email);
     if (!user) {
       this.logger.error(`Login failed, user with email ${email} not found`);
@@ -37,7 +40,7 @@ export class AuthService {
     return { access_token: token };
   }
 
-  async register(dto: UserCreateDto) {
+  async register(dto: UserCreateDto): Promise<{ access_token: string }> {
     const user = await this.userService.create(dto);
     if (!user) {
       this.logger.error(`Registration failed for email ${dto.email}`);
