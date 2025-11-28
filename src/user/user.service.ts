@@ -49,7 +49,7 @@ export class UserService {
   }
 
   async create(dto: UserCreateDto): Promise<User> {
-    await this.assertUniqueUserFields({
+    await this.assertUserFields({
       email: dto.email,
       userName: dto.userName,
       phoneNumber: dto.phoneNumber,
@@ -85,7 +85,7 @@ export class UserService {
     }
 
     await this.checkPasswords(dto.password, existingUser.hashedPassword);
-    await this.assertUniqueUserFields({
+    await this.assertUserFields({
       email: dto.email,
       phoneNumber: dto.phoneNumber,
     });
@@ -137,11 +137,7 @@ export class UserService {
     return userToDelete;
   }
 
-  async assertUniqueUserFields(fields: {
-    email?: string;
-    userName?: string;
-    phoneNumber?: string;
-  }) {
+  async assertUserFields(fields: Partial<User>) {
     for (const [field, value] of Object.entries(fields)) {
       if (value) {
         await assertUnique(
