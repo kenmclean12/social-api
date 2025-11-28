@@ -2,8 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -44,13 +42,4 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   @ApiProperty()
   description?: string;
-
-  @ManyToMany(() => User, (user) => user.following)
-  @JoinTable()
-  @ApiProperty({ type: () => [User] })
-  following: User[];
-
-  @ManyToMany(() => User, (user) => user.followers)
-  @ApiProperty({ type: () => [User] })
-  followers: User[];
 }
