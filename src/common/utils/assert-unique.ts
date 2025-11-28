@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ConflictException, Logger } from '@nestjs/common';
 import { Repository, ObjectLiteral } from 'typeorm';
 

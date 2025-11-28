@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Logger, NotFoundException } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -84,7 +82,6 @@ export class UserService {
       );
     }
 
-    await this.checkPasswords(dto.password, existingUser.hashedPassword);
     await this.assertUserFields({
       email: dto.email,
       phoneNumber: dto.phoneNumber,
@@ -137,6 +134,13 @@ export class UserService {
     return userToDelete;
   }
 
+  // async resetPassword()
+
+  // const passwordMatching = await this.checkPasswords(
+  //   dto.password,
+  //   existingUser.hashedPassword,
+  // );
+
   async assertUserFields(fields: Partial<User>) {
     for (const [field, value] of Object.entries(fields)) {
       if (value) {
@@ -151,7 +155,10 @@ export class UserService {
     }
   }
 
-  async checkPasswords(password?: string, existingPassword?: string) {
+  async checkPasswords(
+    password?: string,
+    existingPassword?: string,
+  ): Promise<boolean> {
     if (password && existingPassword) {
       const duplicatePassword = await bcrypt.compare(
         password,
@@ -159,13 +166,13 @@ export class UserService {
       );
 
       if (duplicatePassword) {
-        this.logger.error(
-          `Error, New password cannot be the same as the old password`,
-        );
-        throw new Error(
-          `Error, New password cannot be the same as the old password`,
-        );
+        return false;
+      } else {
+        return true;
       }
+    } else {
+      this.logger.error('Passwords not provided for comparison');
+      throw new Error('Passwords not provided for comparison');
     }
   }
 }
