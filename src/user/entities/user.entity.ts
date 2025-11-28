@@ -21,6 +21,10 @@ export class User {
   @ApiProperty()
   lastName: string;
 
+  @Column({ type: 'varchar', length: 50, unique: true })
+  @ApiProperty()
+  userName: string;
+
   @Column({ type: 'int' })
   @ApiProperty()
   age: number;

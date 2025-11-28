@@ -23,6 +23,12 @@ export class UserCreateDto {
   lastName: string;
 
   @IsNotEmpty()
+  @IsString()
+  @MaxLength(50)
+  @ApiProperty({ example: 'johnappleseed123' })
+  userName: string;
+
+  @IsNotEmpty()
   @IsNumber()
   @MaxLength(3)
   @ApiProperty({ example: 24 })
