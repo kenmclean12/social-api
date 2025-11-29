@@ -10,7 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { FollowSafeResponseDto } from './dto/follow-safe-response.dto';
+import { SafeFollowDto } from './dto/safe-follow.dto';
 
 @Injectable()
 export class FollowService {
@@ -30,7 +30,7 @@ export class FollowService {
     return follow;
   }
 
-  async findOneWithRelations(id: number): Promise<FollowSafeResponseDto> {
+  async findOneWithRelations(id: number): Promise<SafeFollowDto> {
     const follow = await this.followRepo.findOne({
       where: { id },
       relations: ['follower', 'following'],
@@ -40,12 +40,12 @@ export class FollowService {
       throw new NotFoundException(`Follow record with ID ${id} not found`);
     }
 
-    return plainToInstance(FollowSafeResponseDto, follow, {
+    return plainToInstance(SafeFollowDto, follow, {
       excludeExtraneousValues: true,
-    }) as FollowSafeResponseDto;
+    }) as SafeFollowDto;
   }
 
-  async findFollowingByUserId(id: number): Promise<FollowSafeResponseDto[]> {
+  async findFollowingByUserId(id: number): Promise<SafeFollowDto[]> {
     const following = await this.followRepo.find({
       where: { following: { id } },
       relations: ['follower'],
@@ -57,18 +57,18 @@ export class FollowService {
       );
     }
 
-    const result: FollowSafeResponseDto[] = [];
+    const result: SafeFollowDto[] = [];
     for (const record of following) {
-      const dto = plainToInstance(FollowSafeResponseDto, record, {
+      const dto = plainToInstance(SafeFollowDto, record, {
         excludeExtraneousValues: true,
-      }) as FollowSafeResponseDto;
+      }) as SafeFollowDto;
       result.push(dto);
     }
 
     return result;
   }
 
-  async findFollowersByUserId(id: number): Promise<FollowSafeResponseDto[]> {
+  async findFollowersByUserId(id: number): Promise<SafeFollowDto[]> {
     const followers = await this.followRepo.find({
       where: { follower: { id } },
       relations: ['following'],
@@ -80,11 +80,11 @@ export class FollowService {
       );
     }
 
-    const result: FollowSafeResponseDto[] = [];
+    const result: SafeFollowDto[] = [];
     for (const record of followers) {
-      const dto = plainToInstance(FollowSafeResponseDto, record, {
+      const dto = plainToInstance(SafeFollowDto, record, {
         excludeExtraneousValues: true,
-      }) as FollowSafeResponseDto;
+      }) as SafeFollowDto;
       result.push(dto);
     }
 

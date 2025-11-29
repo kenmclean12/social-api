@@ -15,6 +15,7 @@ import { UserCreateDto } from './dto/user.create.dto';
 import { UserUpdateDto } from './dto/user.update.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { UserWithCountsResponseDto } from './dto/user-with-counts-response.dto';
+import { SafeUserDto } from './dto/safe-user.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -30,43 +31,44 @@ export class UserController {
     return await this.userService.findOneWithFollowCounts(id);
   }
 
-  @ApiOkResponse({ type: User, isArray: true })
+  //DEV ONLY REMOVE
+  @ApiOkResponse({ type: SafeUserDto, isArray: true })
   @ApiOperation({ summary: 'Find Users with Array of User IDs' })
   @Post('by-ids')
   async findByIds(@Body() ids: number[]): Promise<User[]> {
     return await this.userService.findByIds(ids);
   }
 
-  @ApiOkResponse({ type: User, isArray: true })
+  @ApiOkResponse({ type: SafeUserDto, isArray: true })
   @ApiOperation({ summary: 'Find all Users' })
   @Get()
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<SafeUserDto[]> {
     return await this.userService.findAll();
   }
 
-  @ApiOkResponse({ type: User })
+  @ApiOkResponse({ type: SafeUserDto })
   @ApiBody({ type: UserCreateDto })
   @ApiOperation({ summary: 'Create a User' })
   @Post()
-  async create(@Body() dto: UserCreateDto): Promise<User> {
+  async create(@Body() dto: UserCreateDto): Promise<SafeUserDto> {
     return await this.userService.create(dto);
   }
 
-  @ApiOkResponse({ type: User })
+  @ApiOkResponse({ type: SafeUserDto })
   @ApiBody({ type: UserUpdateDto })
   @ApiOperation({ summary: 'Update a Users Information' })
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UserUpdateDto,
-  ): Promise<User> {
+  ): Promise<SafeUserDto> {
     return await this.userService.update(id, dto);
   }
 
-  @ApiOkResponse({ type: User })
+  @ApiOkResponse({ type: SafeUserDto })
   @ApiOperation({ summary: 'Delete a User from the Database' })
   @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number): Promise<User> {
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<SafeUserDto> {
     return await this.userService.delete(id);
   }
 
@@ -74,7 +76,7 @@ export class UserController {
   @ApiBody({ type: PasswordResetDto })
   @ApiOperation({ summary: 'Reset a Users Password' })
   @Post('reset-password')
-  async resetPassword(@Body() dto: PasswordResetDto): Promise<User> {
+  async resetPassword(@Body() dto: PasswordResetDto): Promise<SafeUserDto> {
     return await this.userService.resetPassword(dto);
   }
 }

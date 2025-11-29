@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   forwardRef,
@@ -15,6 +16,8 @@ import { PasswordResetDto } from './dto/password-reset.dto';
 import { assertUnique } from 'src/common/utils';
 import { FollowService } from 'src/follow/follow.service';
 import { UserWithCountsResponseDto } from './dto/user-with-counts-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { SafeUserDto } from './dto/safe-user.dto';
 
 @Injectable()
 export class UserService {
@@ -29,12 +32,6 @@ export class UserService {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return user;
-  }
-
-  async findByIds(ids: number[]): Promise<User[]> {
-    return this.userRepo.find({
-      where: { id: In(ids) },
-    });
   }
 
   async findOneWithFollowCounts(
@@ -57,20 +54,45 @@ export class UserService {
     return result;
   }
 
-  async findOneByEmail(email: string): Promise<User> {
+  async findByIds(ids: number[]): Promise<User[]> {
+    const users = await this.userRepo.find({
+      where: { id: In(ids) },
+    });
+
+    if (!users) {
+      throw new NotFoundException(
+        'Could not fetch users with provided ID Array',
+      );
+    }
+
+    return users;
+  }
+
+  async findOneByEmail(email: string): Promise<SafeUserDto> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
       throw new NotFoundException(`User with Email: ${email} not found`);
     }
 
-    return user;
+    return plainToInstance(SafeUserDto, user) as SafeUserDto;
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepo.find();
+  async findAll(): Promise<SafeUserDto[]> {
+    const users = await this.userRepo.find();
+    if (!users) {
+      throw new Error('Failed to fetch all Users from the database');
+    }
+
+    const resultSet = new Set<SafeUserDto>();
+    for (const user of users) {
+      const safeUser = plainToInstance(SafeUserDto, user) as SafeUserDto;
+      resultSet.add(safeUser);
+    }
+
+    return Array.from(resultSet);
   }
 
-  async create(dto: UserCreateDto): Promise<User> {
+  async create(dto: UserCreateDto): Promise<SafeUserDto> {
     await this.assertUserFields({
       email: dto.email,
       userName: dto.userName,
@@ -78,15 +100,23 @@ export class UserService {
     });
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const { password, ...rest } = dto;
     const userToSave = {
-      ...dto,
+      ...rest,
       hashedPassword,
     };
 
-    return await this.userRepo.save(userToSave);
+    const savedUser = await this.userRepo.save(userToSave);
+    if (!savedUser) {
+      throw new Error(
+        `Could not save User with provided data: ${JSON.stringify(userToSave)}`,
+      );
+    }
+
+    return plainToInstance(SafeUserDto, savedUser) as SafeUserDto;
   }
 
-  async update(id: number, dto: UserUpdateDto): Promise<User> {
+  async update(id: number, dto: UserUpdateDto): Promise<SafeUserDto> {
     const existingUser = await this.findOne(id);
     await this.assertUserFields({
       email: dto.email,
@@ -94,19 +124,28 @@ export class UserService {
     });
 
     const mergedUser = this.userRepo.merge(existingUser, dto);
-    return await this.userRepo.save(mergedUser);
+    const savedUser = await this.userRepo.save(mergedUser);
+    if (!savedUser) {
+      throw new Error(
+        `Could not Update User with provided merged data: ${JSON.stringify(mergedUser)}`,
+      );
+    }
+
+    return plainToInstance(SafeUserDto, savedUser) as SafeUserDto;
   }
 
-  async delete(id: number): Promise<User> {
+  async delete(id: number): Promise<SafeUserDto> {
     const userToDelete = await this.findOne(id);
-    return this.userRepo.remove(userToDelete);
+    await this.userRepo.remove(userToDelete);
+
+    return plainToInstance(SafeUserDto, userToDelete) as SafeUserDto;
   }
 
   async resetPassword({
     userId,
     oldPassword,
     newPassword,
-  }: PasswordResetDto): Promise<User> {
+  }: PasswordResetDto): Promise<SafeUserDto> {
     const existingUser = await this.findOne(userId);
 
     const passwordMatching = await bcrypt.compare(
@@ -123,7 +162,14 @@ export class UserService {
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     existingUser.hashedPassword = hashedNewPassword;
 
-    return await this.userRepo.save(existingUser);
+    const savedUser = await this.userRepo.save(existingUser);
+    if (!savedUser) {
+      throw new Error(
+        `Could not Save User when updating password with provided data: ${JSON.stringify(existingUser)}`,
+      );
+    }
+
+    return plainToInstance(SafeUserDto, savedUser) as SafeUserDto;
   }
 
   async assertUserFields(fields: Partial<User>) {
