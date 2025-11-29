@@ -9,14 +9,15 @@ import {
   Post,
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
-import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Conversation } from './entities/conversation.entity';
 import { ConversationCreateDto } from './dto/conversation.create.dto';
 import { ConversationUpdateDto } from './dto/conversation-update.dto';
 import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { AlterParticipantsDto } from './dto/add-participant.dto';
 
-@Controller()
+@Controller('conversation')
+@ApiTags('Conversations')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
