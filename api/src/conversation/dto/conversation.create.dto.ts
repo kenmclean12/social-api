@@ -14,7 +14,7 @@ export class ConversationCreateDto {
   @IsNumber()
   @Type(() => Number)
   @ApiProperty({ example: 1 })
-  userId: number;
+  initiatorId: number;
 
   @IsArray()
   @ArrayNotEmpty()

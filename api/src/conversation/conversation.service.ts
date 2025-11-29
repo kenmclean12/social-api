@@ -47,18 +47,16 @@ export class ConversationService {
   }
 
   async create(dto: ConversationCreateDto): Promise<Conversation> {
-    const createdConversation = await this.conversationRepo.save(dto);
-
-    const initiatingUser = await this.userService.findOne(dto.userId);
+    const initiatingUser = await this.userService.findOne(dto.initiatorId);
     const participants = await this.userService.findByIds(dto.recipentIds);
-    if (!createdConversation) {
-      throw new NotFoundException(
-        `Could not create conversation with provided data: ${JSON.stringify(dto)}`,
-      );
-    }
 
-    const result = { name: dto.name, initiatingUser, participants };
-    return await this.conversationRepo.save(result);
+    const conversation = this.conversationRepo.create({
+      name: dto.name,
+      initiator: initiatingUser,
+      participants,
+    });
+
+    return await this.conversationRepo.save(conversation);
   }
 
   //Create New Dto
