@@ -1,4 +1,48 @@
-import { OmitType } from '@nestjs/swagger';
-import { User } from '../entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 
-export class SafeUserDto extends OmitType(User, ['hashedPassword']) {}
+export class SafeUserDto {
+  @Expose()
+  @ApiProperty()
+  id: number;
+
+  @Expose()
+  @ApiProperty()
+  firstName: string;
+
+  @Expose()
+  @ApiProperty()
+  lastName: string;
+
+  @Expose()
+  @ApiProperty()
+  userName: string;
+
+  @Expose()
+  @ApiProperty()
+  age: number;
+
+  @Expose()
+  @ApiProperty({ required: false })
+  phoneNumber?: string;
+
+  @Expose()
+  @ApiProperty()
+  email: string;
+
+  @Expose()
+  @ApiProperty({ required: false })
+  description?: string;
+
+  @Expose()
+  @ApiProperty({ required: false })
+  avatarUrl?: string;
+
+  @Expose()
+  @ApiProperty({ type: () => [Object], required: false })
+  following: any[];
+
+  @Expose()
+  @ApiProperty({ type: () => [Object], required: false })
+  followers: any[];
+}

@@ -50,10 +50,9 @@ export class ConversationService {
       );
     }
 
-    return plainToInstance(
-      SafeConversationDto,
-      conversation,
-    ) as SafeConversationDto;
+    return plainToInstance(SafeConversationDto, conversation, {
+      excludeExtraneousValues: true,
+    }) as SafeConversationDto;
   }
 
   async findByUserId(id: number): Promise<SafeConversationDto[]> {
@@ -75,6 +74,9 @@ export class ConversationService {
       const safeConversation = plainToInstance(
         SafeConversationDto,
         conversation,
+        {
+          excludeExtraneousValues: true,
+        },
       ) as SafeConversationDto;
       conversationSet.add(safeConversation);
     }
@@ -95,7 +97,9 @@ export class ConversationService {
     });
 
     const result = await this.conversationRepo.save(conversation);
-    return plainToInstance(SafeConversationDto, result) as SafeConversationDto;
+    return plainToInstance(SafeConversationDto, result, {
+      excludeExtraneousValues: true,
+    }) as SafeConversationDto;
   }
 
   async alterParticipants(
@@ -129,10 +133,9 @@ export class ConversationService {
     );
 
     const savedResult = await this.conversationRepo.save(updatedConversation);
-    return plainToInstance(
-      SafeConversationDto,
-      savedResult,
-    ) as SafeConversationDto;
+    return plainToInstance(SafeConversationDto, savedResult, {
+      excludeExtraneousValues: true,
+    }) as SafeConversationDto;
   }
 
   async update(
@@ -149,7 +152,9 @@ export class ConversationService {
     }
 
     const result = await this.conversationRepo.save(mergedData);
-    return plainToInstance(SafeConversationDto, result) as SafeConversationDto;
+    return plainToInstance(SafeConversationDto, result, {
+      excludeExtraneousValues: true,
+    }) as SafeConversationDto;
   }
 
   async remove({
@@ -166,9 +171,8 @@ export class ConversationService {
       );
     }
 
-    return plainToInstance(
-      SafeConversationDto,
-      existingConversation,
-    ) as SafeConversationDto;
+    return plainToInstance(SafeConversationDto, existingConversation, {
+      excludeExtraneousValues: true,
+    }) as SafeConversationDto;
   }
 }

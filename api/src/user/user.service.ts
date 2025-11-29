@@ -85,7 +85,9 @@ export class UserService {
 
     const resultSet = new Set<SafeUserDto>();
     for (const user of users) {
-      const safeUser = plainToInstance(SafeUserDto, user) as SafeUserDto;
+      const safeUser = plainToInstance(SafeUserDto, user, {
+        excludeExtraneousValues: true,
+      }) as SafeUserDto;
       resultSet.add(safeUser);
     }
 
@@ -113,7 +115,9 @@ export class UserService {
       );
     }
 
-    return plainToInstance(SafeUserDto, savedUser) as SafeUserDto;
+    return plainToInstance(SafeUserDto, savedUser, {
+      excludeExtraneousValues: true,
+    }) as SafeUserDto;
   }
 
   async update(id: number, dto: UserUpdateDto): Promise<SafeUserDto> {
@@ -131,14 +135,18 @@ export class UserService {
       );
     }
 
-    return plainToInstance(SafeUserDto, savedUser) as SafeUserDto;
+    return plainToInstance(SafeUserDto, savedUser, {
+      excludeExtraneousValues: true,
+    }) as SafeUserDto;
   }
 
   async delete(id: number): Promise<SafeUserDto> {
     const userToDelete = await this.findOneInternal(id);
     await this.userRepo.remove(userToDelete);
 
-    return plainToInstance(SafeUserDto, userToDelete) as SafeUserDto;
+    return plainToInstance(SafeUserDto, userToDelete, {
+      excludeExtraneousValues: true,
+    }) as SafeUserDto;
   }
 
   async resetPassword({
@@ -169,7 +177,9 @@ export class UserService {
       );
     }
 
-    return plainToInstance(SafeUserDto, savedUser) as SafeUserDto;
+    return plainToInstance(SafeUserDto, savedUser, {
+      excludeExtraneousValues: true,
+    }) as SafeUserDto;
   }
 
   async assertUserFields(fields: Partial<User>) {
