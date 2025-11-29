@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -33,6 +34,7 @@ export class Message {
   sender: User;
 
   @ManyToMany(() => User, (user) => user.receivedMessages)
+  @JoinTable()
   @ApiProperty({ type: () => [User] })
   recipents: User[];
 }
