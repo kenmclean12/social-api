@@ -6,8 +6,10 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { MessageRead } from './message-read.entity';
 
 @Entity()
 export class Message {
@@ -31,13 +33,8 @@ export class Message {
   @ApiProperty({ type: () => Conversation })
   conversation: Conversation;
 
-  @Column({ type: 'boolean', default: false })
-  @ApiProperty()
-  isRead: boolean;
-
-  @Column({ type: 'timestamp', nullable: true })
-  @ApiProperty()
-  readAt?: Date;
+  @OneToMany(() => MessageRead, (read) => read.message, { cascade: true })
+  reads: MessageRead[];
 
   @Column({ type: 'boolean', default: false })
   @ApiProperty()

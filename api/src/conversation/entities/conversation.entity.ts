@@ -37,8 +37,12 @@ export class Conversation {
   participants: User[];
 
   @OneToMany(() => Message, (message) => message.conversation, {
-    onDelete: 'CASCADE',
+    cascade: true,
   })
   @ApiProperty({ type: () => [Message] })
   messages: Message[];
+
+  @Column({ type: 'boolean' })
+  @ApiProperty({ type: 'boolean' })
+  closed: boolean;
 }
