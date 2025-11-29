@@ -28,9 +28,7 @@ export class UserService {
       relations: [
         'followers',
         'followers.follower',
-        'followers.following',
         'following',
-        'following.follower',
         'following.following',
       ],
     });
