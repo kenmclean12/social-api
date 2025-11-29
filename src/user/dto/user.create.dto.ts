@@ -57,4 +57,10 @@ export class UserCreateDto {
   @MaxLength(500)
   @ApiProperty({ example: 'Just a regular user.' })
   description?: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(255)
+  @ApiProperty({ example: 'http://avatars.com/avatar/123' })
+  avatarUrl?: string;
 }

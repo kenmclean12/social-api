@@ -14,6 +14,7 @@ import {
 import { UserCreateDto } from './dto/user.create.dto';
 import { UserUpdateDto } from './dto/user.update.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
+import { UserSafeResponseDto } from './dto/user-safe-response.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -32,7 +33,7 @@ export class UserController {
   @Get(':id/with-relations')
   async findOneWithRelations(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<User> {
+  ): Promise<UserSafeResponseDto> {
     return await this.userService.findOneWithRelations(id);
   }
 

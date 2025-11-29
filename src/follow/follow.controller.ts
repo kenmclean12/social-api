@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FollowService } from './follow.service';
 import { FollowDto } from './dto/follow.dto';
@@ -10,13 +18,12 @@ export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
   @ApiOkResponse({ type: Follow })
-  @ApiBody({ type: FollowDto })
   @ApiOperation({
-    summary: 'Find a Follow Record by Follower/Following User ID',
+    summary: 'Find a Follow Record by ID',
   })
-  @Get('find')
-  async findFollow(@Body() dto: FollowDto): Promise<Follow> {
-    return await this.followService.findFollow(dto);
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Follow> {
+    return await this.followService.findOne(id);
   }
 
   @ApiOkResponse({ type: Follow })
@@ -25,17 +32,17 @@ export class FollowController {
     summary: 'Create a Follow Record between Follower/Following User ID',
   })
   @Post('create')
-  async createFollow(@Body() dto: FollowDto): Promise<Follow> {
-    return await this.followService.createFollow(dto);
+  async create(@Body() dto: FollowDto): Promise<Follow> {
+    return await this.followService.create(dto);
   }
 
   @ApiOkResponse({ type: Follow })
   @ApiBody({ type: FollowDto })
   @ApiOperation({
-    summary: 'Remove a Follow Record by Follower/Following User ID',
+    summary: 'Remove a Follow Record by ID',
   })
-  @Post('remove')
-  async removeFollow(@Body() dto: FollowDto): Promise<Follow> {
-    return await this.followService.removeFollow(dto);
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<Follow> {
+    return await this.followService.remove(id);
   }
 }

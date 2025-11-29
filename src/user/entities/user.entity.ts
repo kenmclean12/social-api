@@ -40,6 +40,10 @@ export class User {
   @ApiProperty()
   description?: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty()
+  avatarUrl?: string;
+
   @OneToMany(() => Follow, (follow) => follow.follower)
   @ApiProperty({ type: () => [Follow], required: false })
   following: Follow[];

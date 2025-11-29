@@ -12,12 +12,26 @@ export class FollowService {
     private readonly userService: UserService,
   ) {}
 
-  async findFollow({ followerId, followingId }: FollowDto): Promise<Follow> {
+  async findOne(id: number): Promise<Follow> {
+    const follow = await this.followRepo.findOne({
+      where: { id },
+      relations: ['follower', 'following'],
+    });
+
+    if (!follow) {
+      throw new NotFoundException(`Follow record with ID ${id} not found`);
+    }
+
+    return follow;
+  }
+
+  async findByIds({ followerId, followingId }: FollowDto): Promise<Follow> {
     const follower = await this.userService.findOne(followerId);
     const following = await this.userService.findOne(followingId);
 
     const follow = await this.followRepo.findOne({
       where: { follower: { id: follower.id }, following: { id: following.id } },
+      relations: ['follower', 'following'],
     });
 
     if (!follow) {
@@ -29,14 +43,14 @@ export class FollowService {
     return follow;
   }
 
-  async createFollow({ followerId, followingId }: FollowDto): Promise<Follow> {
+  async create({ followerId, followingId }: FollowDto): Promise<Follow> {
     const follower = await this.userService.findOne(followerId);
     const following = await this.userService.findOne(followingId);
     return await this.followRepo.save({ follower, following });
   }
 
-  async removeFollow({ followerId, followingId }: FollowDto): Promise<Follow> {
-    const follow = await this.findFollow({ followerId, followingId });
+  async remove(id: number): Promise<Follow> {
+    const follow = await this.findOne(id);
     return await this.followRepo.remove(follow);
   }
 }

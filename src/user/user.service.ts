@@ -7,6 +7,8 @@ import { UserUpdateDto } from './dto/user.update.dto';
 import * as bcrypt from 'bcrypt';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { assertUnique } from 'src/common/utils';
+import { plainToInstance } from 'class-transformer';
+import { UserSafeResponseDto } from './dto/user-safe-response.dto';
 
 export class UserService {
   constructor(
@@ -20,13 +22,23 @@ export class UserService {
     return user;
   }
 
-  async findOneWithRelations(id: number): Promise<User> {
+  async findOneWithRelations(id: number): Promise<UserSafeResponseDto> {
     const user = await this.userRepo.findOne({
       where: { id },
-      relations: ['followers', 'following'],
+      relations: [
+        'followers',
+        'followers.follower',
+        'followers.following',
+        'following',
+        'following.follower',
+        'following.following',
+      ],
     });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return user;
+
+    return plainToInstance(UserSafeResponseDto, user, {
+      excludeExtraneousValues: true,
+    }) as UserSafeResponseDto;
   }
 
   async findOneByEmail(email: string): Promise<User> {
