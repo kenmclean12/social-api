@@ -3,14 +3,21 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FollowDto } from './dto/follow.dto';
 import { UserService } from 'src/user/user.service';
-import { NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { FollowSafeResponseDto } from './dto/follow-safe-response.dto';
 
+@Injectable()
 export class FollowService {
   constructor(
     @InjectRepository(Follow)
     private readonly followRepo: Repository<Follow>,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
 

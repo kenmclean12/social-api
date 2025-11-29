@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,10 +10,12 @@ import { assertUnique } from 'src/common/utils';
 import { FollowService } from 'src/follow/follow.service';
 import { UserWithCountsResponseDto } from './dto/user-with-counts-response.dto';
 
+@Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @Inject(forwardRef(() => FollowService))
     private readonly followService: FollowService,
   ) {}
 

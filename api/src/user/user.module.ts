@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
@@ -10,7 +10,7 @@ import { FollowModule } from 'src/follow/follow.module';
   imports: [
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Message]),
-    FollowModule,
+    forwardRef(() => FollowModule),
   ],
   controllers: [UserController],
   providers: [UserService],
