@@ -1,13 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Follow } from 'src/follow/entities/follow.entity';
-import { Message } from 'src/message/entities/message.entity';
-import {
-  Column,
-  Entity,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -58,12 +51,4 @@ export class User {
   @OneToMany(() => Follow, (follow) => follow.following)
   @ApiProperty({ type: () => [Follow], required: false })
   followers: Follow[];
-
-  @OneToMany(() => Message, (message) => message.sender)
-  @ApiProperty({ type: () => [Message], required: false })
-  sentMessages: Message[];
-
-  @ManyToMany(() => Message, (message) => message.recipents)
-  @ApiProperty({ type: () => [Message], required: false })
-  receivedMessages: Message[];
 }

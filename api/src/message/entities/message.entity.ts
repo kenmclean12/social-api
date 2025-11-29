@@ -1,12 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Reaction } from 'src/common/types';
-import { User } from 'src/user/entities/user.entity';
+import { Conversation } from 'src/conversation/entities/conversation.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -29,14 +27,9 @@ export class Message {
   @ApiProperty()
   reactions: Reaction[];
 
-  @ManyToOne(() => User, (user) => user.sentMessages)
-  @ApiProperty({ type: () => User })
-  sender: User;
-
-  @ManyToMany(() => User, (user) => user.receivedMessages)
-  @JoinTable()
-  @ApiProperty({ type: () => [User] })
-  recipents: User[];
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
+  @ApiProperty({ type: () => Conversation })
+  conversation: Conversation;
 
   @Column({ type: 'boolean', default: false })
   @ApiProperty()
