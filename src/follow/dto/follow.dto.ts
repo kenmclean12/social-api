@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export type FollowAction = 'follow' | 'unfollow';
 
@@ -13,9 +13,4 @@ export class FollowDto {
   @IsNotEmpty()
   @IsNumber()
   followingId: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  action: FollowAction;
 }
