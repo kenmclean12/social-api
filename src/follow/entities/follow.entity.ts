@@ -18,10 +18,10 @@ export class Follow {
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.following, { onDelete: 'CASCADE' })
-  @ApiProperty()
+  @ApiProperty({ type: () => User })
   follower: User;
 
   @ManyToOne(() => User, (user) => user.followers, { onDelete: 'CASCADE' })
-  @ApiProperty()
+  @ApiProperty({ type: () => User })
   following: User;
 }
