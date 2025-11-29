@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -62,7 +62,7 @@ export class UserService {
 
   async delete(id: string): Promise<User> {
     const userToDelete = await this.findOne(id);
-    await this.userRepo.delete(Number(id));
+    await this.userRepo.remove(userToDelete);
     return userToDelete;
   }
 
@@ -79,8 +79,8 @@ export class UserService {
     );
 
     if (!passwordMatching) {
-      throw new Error(
-        `Error, Old password provided does not match existing password for user ID ${userId}`,
+      throw new BadRequestException(
+        `Old password provided does not match existing password for user ID ${userId}`,
       );
     }
 
@@ -102,19 +102,10 @@ export class UserService {
     password?: string,
     existingPassword?: string,
   ): Promise<boolean> {
-    if (password && existingPassword) {
-      const duplicatePassword = await bcrypt.compare(
-        password,
-        existingPassword,
-      );
-
-      if (duplicatePassword) {
-        return false;
-      } else {
-        return true;
-      }
-    } else {
+    if (!password || !existingPassword) {
       throw new Error('Passwords not provided for comparison');
     }
+
+    return !(await bcrypt.compare(password, existingPassword));
   }
 }
