@@ -18,7 +18,7 @@ import { FollowSafeResponseDto } from './dto/follow-safe-response.dto';
 export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
-  @ApiOkResponse({ type: Follow })
+  @ApiOkResponse({ type: FollowSafeResponseDto })
   @ApiOperation({
     summary: 'Find a Follow Record by ID',
   })

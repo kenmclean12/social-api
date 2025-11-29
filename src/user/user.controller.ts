@@ -28,7 +28,7 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
-  @ApiOkResponse({ type: User })
+  @ApiOkResponse({ type: UserSafeResponseDto })
   @ApiOperation({ summary: 'Find a User with Relations Included by User ID' })
   @Get(':id/with-relations')
   async findOneWithRelations(
