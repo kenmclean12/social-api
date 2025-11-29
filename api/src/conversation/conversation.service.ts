@@ -12,6 +12,8 @@ import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { UserService } from 'src/user/user.service';
 import { AlterParticipantsDto } from './dto/add-participant.dto';
 import { User } from 'src/user/entities/user.entity';
+import { SafeConversationDto } from './dto/safe-conversation.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ConversationService {
@@ -21,7 +23,7 @@ export class ConversationService {
     private readonly userService: UserService,
   ) {}
 
-  async findOne(id: number): Promise<Conversation> {
+  async findOneInternal(id: number): Promise<Conversation> {
     const conversation = await this.conversationRepo.findOne({
       where: { id },
       relations: ['messages'],
@@ -36,7 +38,25 @@ export class ConversationService {
     return conversation;
   }
 
-  async findByUserId(id: number): Promise<Conversation[]> {
+  async findOne(id: number): Promise<SafeConversationDto> {
+    const conversation = await this.conversationRepo.findOne({
+      where: { id },
+      relations: ['messages'],
+    });
+
+    if (!conversation) {
+      throw new NotFoundException(
+        `No Conversation Found with Provided ID: ${id}`,
+      );
+    }
+
+    return plainToInstance(
+      SafeConversationDto,
+      conversation,
+    ) as SafeConversationDto;
+  }
+
+  async findByUserId(id: number): Promise<SafeConversationDto[]> {
     const initiatedConversations = await this.conversationRepo.find({
       where: { initiator: { id } },
     });
@@ -45,10 +65,24 @@ export class ConversationService {
       where: { participants: { id } },
     });
 
-    return [...initiatedConversations, ...participatingConversations];
+    const mergedConversations = [
+      ...initiatedConversations,
+      ...participatingConversations,
+    ];
+
+    const conversationSet = new Set<SafeConversationDto>();
+    for (const conversation of mergedConversations) {
+      const safeConversation = plainToInstance(
+        SafeConversationDto,
+        conversation,
+      ) as SafeConversationDto;
+      conversationSet.add(safeConversation);
+    }
+
+    return Array.from(conversationSet);
   }
 
-  async create(dto: ConversationCreateDto): Promise<Conversation> {
+  async create(dto: ConversationCreateDto): Promise<SafeConversationDto> {
     const initiatingUser = await this.userService.findOne(dto.initiatorId);
     const participants = await this.userService.findByIds(dto.recipentIds);
 
@@ -58,16 +92,17 @@ export class ConversationService {
       participants,
     });
 
-    return await this.conversationRepo.save(conversation);
+    const result = await this.conversationRepo.save(conversation);
+    return plainToInstance(SafeConversationDto, result) as SafeConversationDto;
   }
 
   async alterParticipants(
     id: number,
     dto: AlterParticipantsDto,
-  ): Promise<Conversation> {
+  ): Promise<SafeConversationDto> {
     await this.userService.findOne(dto.initiatorId);
 
-    const existingConversation = await this.findOne(id);
+    const existingConversation = await this.findOneInternal(id);
     if (existingConversation.initiator.id !== dto.initiatorId) {
       throw new UnauthorizedException(
         'Only the initiating user can modify participants.',
@@ -91,11 +126,18 @@ export class ConversationService {
       { participants: updatedParticipantsArray },
     );
 
-    return await this.conversationRepo.save(updatedConversation);
+    const savedResult = await this.conversationRepo.save(updatedConversation);
+    return plainToInstance(
+      SafeConversationDto,
+      savedResult,
+    ) as SafeConversationDto;
   }
 
-  async update(id: number, dto: ConversationUpdateDto): Promise<Conversation> {
-    const existingConversation = await this.findOne(id);
+  async update(
+    id: number,
+    dto: ConversationUpdateDto,
+  ): Promise<SafeConversationDto> {
+    const existingConversation = await this.findOneInternal(id);
 
     const mergedData = this.conversationRepo.merge(existingConversation, dto);
     if (!mergedData) {
@@ -104,14 +146,16 @@ export class ConversationService {
       );
     }
 
-    return await this.conversationRepo.save(mergedData);
+    const result = await this.conversationRepo.save(mergedData);
+    return plainToInstance(SafeConversationDto, result) as SafeConversationDto;
   }
 
   async remove({
     id,
     initiatorId,
-  }: ConversationRemoveDto): Promise<Conversation> {
-    const existingConversation = await this.findOne(id);
+  }: ConversationRemoveDto): Promise<SafeConversationDto> {
+    const existingConversation = await this.findOneInternal(id);
+
     if (existingConversation.initiator.id === initiatorId) {
       await this.conversationRepo.remove(existingConversation);
     } else {
@@ -120,6 +164,9 @@ export class ConversationService {
       );
     }
 
-    return existingConversation;
+    return plainToInstance(
+      SafeConversationDto,
+      existingConversation,
+    ) as SafeConversationDto;
   }
 }
