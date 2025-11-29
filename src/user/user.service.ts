@@ -115,15 +115,4 @@ export class UserService {
       }
     }
   }
-
-  async checkPasswords(
-    password?: string,
-    existingPassword?: string,
-  ): Promise<boolean> {
-    if (!password || !existingPassword) {
-      throw new Error('Passwords not provided for comparison');
-    }
-
-    return !(await bcrypt.compare(password, existingPassword));
-  }
 }
