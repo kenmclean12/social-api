@@ -1,7 +1,19 @@
-import { Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ConversationService } from './conversation.service';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { Conversation } from './entities/conversation.entity';
+import { ConversationCreateDto } from './dto/conversation.create.dto';
+import { ConversationUpdateDto } from './dto/conversation-update.dto';
+import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 
 @Controller()
 export class ConversationController {
@@ -10,17 +22,48 @@ export class ConversationController {
   @ApiOkResponse({ type: Conversation })
   @ApiOperation({ summary: 'Get a conversation by ID' })
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Conversation>  {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Conversation> {
     return await this.conversationService.findOne(id);
+  }
+
+  @ApiOkResponse({ type: Conversation, isArray: true })
+  @ApiOperation({
+    summary:
+      'Get all conversations a particular user is involved in by User ID',
+  })
+  @Get('conversations/:id')
+  async findByUserId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Conversation[]> {
+    return await this.conversationService.findByUserId(id);
   }
 
   @ApiOkResponse({ type: Conversation })
-  @ApiOperation({ summary: 'Get a conversation by ID' })
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Conversation>  {
-    return await this.conversationService.findOne(id);
+  @ApiBody({ type: ConversationCreateDto })
+  @ApiOperation({ summary: 'Create a Conversation' })
+  @Post()
+  async create(@Body() dto: ConversationCreateDto): Promise<Conversation> {
+    return await this.conversationService.create(dto);
   }
 
-  @Post()
-  
+  @ApiOkResponse({ type: Conversation })
+  @ApiBody({ type: ConversationUpdateDto })
+  @ApiOperation({ summary: 'Update Conversation Info by Conversation ID' })
+  @Patch(':id')
+  async update(
+    @Body() dto: ConversationUpdateDto,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Conversation> {
+    return await this.conversationService.update(id, dto);
+  }
+
+  @ApiOkResponse({ type: Conversation })
+  @ApiBody({ type: ConversationRemoveDto })
+  @ApiOperation({
+    summary: 'Remove Conversation by Conversation ID and Initiator User ID',
+  })
+  @Delete(':id')
+  async remove(@Body() dto: ConversationRemoveDto): Promise<Conversation> {
+    return await this.conversationService.remove(dto);
+  }
 }

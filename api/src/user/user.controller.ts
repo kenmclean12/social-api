@@ -31,6 +31,13 @@ export class UserController {
   }
 
   @ApiOkResponse({ type: User, isArray: true })
+  @ApiOperation({ summary: 'Find Users with Array of User IDs' })
+  @Post('by-ids')
+  async findByIds(@Body() ids: number[]): Promise<User[]> {
+    return await this.userService.findByIds(ids);
+  }
+
+  @ApiOkResponse({ type: User, isArray: true })
   @ApiOperation({ summary: 'Find all Users' })
   @Get()
   async findAll(): Promise<User[]> {
