@@ -28,7 +28,7 @@ export class UserService {
     private readonly followService: FollowService,
   ) {}
 
-  async findOne(id: number): Promise<User> {
+  async findOneInternal(id: number): Promise<User> {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return user;
@@ -68,13 +68,13 @@ export class UserService {
     return users;
   }
 
-  async findOneByEmail(email: string): Promise<SafeUserDto> {
+  async findOneByEmailInternal(email: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
       throw new NotFoundException(`User with Email: ${email} not found`);
     }
 
-    return plainToInstance(SafeUserDto, user) as SafeUserDto;
+    return user;
   }
 
   async findAll(): Promise<SafeUserDto[]> {
@@ -117,7 +117,7 @@ export class UserService {
   }
 
   async update(id: number, dto: UserUpdateDto): Promise<SafeUserDto> {
-    const existingUser = await this.findOne(id);
+    const existingUser = await this.findOneInternal(id);
     await this.assertUserFields({
       email: dto.email,
       phoneNumber: dto.phoneNumber,
@@ -135,7 +135,7 @@ export class UserService {
   }
 
   async delete(id: number): Promise<SafeUserDto> {
-    const userToDelete = await this.findOne(id);
+    const userToDelete = await this.findOneInternal(id);
     await this.userRepo.remove(userToDelete);
 
     return plainToInstance(SafeUserDto, userToDelete) as SafeUserDto;
@@ -146,7 +146,7 @@ export class UserService {
     oldPassword,
     newPassword,
   }: PasswordResetDto): Promise<SafeUserDto> {
-    const existingUser = await this.findOne(userId);
+    const existingUser = await this.findOneInternal(userId);
 
     const passwordMatching = await bcrypt.compare(
       oldPassword,

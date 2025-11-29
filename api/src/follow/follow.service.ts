@@ -92,8 +92,8 @@ export class FollowService {
   }
 
   async create({ followerId, followingId }: FollowDto): Promise<Follow> {
-    const follower = await this.userService.findOne(followerId);
-    const following = await this.userService.findOne(followingId);
+    const follower = await this.userService.findOneInternal(followerId);
+    const following = await this.userService.findOneInternal(followingId);
     return await this.followRepo.save({ follower, following });
   }
 

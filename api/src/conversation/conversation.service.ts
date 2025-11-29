@@ -83,7 +83,9 @@ export class ConversationService {
   }
 
   async create(dto: ConversationCreateDto): Promise<SafeConversationDto> {
-    const initiatingUser = await this.userService.findOne(dto.initiatorId);
+    const initiatingUser = await this.userService.findOneInternal(
+      dto.initiatorId,
+    );
     const participants = await this.userService.findByIds(dto.recipentIds);
 
     const conversation = this.conversationRepo.create({
@@ -100,7 +102,7 @@ export class ConversationService {
     id: number,
     dto: AlterParticipantsDto,
   ): Promise<SafeConversationDto> {
-    await this.userService.findOne(dto.initiatorId);
+    await this.userService.findOneInternal(dto.initiatorId);
 
     const existingConversation = await this.findOneInternal(id);
     if (existingConversation.initiator.id !== dto.initiatorId) {

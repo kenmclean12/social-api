@@ -16,7 +16,7 @@ export class AuthService {
     email,
     password,
   }: LoginDto): Promise<{ access_token: string }> {
-    const user = await this.userService.findOneByEmail(email);
+    const user = await this.userService.findOneByEmailInternal(email);
 
     const passwordMatching = bcrypt.compareSync(password, user.hashedPassword);
     if (!passwordMatching) {
