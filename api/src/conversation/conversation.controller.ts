@@ -17,7 +17,7 @@ import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { AlterParticipantsDto } from './dto/add-participant.dto';
 
 @Controller('conversation')
-@ApiTags('Conversations')
+@ApiTags('Conversation')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
