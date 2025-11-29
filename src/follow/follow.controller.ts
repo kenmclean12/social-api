@@ -40,7 +40,6 @@ export class FollowController {
   }
 
   @ApiOkResponse({ type: Follow })
-  @ApiBody({ type: FollowDto })
   @ApiOperation({
     summary: 'Remove a Follow Record by ID',
   })
