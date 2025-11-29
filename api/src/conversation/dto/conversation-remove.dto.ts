@@ -13,5 +13,5 @@ export class ConversationRemoveDto {
   @IsNumber()
   @Type(() => Number)
   @ApiProperty()
-  userId: number;
+  initiatorId: number;
 }

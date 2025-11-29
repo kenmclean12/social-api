@@ -76,13 +76,16 @@ export class ConversationService {
     return await this.conversationRepo.save(mergedData);
   }
 
-  async remove({ id, userId }: ConversationRemoveDto): Promise<Conversation> {
+  async remove({
+    id,
+    initiatorId,
+  }: ConversationRemoveDto): Promise<Conversation> {
     const existingConversation = await this.findOne(id);
-    if (existingConversation.initiator.id === userId) {
+    if (existingConversation.initiator.id === initiatorId) {
       await this.conversationRepo.remove(existingConversation);
     } else {
       throw new UnauthorizedException(
-        `Only the initiating User can remove the conversation from the database, Initiator ID: ${existingConversation.initiator.id}, Provided User ID: ${userId}`,
+        `Only the initiating User can remove the conversation from the database, Initiator ID: ${existingConversation.initiator.id}, Provided User ID: ${initiatorId}`,
       );
     }
 

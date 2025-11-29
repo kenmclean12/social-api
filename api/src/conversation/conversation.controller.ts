@@ -62,7 +62,7 @@ export class ConversationController {
   @ApiOperation({
     summary: 'Remove Conversation by Conversation ID and Initiator User ID',
   })
-  @Delete(':id')
+  @Delete()
   async remove(@Body() dto: ConversationRemoveDto): Promise<Conversation> {
     return await this.conversationService.remove(dto);
   }
