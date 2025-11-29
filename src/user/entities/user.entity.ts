@@ -24,7 +24,7 @@ export class User {
   @ApiProperty()
   age: number;
 
-  @Column({ type: 'varchar', length: 11, unique: true, nullable: true })
+  @Column({ type: 'varchar', unique: true, nullable: true })
   @ApiProperty()
   phoneNumber?: string;
 
