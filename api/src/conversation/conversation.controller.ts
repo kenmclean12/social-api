@@ -14,6 +14,7 @@ import { Conversation } from './entities/conversation.entity';
 import { ConversationCreateDto } from './dto/conversation.create.dto';
 import { ConversationUpdateDto } from './dto/conversation-update.dto';
 import { ConversationRemoveDto } from './dto/conversation-remove.dto';
+import { AlterParticipantsDto } from './dto/add-participant.dto';
 
 @Controller()
 export class ConversationController {
@@ -44,6 +45,32 @@ export class ConversationController {
   @Post()
   async create(@Body() dto: ConversationCreateDto): Promise<Conversation> {
     return await this.conversationService.create(dto);
+  }
+
+  @ApiOkResponse({ type: Conversation })
+  @ApiBody({ type: ConversationCreateDto })
+  @ApiOperation({
+    summary: 'Add participants to a Conversation by Conversation ID',
+  })
+  @Post('add-participants/:id')
+  async addParticipants(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AlterParticipantsDto,
+  ): Promise<Conversation> {
+    return await this.conversationService.alterParticipants(id, dto);
+  }
+
+  @ApiOkResponse({ type: Conversation })
+  @ApiBody({ type: ConversationCreateDto })
+  @ApiOperation({
+    summary: 'Remove participants from a Conversation by Conversation ID',
+  })
+  @Post('remove-participants/:id')
+  async removeParticipants(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AlterParticipantsDto,
+  ): Promise<Conversation> {
+    return await this.conversationService.alterParticipants(id, dto);
   }
 
   @ApiOkResponse({ type: Conversation })

@@ -10,6 +10,8 @@ import { ConversationCreateDto } from './dto/conversation.create.dto';
 import { ConversationUpdateDto } from './dto/conversation-update.dto';
 import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { UserService } from 'src/user/user.service';
+import { AlterParticipantsDto } from './dto/add-participant.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ConversationService {
@@ -59,9 +61,38 @@ export class ConversationService {
     return await this.conversationRepo.save(conversation);
   }
 
-  //Create New Dto
-  //Add Participant
-  //Remove Participant
+  async alterParticipants(
+    id: number,
+    dto: AlterParticipantsDto,
+  ): Promise<Conversation> {
+    await this.userService.findOne(dto.initiatorId);
+
+    const existingConversation = await this.findOne(id);
+    if (existingConversation.initiator.id !== dto.initiatorId) {
+      throw new UnauthorizedException(
+        'Only the initiating user can modify participants.',
+      );
+    }
+
+    const dtoUsers = await this.userService.findByIds(dto.recipentIds);
+    const participantSet = new Set<User>(existingConversation.participants);
+
+    for (const user of dtoUsers) {
+      if (dto.alterType === 'add') {
+        participantSet.add(user);
+      } else {
+        participantSet.delete(user);
+      }
+    }
+
+    const updatedParticipantsArray = Array.from(participantSet);
+    const updatedConversation = this.conversationRepo.merge(
+      existingConversation,
+      { participants: updatedParticipantsArray },
+    );
+
+    return await this.conversationRepo.save(updatedConversation);
+  }
 
   async update(id: number, dto: ConversationUpdateDto): Promise<Conversation> {
     const existingConversation = await this.findOne(id);
