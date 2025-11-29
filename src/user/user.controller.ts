@@ -27,6 +27,15 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
+  @ApiOkResponse({ type: User })
+  @ApiOperation({ summary: 'Find a User with Relations Included by User ID' })
+  @Get(':id/with-relations')
+  async findOneWithRelations(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<User> {
+    return await this.userService.findOneWithRelations(id);
+  }
+
   @ApiOkResponse({ type: User, isArray: true })
   @ApiOperation({ summary: 'Find all Users' })
   @Get()

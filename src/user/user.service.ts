@@ -20,6 +20,15 @@ export class UserService {
     return user;
   }
 
+  async findOneWithRelations(id: number): Promise<User> {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['followers', 'following'],
+    });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
   async findOneByEmail(email: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
