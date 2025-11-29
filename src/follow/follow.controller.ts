@@ -11,6 +11,7 @@ import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FollowService } from './follow.service';
 import { FollowDto } from './dto/follow.dto';
 import { Follow } from './entities/follow.entity';
+import { FollowSafeResponseDto } from './dto/follow-safe-response.dto';
 
 @Controller('follow')
 @ApiTags('Follow')
@@ -22,8 +23,10 @@ export class FollowController {
     summary: 'Find a Follow Record by ID',
   })
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Follow> {
-    return await this.followService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<FollowSafeResponseDto> {
+    return await this.followService.findOneWithRelations(id);
   }
 
   @ApiOkResponse({ type: Follow })

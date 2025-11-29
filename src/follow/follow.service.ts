@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FollowDto } from './dto/follow.dto';
 import { UserService } from 'src/user/user.service';
 import { NotFoundException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { FollowSafeResponseDto } from './dto/follow-safe-response.dto';
 
 export class FollowService {
   constructor(
@@ -13,6 +15,15 @@ export class FollowService {
   ) {}
 
   async findOne(id: number): Promise<Follow> {
+    const follow = await this.followRepo.findOne({ where: { id } });
+    if (!follow) {
+      throw new NotFoundException(`Follow record with ID ${id} not found`);
+    }
+
+    return follow;
+  }
+
+  async findOneWithRelations(id: number): Promise<FollowSafeResponseDto> {
     const follow = await this.followRepo.findOne({
       where: { id },
       relations: ['follower', 'following'],
@@ -22,25 +33,9 @@ export class FollowService {
       throw new NotFoundException(`Follow record with ID ${id} not found`);
     }
 
-    return follow;
-  }
-
-  async findByIds({ followerId, followingId }: FollowDto): Promise<Follow> {
-    const follower = await this.userService.findOne(followerId);
-    const following = await this.userService.findOne(followingId);
-
-    const follow = await this.followRepo.findOne({
-      where: { follower: { id: follower.id }, following: { id: following.id } },
-      relations: ['follower', 'following'],
-    });
-
-    if (!follow) {
-      throw new NotFoundException(
-        `Follow relationship not found between follower ID ${followerId} and following ID ${followingId}`,
-      );
-    }
-
-    return follow;
+    return plainToInstance(FollowSafeResponseDto, follow, {
+      excludeExtraneousValues: true,
+    }) as FollowSafeResponseDto;
   }
 
   async create({ followerId, followingId }: FollowDto): Promise<Follow> {

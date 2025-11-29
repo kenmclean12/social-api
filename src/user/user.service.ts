@@ -81,8 +81,7 @@ export class UserService {
 
   async delete(id: number): Promise<User> {
     const userToDelete = await this.findOne(id);
-    await this.userRepo.remove(userToDelete);
-    return userToDelete;
+    return this.userRepo.remove(userToDelete);
   }
 
   async resetPassword({
