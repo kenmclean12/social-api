@@ -37,4 +37,24 @@ export class Message {
   @JoinTable()
   @ApiProperty({ type: () => [User] })
   recipents: User[];
+
+  @Column({ type: 'boolean', default: false })
+  @ApiProperty()
+  isRead: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  @ApiProperty()
+  readAt?: Date;
+
+  @Column({ type: 'boolean', default: false })
+  @ApiProperty()
+  isEdited: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  @ApiProperty()
+  editedAt?: Date;
+
+  @Column({ type: 'boolean', default: false })
+  @ApiProperty()
+  isDeleted: boolean;
 }
