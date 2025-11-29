@@ -1,4 +1,4 @@
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
 import {
@@ -7,6 +7,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -22,7 +23,7 @@ export class UserController {
   @ApiOkResponse({ type: User })
   @ApiOperation({ summary: 'Find a User by User ID' })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<User> {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return await this.userService.findOne(id);
   }
 
@@ -34,6 +35,7 @@ export class UserController {
   }
 
   @ApiOkResponse({ type: User })
+  @ApiBody({ type: UserCreateDto })
   @ApiOperation({ summary: 'Create a User' })
   @Post()
   async create(@Body() dto: UserCreateDto): Promise<User> {
@@ -41,10 +43,11 @@ export class UserController {
   }
 
   @ApiOkResponse({ type: User })
+  @ApiBody({ type: UserUpdateDto })
   @ApiOperation({ summary: 'Update a Users Information' })
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UserUpdateDto,
   ): Promise<User> {
     return await this.userService.update(id, dto);
@@ -53,11 +56,12 @@ export class UserController {
   @ApiOkResponse({ type: User })
   @ApiOperation({ summary: 'Delete a User from the Database' })
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<User> {
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return await this.userService.delete(id);
   }
 
   @ApiOkResponse({ type: User })
+  @ApiBody({ type: PasswordResetDto })
   @ApiOperation({ summary: 'Reset a Users Password' })
   @Post('reset-password')
   async resetPassword(@Body() dto: PasswordResetDto): Promise<User> {

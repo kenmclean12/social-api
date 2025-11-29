@@ -14,8 +14,8 @@ export class UserService {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  async findOne(id: string): Promise<User> {
-    const user = await this.userRepo.findOne({ where: { id: Number(id) } });
+  async findOne(id: number): Promise<User> {
+    const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return user;
   }
@@ -49,7 +49,7 @@ export class UserService {
     return await this.userRepo.save(userToSave);
   }
 
-  async update(id: string, dto: UserUpdateDto): Promise<User> {
+  async update(id: number, dto: UserUpdateDto): Promise<User> {
     const existingUser = await this.findOne(id);
     await this.assertUserFields({
       email: dto.email,
@@ -60,7 +60,7 @@ export class UserService {
     return await this.userRepo.save(mergedUser);
   }
 
-  async delete(id: string): Promise<User> {
+  async delete(id: number): Promise<User> {
     const userToDelete = await this.findOne(id);
     await this.userRepo.remove(userToDelete);
     return userToDelete;
@@ -71,7 +71,7 @@ export class UserService {
     oldPassword,
     newPassword,
   }: PasswordResetDto): Promise<User> {
-    const existingUser = await this.findOne(String(userId));
+    const existingUser = await this.findOne(userId);
 
     const passwordMatching = await bcrypt.compare(
       oldPassword,
