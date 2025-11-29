@@ -57,7 +57,7 @@ export class User {
   @ApiProperty({ type: () => [Message], required: false })
   sentMessages: Message[];
 
-  @OneToMany(() => Message, (message) => message.recipent)
+  @OneToMany(() => Message, (message) => message.recipents)
   @ApiProperty({ type: () => [Message], required: false })
   receivedMessages: Message[];
 }

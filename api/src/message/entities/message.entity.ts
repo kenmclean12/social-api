@@ -1,9 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Reaction } from 'src/common/types';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -22,11 +24,15 @@ export class Message {
   @ApiProperty()
   content: string;
 
+  @Column('jsonb', { default: [] })
+  @ApiProperty()
+  reactions: Reaction[];
+
   @ManyToOne(() => User, (user) => user.sentMessages)
   @ApiProperty({ type: () => User })
   sender: User;
 
-  @ManyToOne(() => User, (user) => user.receivedMessages)
-  @ApiProperty({ type: () => User })
-  recipent: User;
+  @ManyToMany(() => User, (user) => user.receivedMessages)
+  @ApiProperty({ type: () => [User] })
+  recipents: User[];
 }
