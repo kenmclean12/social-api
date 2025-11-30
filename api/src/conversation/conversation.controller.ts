@@ -15,6 +15,8 @@ import { ConversationUpdateDto } from './dto/conversation-update.dto';
 import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { AlterParticipantsDto } from './dto/add-participant.dto';
 import { SafeConversationDto } from './dto/safe-conversation.dto';
+import { InitiateConversationRequestDto } from './dto/initiate-conversation.dto';
+import { InitiateConversationResponseDto } from './dto/initiate-conversation-response.dto';
 
 @Controller('conversation')
 @ApiTags('Conversation')
@@ -52,7 +54,15 @@ export class ConversationController {
     return await this.conversationService.create(dto);
   }
 
-  //Add Initiate Conversation, Conversation/Message Create Combo
+  @ApiOkResponse({ type: SafeConversationDto })
+  @ApiBody({ type: InitiateConversationRequestDto })
+  @ApiOperation({ summary: 'Initiate a Conversation / Send the First Message' })
+  @Post('initiate')
+  async initiateConversation(
+    @Body() dto: InitiateConversationRequestDto,
+  ): Promise<InitiateConversationResponseDto> {
+    return await this.conversationService.initiateConversation(dto);
+  }
 
   @ApiOkResponse({ type: SafeConversationDto })
   @ApiBody({ type: AlterParticipantsDto })
