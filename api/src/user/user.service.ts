@@ -9,15 +9,17 @@ import {
 import { User } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserCreateDto } from './dto/user.create.dto';
-import { UserUpdateDto } from './dto/user.update.dto';
 import * as bcrypt from 'bcrypt';
-import { PasswordResetDto } from './dto/password-reset.dto';
 import { assertUnique } from 'src/common/utils';
 import { FollowService } from 'src/follow/follow.service';
-import { UserWithCountsResponseDto } from './dto/user-with-counts-response.dto';
 import { plainToInstance } from 'class-transformer';
-import { SafeUserDto } from './dto/safe-user.dto';
+import {
+  PasswordResetDto,
+  SafeUserDto,
+  UserCreateDto,
+  UserUpdateDto,
+  UserWithCountsResponseDto,
+} from './dto';
 
 @Injectable()
 export class UserService {

@@ -9,8 +9,8 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Message } from 'src/message/entities/message.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Message } from 'src/message/entities';
 
 @Entity()
 export class Conversation {

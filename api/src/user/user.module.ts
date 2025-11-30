@@ -4,7 +4,7 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { User } from './entities/user.entity';
 import { FollowModule } from 'src/follow/follow.module';
-import { Message } from 'src/message/entities/message.entity';
+import { Message } from 'src/message/entities';
 
 @Module({
   imports: [

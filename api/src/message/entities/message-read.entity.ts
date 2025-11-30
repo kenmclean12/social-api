@@ -4,8 +4,8 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { Message } from './message.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Message } from './message.entity';
 
 @Entity()
 export class MessageRead {

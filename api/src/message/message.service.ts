@@ -1,21 +1,23 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Message } from './entities/message.entity';
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { MessageCreateDto } from './dto/message-create.dto';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { UserService } from 'src/user/user.service';
-import { MessageUpdateDto } from './dto/message-update.dto';
+import { Message } from './entities';
+import { MessageCreateDto, MessageUpdateDto } from './dto';
 
 @Injectable()
 export class MessageService {
   constructor(
     @InjectRepository(Message)
     private readonly messageRepo: Repository<Message>,
+    @Inject(forwardRef(() => ConversationService))
     private readonly conversationService: ConversationService,
     private readonly userService: UserService,
   ) {}

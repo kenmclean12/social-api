@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SafeUserDto } from 'src/user/dto/safe-user.dto';
-import { Message } from 'src/message/entities/message.entity';
 import { Expose, Type } from 'class-transformer';
+import { Message } from 'src/message/entities';
+import { SafeUserDto } from 'src/user/dto';
 
 export class SafeConversationDto {
   @Expose()

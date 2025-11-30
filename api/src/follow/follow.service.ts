@@ -1,7 +1,6 @@
 import { Follow } from './entities/follow.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FollowDto } from './dto/follow.dto';
 import { UserService } from 'src/user/user.service';
 import {
   forwardRef,
@@ -10,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { SafeFollowDto } from './dto/safe-follow.dto';
+import { FollowDto, SafeFollowDto } from './dto';
 
 @Injectable()
 export class FollowService {

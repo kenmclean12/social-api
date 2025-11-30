@@ -15,9 +15,8 @@ import {
   ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
-import { Message } from './entities/message.entity';
-import { MessageCreateDto } from './dto/message-create.dto';
-import { MessageUpdateDto } from './dto/message-update.dto';
+import { Message } from './entities';
+import { MessageCreateDto, MessageUpdateDto } from './dto';
 
 @Controller('message')
 @ApiTags('Message')

@@ -9,8 +9,8 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { MessageRead } from './message-read.entity';
 import { User } from 'src/user/entities/user.entity';
+import { MessageRead } from './message-read.entity';
 
 @Entity()
 export class Message {

@@ -11,11 +11,13 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { UserCreateDto } from './dto/user.create.dto';
-import { UserUpdateDto } from './dto/user.update.dto';
-import { PasswordResetDto } from './dto/password-reset.dto';
-import { UserWithCountsResponseDto } from './dto/user-with-counts-response.dto';
-import { SafeUserDto } from './dto/safe-user.dto';
+import {
+  PasswordResetDto,
+  SafeUserDto,
+  UserCreateDto,
+  UserUpdateDto,
+  UserWithCountsResponseDto,
+} from './dto';
 
 @Controller('user')
 @ApiTags('User')

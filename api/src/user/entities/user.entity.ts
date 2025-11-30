@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Conversation } from 'src/conversation/entities/conversation.entity';
 import { Follow } from 'src/follow/entities/follow.entity';
-import { Message } from 'src/message/entities/message.entity';
+import { Message } from 'src/message/entities';
 import {
   Column,
   Entity,

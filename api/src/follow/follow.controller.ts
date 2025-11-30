@@ -9,8 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FollowService } from './follow.service';
-import { FollowDto } from './dto/follow.dto';
-import { SafeFollowDto } from './dto/safe-follow.dto';
+import { FollowDto, SafeFollowDto } from './dto';
 
 @Controller('follow')
 @ApiTags('Follow')

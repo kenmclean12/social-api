@@ -10,13 +10,15 @@ import {
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ConversationCreateDto } from './dto/conversation.create.dto';
-import { ConversationUpdateDto } from './dto/conversation-update.dto';
-import { ConversationRemoveDto } from './dto/conversation-remove.dto';
-import { AlterParticipantsDto } from './dto/add-participant.dto';
-import { SafeConversationDto } from './dto/safe-conversation.dto';
-import { InitiateConversationRequestDto } from './dto/initiate-conversation.dto';
-import { InitiateConversationResponseDto } from './dto/initiate-conversation-response.dto';
+import {
+  AlterParticipantsDto,
+  ConversationCreateDto,
+  ConversationRemoveDto,
+  ConversationUpdateDto,
+  InitiateConversationDto,
+  InitiateConversationResponseDto,
+  SafeConversationDto,
+} from './dto';
 
 @Controller('conversation')
 @ApiTags('Conversation')
@@ -54,12 +56,12 @@ export class ConversationController {
     return await this.conversationService.create(dto);
   }
 
-  @ApiOkResponse({ type: SafeConversationDto })
-  @ApiBody({ type: InitiateConversationRequestDto })
+  @ApiOkResponse({ type: InitiateConversationResponseDto })
+  @ApiBody({ type: InitiateConversationDto })
   @ApiOperation({ summary: 'Initiate a Conversation / Send the First Message' })
   @Post('initiate')
   async initiateConversation(
-    @Body() dto: InitiateConversationRequestDto,
+    @Body() dto: InitiateConversationDto,
   ): Promise<InitiateConversationResponseDto> {
     return await this.conversationService.initiateConversation(dto);
   }

@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -6,27 +8,28 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation } from './entities/conversation.entity';
 import { Repository } from 'typeorm';
-import { ConversationCreateDto } from './dto/conversation.create.dto';
-import { ConversationUpdateDto } from './dto/conversation-update.dto';
-import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { UserService } from 'src/user/user.service';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { MessageService } from 'src/message/message.service';
 import {
   AlterParticipantsDto,
   AlterParticipantType,
-} from './dto/add-participant.dto';
-import { SafeConversationDto } from './dto/safe-conversation.dto';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { InitiateConversationRequestDto } from './dto/initiate-conversation.dto';
-import { MessageService } from 'src/message/message.service';
-import { InitiateConversationResponseDto } from './dto/initiate-conversation-response.dto';
+  ConversationCreateDto,
+  ConversationRemoveDto,
+  ConversationUpdateDto,
+  InitiateConversationDto,
+  InitiateConversationResponseDto,
+  SafeConversationDto,
+} from './dto';
 
 @Injectable()
 export class ConversationService {
   constructor(
     @InjectRepository(Conversation)
     private readonly conversationRepo: Repository<Conversation>,
-    private readonly userService: UserService,
+    @Inject(forwardRef(() => MessageService))
     private readonly messageService: MessageService,
+    private readonly userService: UserService,
   ) {}
 
   async findOneInternal(id: number): Promise<Conversation> {
@@ -117,7 +120,7 @@ export class ConversationService {
   }
 
   async initiateConversation(
-    dto: InitiateConversationRequestDto,
+    dto: InitiateConversationDto,
   ): Promise<InitiateConversationResponseDto> {
     const { conversation, firstMessage } = dto;
     const newConversation = await this.create(conversation);
@@ -162,7 +165,6 @@ export class ConversationService {
       const usersToAdd = dtoUsers.filter((u) => !existingIds.has(u.id));
       existingConversation.participants.push(...usersToAdd);
     } else {
-      // REMOVE: only keep participants whose IDs are not in dtoUsers
       const idsToRemove = new Set(dtoUsers.map((u) => u.id));
       existingConversation.participants =
         existingConversation.participants.filter((p) => !idsToRemove.has(p.id));

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { SafeUserDto } from 'src/user/dto/safe-user.dto';
+import { SafeUserDto } from 'src/user/dto';
 
 export class SafeFollowDto {
   @Expose()
