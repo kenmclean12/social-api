@@ -37,8 +37,9 @@ export class MessageService {
 
   async findByConversationId(id: number): Promise<Message[]> {
     const message = await this.messageRepo.find({
-      where: { id },
+      where: { conversation: { id } },
       relations: ['reads'],
+      order: { createdAt: 'ASC' },
     });
 
     if (!message) {
@@ -55,9 +56,11 @@ export class MessageService {
     conversationId,
     content,
   }: MessageCreateDto): Promise<Message> {
-    await this.conversationService.findOneInternal(conversationId);
     const user = await this.userService.findOneInternal(userId);
-    return await this.messageRepo.save({ sender: user, content });
+    const conversation =
+      await this.conversationService.findOneInternal(conversationId);
+
+    return await this.messageRepo.save({ sender: user, conversation, content });
   }
 
   async update(
@@ -75,7 +78,9 @@ export class MessageService {
       );
     }
 
-    return await this.messageRepo.save({ content });
+    message.content = content;
+    message.editedAt = new Date();
+    return await this.messageRepo.save(message);
   }
 
   async remove(id: number): Promise<Message> {

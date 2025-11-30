@@ -41,10 +41,6 @@ export class Message {
   @OneToMany(() => MessageRead, (read) => read.message, { cascade: true })
   reads: MessageRead[];
 
-  @Column({ type: 'boolean', default: false })
-  @ApiProperty()
-  isEdited: boolean;
-
   @Column({ type: 'timestamp', nullable: true })
   @ApiProperty()
   editedAt?: Date;

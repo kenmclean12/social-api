@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { MessageService } from './message.service';
 import {
   ApiOkResponse,
@@ -18,7 +27,7 @@ export class MessageController {
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Get a message by message ID' })
   @ApiProperty()
-  @Get('id')
+  @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<Message> {
     return await this.messageService.findOne(id);
   }
@@ -44,7 +53,7 @@ export class MessageController {
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Update message content by message ID' })
   @ApiProperty()
-  @Patch()
+  @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: MessageUpdateDto,
