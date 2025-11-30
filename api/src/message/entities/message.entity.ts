@@ -12,14 +12,6 @@ import { User } from 'src/user/entities/user.entity';
 import { MessageRead } from './message-read.entity';
 import { Expose } from 'class-transformer';
 
-interface Reaction {
-  messageId: string;
-  userId: number;
-  firstName: string;
-  lastName: string;
-  createdAt: Date;
-}
-
 @Entity()
 export class Message {
   @Expose()
@@ -36,11 +28,6 @@ export class Message {
   @Column({ type: 'varchar', length: 500 })
   @ApiProperty()
   content: string;
-
-  @Expose()
-  @Column('jsonb', { default: [] })
-  @ApiProperty()
-  reactions: Reaction[];
 
   @Expose()
   @ManyToOne(() => User, (user) => user.sentMessages, { nullable: false })
