@@ -52,6 +52,8 @@ export class ConversationController {
     return await this.conversationService.create(dto);
   }
 
+  //Add Initiate Conversation, Conversation/Message Create Combo
+
   @ApiOkResponse({ type: SafeConversationDto })
   @ApiBody({ type: AlterParticipantsDto })
   @ApiOperation({
