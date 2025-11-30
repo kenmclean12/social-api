@@ -4,9 +4,14 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { User } from './entities/user.entity';
 import { FollowModule } from 'src/follow/follow.module';
+import { Message } from 'src/message/entities/message.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => FollowModule)],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([Message]),
+    forwardRef(() => FollowModule),
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

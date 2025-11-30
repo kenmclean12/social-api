@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { MessageRead } from './message-read.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Message {
@@ -28,6 +29,10 @@ export class Message {
   @Column('jsonb', { default: [] })
   @ApiProperty()
   reactions: Reaction[];
+
+  @ManyToOne(() => User, (user) => user.sentMessages, { nullable: false })
+  @ApiProperty({ type: () => User })
+  sender: User;
 
   @ManyToOne(() => Conversation, (conversation) => conversation.messages)
   @ApiProperty({ type: () => Conversation })
