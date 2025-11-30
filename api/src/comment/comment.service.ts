@@ -64,7 +64,7 @@ export class CommentService {
 
     if (user.id !== comment.user.id) {
       throw new UnauthorizedException(
-        `Only the author of a comment can update the record from the database`,
+        'Only the author of a comment can update it',
       );
     }
 
@@ -78,7 +78,7 @@ export class CommentService {
 
     if (user.id !== comment.user.id) {
       throw new UnauthorizedException(
-        `Only the author of a comment can remove the record from the database`,
+        `Only the author of a comment can remove it`,
       );
     }
 
