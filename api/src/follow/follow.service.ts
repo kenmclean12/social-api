@@ -41,7 +41,7 @@ export class FollowService {
 
     return plainToInstance(SafeFollowDto, follow, {
       excludeExtraneousValues: true,
-    }) as SafeFollowDto;
+    });
   }
 
   async findFollowingByUserId(id: number): Promise<SafeFollowDto[]> {
@@ -60,7 +60,7 @@ export class FollowService {
     for (const record of following) {
       const dto = plainToInstance(SafeFollowDto, record, {
         excludeExtraneousValues: true,
-      }) as SafeFollowDto;
+      });
       result.push(dto);
     }
 
@@ -83,7 +83,7 @@ export class FollowService {
     for (const record of followers) {
       const dto = plainToInstance(SafeFollowDto, record, {
         excludeExtraneousValues: true,
-      }) as SafeFollowDto;
+      });
       result.push(dto);
     }
 
@@ -100,7 +100,7 @@ export class FollowService {
     const plain = instanceToPlain(full);
     return plainToInstance(SafeFollowDto, plain, {
       excludeExtraneousValues: true,
-    }) as SafeFollowDto;
+    });
   }
 
   async remove(id: number): Promise<SafeFollowDto> {
@@ -109,6 +109,6 @@ export class FollowService {
 
     return plainToInstance(SafeFollowDto, follow, {
       excludeExtraneousValues: true,
-    }) as SafeFollowDto;
+    });
   }
 }

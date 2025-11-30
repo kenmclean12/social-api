@@ -49,7 +49,7 @@ export class UserService {
 
     const safeUser = plainToInstance(UserWithCountsResponseDto, user, {
       excludeExtraneousValues: true,
-    }) as UserWithCountsResponseDto;
+    });
 
     safeUser.followingCount = following.length;
     safeUser.followerCount = followers.length;
@@ -90,7 +90,7 @@ export class UserService {
     for (const user of users) {
       const safeUser = plainToInstance(SafeUserDto, user, {
         excludeExtraneousValues: true,
-      }) as SafeUserDto;
+      });
       resultSet.add(safeUser);
     }
 
@@ -120,7 +120,7 @@ export class UserService {
 
     return plainToInstance(SafeUserDto, savedUser, {
       excludeExtraneousValues: true,
-    }) as SafeUserDto;
+    });
   }
 
   async createInternal(dto: UserCreateDto): Promise<User> {
@@ -164,7 +164,7 @@ export class UserService {
 
     return plainToInstance(SafeUserDto, savedUser, {
       excludeExtraneousValues: true,
-    }) as SafeUserDto;
+    });
   }
 
   async delete(id: number): Promise<SafeUserDto> {
@@ -173,7 +173,7 @@ export class UserService {
 
     return plainToInstance(SafeUserDto, userToDelete, {
       excludeExtraneousValues: true,
-    }) as SafeUserDto;
+    });
   }
 
   async resetPassword({
@@ -206,7 +206,7 @@ export class UserService {
 
     return plainToInstance(SafeUserDto, savedUser, {
       excludeExtraneousValues: true,
-    }) as SafeUserDto;
+    });
   }
 
   async assertUserFields(fields: Partial<User>) {

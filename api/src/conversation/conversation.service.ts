@@ -35,7 +35,7 @@ export class ConversationService {
   private toSafe(conversation: Conversation): SafeConversationDto {
     return plainToInstance(SafeConversationDto, conversation, {
       excludeExtraneousValues: true,
-    }) as SafeConversationDto;
+    });
   }
 
   async findOneInternal(id: number): Promise<Conversation> {
