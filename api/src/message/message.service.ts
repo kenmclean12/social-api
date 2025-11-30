@@ -9,15 +9,17 @@ import {
 import { Repository } from 'typeorm';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { UserService } from 'src/user/user.service';
-import { Message } from './entities';
+import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
-import { MessageRemoveDto } from './dto/message-remove.dto';
+import { MessageActionDto } from './dto/message-action.dto';
 
 @Injectable()
 export class MessageService {
   constructor(
     @InjectRepository(Message)
     private readonly messageRepo: Repository<Message>,
+    @InjectRepository(MessageRead)
+    private readonly messageReadRepo: Repository<MessageRead>,
     @Inject(forwardRef(() => ConversationService))
     private readonly conversationService: ConversationService,
     private readonly userService: UserService,
@@ -67,6 +69,15 @@ export class MessageService {
     return await this.messageRepo.save({ sender: user, conversation, content });
   }
 
+  async markMessageRead({
+    id,
+    userId,
+  }: MessageActionDto): Promise<MessageRead> {
+    const message = await this.findOne(id);
+    const user = await this.userService.findOneInternal(userId);
+    return await this.messageReadRepo.save({ message, user });
+  }
+
   async update(
     id: number,
     { userId, content }: MessageUpdateDto,
@@ -88,7 +99,7 @@ export class MessageService {
     return await this.messageRepo.save(message);
   }
 
-  async remove({ id, userId }: MessageRemoveDto): Promise<Message> {
+  async remove({ id, userId }: MessageActionDto): Promise<Message> {
     const message = await this.findOne(id);
     await this.assertUserIsInitiator(userId, message.conversation.id);
     return await this.messageRepo.remove(message);

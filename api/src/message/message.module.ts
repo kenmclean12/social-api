@@ -5,11 +5,12 @@ import { MessageService } from './message.service';
 import { User } from 'src/user/entities/user.entity';
 import { ConversationModule } from 'src/conversation/conversation.module';
 import { UserModule } from 'src/user/user.module';
-import { Message } from './entities';
+import { Message, MessageRead } from './entities';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Message]),
+    TypeOrmModule.forFeature([MessageRead]),
     TypeOrmModule.forFeature([User]),
     forwardRef(() => ConversationModule),
     UserModule,

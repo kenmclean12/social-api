@@ -9,15 +9,10 @@ import {
   Post,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
-import {
-  ApiOkResponse,
-  ApiOperation,
-  ApiProperty,
-  ApiTags,
-} from '@nestjs/swagger';
-import { Message } from './entities';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
-import { MessageRemoveDto } from './dto/message-remove.dto';
+import { MessageActionDto } from './dto/message-action.dto';
 
 @Controller('message')
 @ApiTags('Message')
@@ -26,7 +21,6 @@ export class MessageController {
 
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Get a message by message ID' })
-  @ApiProperty()
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<Message> {
     return await this.messageService.findOne(id);
@@ -34,7 +28,6 @@ export class MessageController {
 
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Get a message by Conversation ID' })
-  @ApiProperty()
   @Get('conversation/:id')
   async findByConversationId(
     @Param('id', ParseIntPipe) id: number,
@@ -44,15 +37,20 @@ export class MessageController {
 
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Create a message' })
-  @ApiProperty()
   @Post()
   async create(@Body() dto: MessageCreateDto): Promise<Message> {
     return await this.messageService.create(dto);
   }
 
+  @ApiOkResponse({ type: MessageRead })
+  @ApiOperation({ description: 'Mark a message as read' })
+  @Post('read')
+  async markMessageRead(@Body() dto: MessageActionDto): Promise<MessageRead> {
+    return await this.messageService.markMessageRead(dto);
+  }
+
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Update message content by message ID' })
-  @ApiProperty()
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -63,9 +61,8 @@ export class MessageController {
 
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Delete a message by message ID' })
-  @ApiProperty()
-  @Delete(':id')
-  async remove(@Body() dto: MessageRemoveDto): Promise<Message> {
+  @Delete()
+  async remove(@Body() dto: MessageActionDto): Promise<Message> {
     return await this.messageService.remove(dto);
   }
 }
