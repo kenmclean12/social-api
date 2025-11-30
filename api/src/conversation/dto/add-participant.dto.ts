@@ -1,13 +1,26 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { ConversationCreateDto } from './conversation.create.dto';
-import { IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, ArrayNotEmpty, IsNumber, IsEnum } from 'class-validator';
 
-export type AlterParticipantType = 'add' | 'remove';
+export enum AlterParticipantType {
+  ADD = 'add',
+  REMOVE = 'remove',
+}
 
-export class AlterParticipantsDto extends OmitType(ConversationCreateDto, [
-  'name',
-]) {
-  @IsString()
-  @ApiProperty()
+export class AlterParticipantsDto {
+  @IsNumber()
+  @ApiProperty({ example: 1 })
+  initiatorId: number;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNumber({}, { each: true })
+  @ApiProperty({ example: [2, 3] })
+  recipientIds: number[];
+
+  @IsEnum(AlterParticipantType)
+  @ApiProperty({
+    enum: AlterParticipantType,
+    description: 'Add or remove participants',
+  })
   alterType: AlterParticipantType;
 }

@@ -45,13 +45,14 @@ export class UserService {
     const followers =
       (await this.followService.findFollowersByUserId(id)) || [];
 
-    const result: UserWithCountsResponseDto = {
-      ...user,
-      followingCount: following.length,
-      followerCount: followers.length,
-    };
+    const safeUser = plainToInstance(UserWithCountsResponseDto, user, {
+      excludeExtraneousValues: true,
+    }) as UserWithCountsResponseDto;
 
-    return result;
+    safeUser.followingCount = following.length;
+    safeUser.followerCount = followers.length;
+
+    return safeUser;
   }
 
   async findByIds(ids: number[]): Promise<User[]> {

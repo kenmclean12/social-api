@@ -53,25 +53,13 @@ export class ConversationController {
   }
 
   @ApiOkResponse({ type: SafeConversationDto })
-  @ApiBody({ type: ConversationCreateDto })
+  @ApiBody({ type: AlterParticipantsDto })
   @ApiOperation({
-    summary: 'Add participants to a Conversation by Conversation ID',
+    summary:
+      'Add or remove participants from a Conversation by Conversation ID',
   })
-  @Post('add-participants/:id')
-  async addParticipants(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: AlterParticipantsDto,
-  ): Promise<SafeConversationDto> {
-    return await this.conversationService.alterParticipants(id, dto);
-  }
-
-  @ApiOkResponse({ type: SafeConversationDto })
-  @ApiBody({ type: ConversationCreateDto })
-  @ApiOperation({
-    summary: 'Remove participants from a Conversation by Conversation ID',
-  })
-  @Post('remove-participants/:id')
-  async removeParticipants(
+  @Post('alter-participants/:id')
+  async alterParticipants(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AlterParticipantsDto,
   ): Promise<SafeConversationDto> {

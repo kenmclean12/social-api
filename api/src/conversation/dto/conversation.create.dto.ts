@@ -21,7 +21,7 @@ export class ConversationCreateDto {
   @IsNumber({}, { each: true })
   @Type(() => Number)
   @ApiProperty({ example: [1, 2] })
-  recipentIds: number[];
+  recipientIds: number[];
 
   @IsOptional()
   @IsString()

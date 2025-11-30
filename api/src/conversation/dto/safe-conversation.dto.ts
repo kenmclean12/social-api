@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SafeUserDto } from 'src/user/dto/safe-user.dto';
 import { Message } from 'src/message/entities/message.entity';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
 export class SafeConversationDto {
   @Expose()
@@ -17,14 +17,17 @@ export class SafeConversationDto {
   name?: string;
 
   @Expose()
+  @Type(() => SafeUserDto)
   @ApiProperty({ type: () => SafeUserDto })
   initiator: SafeUserDto;
 
   @Expose()
+  @Type(() => SafeUserDto)
   @ApiProperty({ type: () => [SafeUserDto] })
   participants: SafeUserDto[];
 
   @Expose()
+  @Type(() => Message)
   @ApiProperty({ type: () => [Message] })
   messages: Message[];
 

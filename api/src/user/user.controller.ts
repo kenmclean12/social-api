@@ -31,14 +31,6 @@ export class UserController {
     return await this.userService.findOneWithFollowCounts(id);
   }
 
-  //DEV ONLY REMOVE
-  @ApiOkResponse({ type: SafeUserDto, isArray: true })
-  @ApiOperation({ summary: 'Find Users with Array of User IDs' })
-  @Post('by-ids')
-  async findByIds(@Body() ids: number[]): Promise<User[]> {
-    return await this.userService.findByIds(ids);
-  }
-
   @ApiOkResponse({ type: SafeUserDto, isArray: true })
   @ApiOperation({ summary: 'Find all Users' })
   @Get()

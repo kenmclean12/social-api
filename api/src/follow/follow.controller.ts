@@ -10,7 +10,6 @@ import {
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FollowService } from './follow.service';
 import { FollowDto } from './dto/follow.dto';
-import { Follow } from './entities/follow.entity';
 import { SafeFollowDto } from './dto/safe-follow.dto';
 
 @Controller('follow')
@@ -49,22 +48,22 @@ export class FollowController {
     return await this.followService.findFollowersByUserId(id);
   }
 
-  @ApiOkResponse({ type: Follow })
+  @ApiOkResponse({ type: SafeFollowDto })
   @ApiBody({ type: FollowDto })
   @ApiOperation({
     summary: 'Create a Follow Record Between Follower/Following User ID',
   })
   @Post('create')
-  async create(@Body() dto: FollowDto): Promise<Follow> {
+  async create(@Body() dto: FollowDto): Promise<SafeFollowDto> {
     return await this.followService.create(dto);
   }
 
-  @ApiOkResponse({ type: Follow })
+  @ApiOkResponse({ type: SafeFollowDto })
   @ApiOperation({
     summary: 'Remove a Follow Record by ID',
   })
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<Follow> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<SafeFollowDto> {
     return await this.followService.remove(id);
   }
 }

@@ -9,7 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { SafeFollowDto } from './dto/safe-follow.dto';
 
 @Injectable()
@@ -91,14 +91,25 @@ export class FollowService {
     return result;
   }
 
-  async create({ followerId, followingId }: FollowDto): Promise<Follow> {
+  async create({ followerId, followingId }: FollowDto): Promise<SafeFollowDto> {
     const follower = await this.userService.findOneInternal(followerId);
     const following = await this.userService.findOneInternal(followingId);
-    return await this.followRepo.save({ follower, following });
+
+    const saved = await this.followRepo.save({ follower, following });
+    const full = await this.findOne(saved.id);
+
+    const plain = instanceToPlain(full);
+    return plainToInstance(SafeFollowDto, plain, {
+      excludeExtraneousValues: true,
+    }) as SafeFollowDto;
   }
 
-  async remove(id: number): Promise<Follow> {
+  async remove(id: number): Promise<SafeFollowDto> {
     const follow = await this.findOne(id);
-    return await this.followRepo.remove(follow);
+    await this.followRepo.remove(follow);
+
+    return plainToInstance(SafeFollowDto, follow, {
+      excludeExtraneousValues: true,
+    }) as SafeFollowDto;
   }
 }

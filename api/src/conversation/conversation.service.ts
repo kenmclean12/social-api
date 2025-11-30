@@ -10,10 +10,13 @@ import { ConversationCreateDto } from './dto/conversation.create.dto';
 import { ConversationUpdateDto } from './dto/conversation-update.dto';
 import { ConversationRemoveDto } from './dto/conversation-remove.dto';
 import { UserService } from 'src/user/user.service';
-import { AlterParticipantsDto } from './dto/add-participant.dto';
+import {
+  AlterParticipantsDto,
+  AlterParticipantType,
+} from './dto/add-participant.dto';
 import { User } from 'src/user/entities/user.entity';
 import { SafeConversationDto } from './dto/safe-conversation.dto';
-import { plainToInstance } from 'class-transformer';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ConversationService {
@@ -26,7 +29,7 @@ export class ConversationService {
   async findOneInternal(id: number): Promise<Conversation> {
     const conversation = await this.conversationRepo.findOne({
       where: { id },
-      relations: ['messages'],
+      relations: ['messages', 'initiator', 'participants'],
     });
 
     if (!conversation) {
@@ -41,7 +44,7 @@ export class ConversationService {
   async findOne(id: number): Promise<SafeConversationDto> {
     const conversation = await this.conversationRepo.findOne({
       where: { id },
-      relations: ['messages'],
+      relations: ['messages', 'initiator', 'participants'],
     });
 
     if (!conversation) {
@@ -58,10 +61,12 @@ export class ConversationService {
   async findByUserId(id: number): Promise<SafeConversationDto[]> {
     const initiatedConversations = await this.conversationRepo.find({
       where: { initiator: { id } },
+      relations: ['messages', 'initiator', 'participants'],
     });
 
     const participatingConversations = await this.conversationRepo.find({
       where: { participants: { id } },
+      relations: ['messages', 'initiator', 'participants'],
     });
 
     const mergedConversations = [
@@ -88,7 +93,7 @@ export class ConversationService {
     const initiatingUser = await this.userService.findOneInternal(
       dto.initiatorId,
     );
-    const participants = await this.userService.findByIds(dto.recipentIds);
+    const participants = await this.userService.findByIds(dto.recipientIds);
 
     const conversation = this.conversationRepo.create({
       name: dto.name,
@@ -96,11 +101,65 @@ export class ConversationService {
       participants,
     });
 
-    const result = await this.conversationRepo.save(conversation);
-    return plainToInstance(SafeConversationDto, result, {
+    const saved = await this.conversationRepo.save(conversation);
+    const full = await this.conversationRepo.findOne({
+      where: { id: saved.id },
+      relations: ['messages', 'initiator', 'participants'],
+    });
+
+    const plain = instanceToPlain(full);
+    return plainToInstance(SafeConversationDto, plain, {
       excludeExtraneousValues: true,
     }) as SafeConversationDto;
   }
+
+  // async alterParticipants(
+  //   id: number,
+  //   dto: AlterParticipantsDto,
+  // ): Promise<SafeConversationDto> {
+  //   await this.userService.findOneInternal(dto.initiatorId);
+
+  //   const existingConversation = await this.findOneInternal(id);
+  //   if (existingConversation.initiator.id !== dto.initiatorId) {
+  //     throw new UnauthorizedException(
+  //       'Only the initiating user can modify participants.',
+  //     );
+  //   }
+
+  //   const dtoUsers = await this.userService.findByIds(dto.recipientIds);
+
+  //   let updatedParticipants: User[];
+  //   if (dto.alterType === AlterParticipantType.ADD) {
+  //     const existingIds = new Set(
+  //       existingConversation.participants.map((p) => p.id),
+  //     );
+  //     updatedParticipants = [
+  //       ...existingConversation.participants,
+  //       ...dtoUsers.filter((u) => !existingIds.has(u.id)),
+  //     ];
+  //   } else {
+  //     const idsToRemove = new Set(dtoUsers.map((u) => u.id));
+  //     updatedParticipants = existingConversation.participants.filter(
+  //       (p) => !idsToRemove.has(p.id),
+  //     );
+  //   }
+
+  //   const updatedParticipantsArray = Array.from(updatedParticipants);
+  //   const updatedConversation = this.conversationRepo.merge(
+  //     existingConversation,
+  //     { participants: updatedParticipantsArray },
+  //   );
+
+  //   const saved = await this.conversationRepo.save(updatedConversation);
+  //   const full = await this.conversationRepo.findOne({
+  //     where: { id: saved.id },
+  //     relations: ['messages', 'initiator', 'participants'],
+  //   });
+
+  //   return plainToInstance(SafeConversationDto, full, {
+  //     excludeExtraneousValues: true,
+  //   }) as SafeConversationDto;
+  // }
 
   async alterParticipants(
     id: number,
@@ -115,25 +174,28 @@ export class ConversationService {
       );
     }
 
-    const dtoUsers = await this.userService.findByIds(dto.recipentIds);
-    const participantSet = new Set<User>(existingConversation.participants);
+    const dtoUsers = await this.userService.findByIds(dto.recipientIds);
 
-    for (const user of dtoUsers) {
-      if (dto.alterType === 'add') {
-        participantSet.add(user);
-      } else {
-        participantSet.delete(user);
-      }
+    if (dto.alterType === AlterParticipantType.ADD) {
+      const existingIds = new Set(
+        existingConversation.participants.map((p) => p.id),
+      );
+      const usersToAdd = dtoUsers.filter((u) => !existingIds.has(u.id));
+      existingConversation.participants.push(...usersToAdd);
+    } else {
+      // REMOVE: only keep participants whose IDs are not in dtoUsers
+      const idsToRemove = new Set(dtoUsers.map((u) => u.id));
+      existingConversation.participants =
+        existingConversation.participants.filter((p) => !idsToRemove.has(p.id));
     }
 
-    const updatedParticipantsArray = Array.from(participantSet);
-    const updatedConversation = this.conversationRepo.merge(
-      existingConversation,
-      { participants: updatedParticipantsArray },
-    );
+    const saved = await this.conversationRepo.save(existingConversation);
+    const full = await this.conversationRepo.findOne({
+      where: { id: saved.id },
+      relations: ['messages', 'initiator', 'participants'],
+    });
 
-    const savedResult = await this.conversationRepo.save(updatedConversation);
-    return plainToInstance(SafeConversationDto, savedResult, {
+    return plainToInstance(SafeConversationDto, full, {
       excludeExtraneousValues: true,
     }) as SafeConversationDto;
   }
@@ -151,8 +213,14 @@ export class ConversationService {
       );
     }
 
-    const result = await this.conversationRepo.save(mergedData);
-    return plainToInstance(SafeConversationDto, result, {
+    const saved = await this.conversationRepo.save(mergedData);
+    const full = await this.conversationRepo.findOne({
+      where: { id: saved.id },
+      relations: ['messages', 'initiator', 'participants'],
+    });
+
+    const plain = instanceToPlain(full);
+    return plainToInstance(SafeConversationDto, plain, {
       excludeExtraneousValues: true,
     }) as SafeConversationDto;
   }

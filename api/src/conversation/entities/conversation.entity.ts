@@ -26,12 +26,11 @@ export class Conversation {
   @ApiProperty({ description: 'Optional name for group chats' })
   name?: string;
 
-  @ManyToOne(() => User)
-  @JoinTable()
+  @ManyToOne(() => User, (user) => user.initiatedConversations)
   @ApiProperty({ type: () => User })
   initiator: User;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, (user) => user.participatingConversations)
   @JoinTable()
   @ApiProperty({ type: () => [User] })
   participants: User[];
@@ -42,7 +41,7 @@ export class Conversation {
   @ApiProperty({ type: () => [Message] })
   messages: Message[];
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', default: false })
   @ApiProperty({ type: 'boolean' })
   closed: boolean;
 }
