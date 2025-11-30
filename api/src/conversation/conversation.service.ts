@@ -14,7 +14,6 @@ import {
   AlterParticipantsDto,
   AlterParticipantType,
 } from './dto/add-participant.dto';
-import { User } from 'src/user/entities/user.entity';
 import { SafeConversationDto } from './dto/safe-conversation.dto';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 

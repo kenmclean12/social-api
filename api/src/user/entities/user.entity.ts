@@ -51,6 +51,10 @@ export class User {
   @ApiProperty()
   avatarUrl?: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  @ApiProperty()
+  hashedRefreshToken?: string;
+
   @OneToMany(() => Follow, (follow) => follow.follower)
   @ApiProperty({ type: () => [Follow], required: false })
   following: Follow[];

@@ -1,29 +1,59 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { UserCreateDto } from 'src/user/dto/user.create.dto';
 import { LoginDto } from './dto/login.dto';
+import { TokenResponseDto } from './dto/token-response.dto';
+import { JwtAuthGuard } from './guards';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOkResponse({ type: LoginDto })
-  @ApiBody({ type: LoginDto })
-  @ApiOperation({ summary: 'Authenticate a user to the application' })
   @Post('login')
-  login(@Body() LoginDto: LoginDto): Promise<{ access_token: string }> {
-    return this.authService.login(LoginDto);
+  @ApiOperation({ summary: 'Authenticate user and return tokens' })
+  @ApiBody({ type: LoginDto })
+  @ApiOkResponse({ type: TokenResponseDto })
+  login(@Body() dto: LoginDto): Promise<TokenResponseDto> {
+    return this.authService.login(dto);
   }
 
-  @ApiOkResponse({ type: UserCreateDto })
-  @ApiBody({ type: UserCreateDto })
-  @ApiOperation({ summary: 'Register a user to the application' })
   @Post('register')
-  async register(
-    @Body() dto: UserCreateDto,
-  ): Promise<{ access_token: string }> {
+  @ApiOperation({ summary: 'Register a new user and return tokens' })
+  @ApiBody({ type: UserCreateDto })
+  @ApiOkResponse({ type: TokenResponseDto })
+  register(@Body() dto: UserCreateDto): Promise<TokenResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access & refresh tokens' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refreshToken: { type: 'string' },
+      },
+    },
+  })
+  @ApiOkResponse({ type: TokenResponseDto })
+  refresh(@Body('refreshToken') token: string): Promise<TokenResponseDto> {
+    return this.authService.refreshTokens(token);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Logout user by clearing refresh token' })
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  })
+  logout(@Req() req: any) {
+    return this.authService.logout(req.user.sub as number);
   }
 }

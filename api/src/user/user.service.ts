@@ -121,6 +121,30 @@ export class UserService {
     }) as SafeUserDto;
   }
 
+  async createInternal(dto: UserCreateDto): Promise<User> {
+    await this.assertUserFields({
+      email: dto.email,
+      userName: dto.userName,
+      phoneNumber: dto.phoneNumber,
+    });
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const { password, ...rest } = dto;
+    const userToSave = {
+      ...rest,
+      hashedPassword,
+    };
+
+    const savedUser = await this.userRepo.save(userToSave);
+    if (!savedUser) {
+      throw new Error(
+        `Could not save User with provided data: ${JSON.stringify(userToSave)}`,
+      );
+    }
+
+    return savedUser;
+  }
+
   async update(id: number, dto: UserUpdateDto): Promise<SafeUserDto> {
     const existingUser = await this.findOneInternal(id);
     await this.assertUserFields({
