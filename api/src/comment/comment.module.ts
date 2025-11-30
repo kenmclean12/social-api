@@ -5,12 +5,14 @@ import { User } from 'src/user/entities/user.entity';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Comment]),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([UserPost]),
+    UserModule,
   ],
   controllers: [CommentController],
   providers: [CommentService],
