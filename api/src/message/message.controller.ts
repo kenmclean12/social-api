@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { Message } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
+import { MessageRemoveDto } from './dto/message-remove.dto';
 
 @Controller('message')
 @ApiTags('Message')
@@ -64,7 +65,7 @@ export class MessageController {
   @ApiOperation({ description: 'Delete a message by message ID' })
   @ApiProperty()
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<Message> {
-    return await this.messageService.remove(id);
+  async remove(@Body() dto: MessageRemoveDto): Promise<Message> {
+    return await this.messageService.remove(dto);
   }
 }
