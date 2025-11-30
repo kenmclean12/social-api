@@ -6,9 +6,19 @@ import { UserPost } from 'src/post/entities/user-post.entity';
 import { LikeController } from './like.controller';
 import { LikeService } from './like.service';
 import { Message } from 'src/message/entities';
+import { UserModule } from 'src/user/user.module';
+import { MessageModule } from 'src/message/message.module';
+import { PostModule } from 'src/post/post.module';
+import { CommentModule } from 'src/comment/comment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Like, UserPost, User, Message])],
+  imports: [
+    TypeOrmModule.forFeature([Like, UserPost, User, Message]),
+    UserModule,
+    MessageModule,
+    PostModule,
+    CommentModule,
+  ],
   controllers: [LikeController],
   providers: [LikeService],
   exports: [LikeService],

@@ -13,6 +13,12 @@ export class LikeCreateDto {
   @IsNumber()
   @Type(() => Number)
   @ApiProperty({ required: false })
+  messageId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @ApiProperty({ required: false })
   postId?: number;
 
   @IsOptional()
