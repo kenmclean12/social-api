@@ -12,6 +12,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LikeService } from './like.service';
 import { Like } from './entities/like.entity';
 import { LikeCreateDto } from './dto';
+import { EntityType } from 'src/common/types';
 
 @Controller('like')
 @ApiTags('Like')
@@ -24,7 +25,7 @@ export class LikeController {
   })
   @Get()
   async findLikes(
-    @Query('type') type: 'message' | 'post' | 'comment',
+    @Query('type') type: EntityType,
     @Query('id', ParseIntPipe) id: number,
   ): Promise<Like[]> {
     return await this.likeService.findLikesForEntity(type, id);

@@ -1,36 +1,39 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Like } from './entities/like.entity';
-import { LikeCreateDto } from './dto';
+import { Reaction } from './entities/reaction.entity';
 import { UserService } from 'src/user/user.service';
 import { MessageService } from 'src/message/message.service';
 import { PostService } from 'src/post/post.service';
 import { CommentService } from 'src/comment/comment.service';
+import { ReactionCreateDto } from './dto';
 import { EntityType } from 'src/common/types';
 
 @Injectable()
-export class LikeService {
+export class ReactionService {
   constructor(
-    @InjectRepository(Like)
-    private readonly likeRepo: Repository<Like>,
+    @InjectRepository(Reaction)
+    private readonly reactionRepo: Repository<Reaction>,
     private readonly userService: UserService,
     private readonly messageService: MessageService,
     private readonly postService: PostService,
     private readonly commentService: CommentService,
   ) {}
 
-  async findLikesForEntity(type: EntityType, id: number): Promise<Like[]> {
+  async findReactionsForEntity(
+    type: EntityType,
+    id: number,
+  ): Promise<Reaction[]> {
     const relation = getRelationName(type);
-    return await this.likeRepo.find({
+    return await this.reactionRepo.find({
       where: { [relation]: { id } },
       relations: ['user'],
       order: { createdAt: 'ASC' },
     });
   }
 
-  async create(dto: LikeCreateDto): Promise<Like> {
-    const { userId, messageId, postId, commentId } = dto;
+  async create(dto: ReactionCreateDto): Promise<Reaction> {
+    const { userId, messageId, postId, commentId, reaction } = dto;
     const user = await this.userService.findOneInternal(userId);
 
     let entity: { id: number } | null = null;
@@ -38,20 +41,17 @@ export class LikeService {
 
     switch (true) {
       case !!messageId: {
-        const message = await this.messageService.findOne(messageId);
-        entity = message;
+        entity = await this.messageService.findOne(messageId);
         relationKey = 'message';
         break;
       }
       case !!postId: {
-        const post = await this.postService.findOne(postId);
-        entity = post;
+        entity = await this.postService.findOne(postId);
         relationKey = 'post';
         break;
       }
       case !!commentId: {
-        const comment = await this.commentService.findOne(commentId);
-        entity = comment;
+        entity = await this.commentService.findOne(commentId);
         relationKey = 'comment';
         break;
       }
@@ -61,23 +61,23 @@ export class LikeService {
         );
     }
 
-    const existingLike = await this.likeRepo.findOne({
-      where: { user: { id: userId }, [relationKey]: { id: entity.id } },
-    });
-    if (existingLike) {
-      throw new BadRequestException(`User already liked this ${relationKey}`);
-    }
+    const reactionEntity: Partial<Reaction> = {
+      user,
+      reaction,
+      [relationKey]: entity,
+    };
 
-    const like: Partial<Like> = { user, [relationKey]: entity };
-    return await this.likeRepo.save(like);
+    return await this.reactionRepo.save(reactionEntity);
   }
 
-  async delete(id: number): Promise<void> {
-    const like = await this.likeRepo.findOne({ where: { id } });
-    if (!like) {
-      throw new BadRequestException(`Like with ID ${id} not found`);
+  async remove(id: number): Promise<Reaction> {
+    const reaction = await this.reactionRepo.findOne({ where: { id } });
+    if (!reaction) {
+      throw new BadRequestException(`Reaction with ID ${id} not found`);
     }
-    await this.likeRepo.remove(like);
+
+    await this.reactionRepo.remove(reaction);
+    return reaction;
   }
 }
 
@@ -89,9 +89,6 @@ function getRelationName(type: EntityType) {
   } as const;
 
   const relation = relationMap[type];
-  if (!relation) {
-    throw new BadRequestException('Invalid type');
-  }
-
+  if (!relation) throw new BadRequestException('Invalid type');
   return relation;
 }
