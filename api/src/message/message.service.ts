@@ -27,7 +27,7 @@ export class MessageService {
   async findOne(id: number): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
-      relations: ['reads'],
+      relations: ['reads', 'likes'],
     });
 
     if (!message) {
@@ -42,7 +42,7 @@ export class MessageService {
   async findByConversationId(id: number): Promise<Message[]> {
     const message = await this.messageRepo.find({
       where: { conversation: { id } },
-      relations: ['reads'],
+      relations: ['reads', 'likes'],
       order: { createdAt: 'ASC' },
     });
 
@@ -83,13 +83,18 @@ export class MessageService {
       relations: ['sender'],
     });
 
-    if (message?.sender.id !== userId) {
+    if (!message) {
+      throw new NotFoundException(
+        `No Message found with the provided ID: ${id}`,
+      );
+    }
+
+    if (message.sender.id !== userId) {
       throw new UnauthorizedException(
         'Only the author of a message can update the content',
       );
     }
 
-    await this.assertUserIsInitiator(userId, message.conversation.id);
     message.content = content;
     message.editedAt = new Date();
     return await this.messageRepo.save(message);

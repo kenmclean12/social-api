@@ -6,10 +6,11 @@ import { User } from 'src/user/entities/user.entity';
 import { ConversationModule } from 'src/conversation/conversation.module';
 import { UserModule } from 'src/user/user.module';
 import { Message, MessageRead } from './entities';
+import { Like } from 'src/like/entities/like.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Message, MessageRead, User]),
+    TypeOrmModule.forFeature([Message, MessageRead, User, Like]),
     forwardRef(() => ConversationModule),
     UserModule,
   ],

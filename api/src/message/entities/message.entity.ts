@@ -11,6 +11,7 @@ import {
 import { User } from 'src/user/entities/user.entity';
 import { MessageRead } from './message-read.entity';
 import { Expose } from 'class-transformer';
+import { Like } from 'src/like/entities/like.entity';
 
 @Entity()
 export class Message {
@@ -43,6 +44,11 @@ export class Message {
   @OneToMany(() => MessageRead, (read) => read.message, { cascade: true })
   @ApiProperty({ type: () => MessageRead })
   reads: MessageRead[];
+
+  @Expose()
+  @OneToMany(() => Like, (like) => like.message)
+  @ApiProperty({ type: () => [Like] })
+  likes?: Like[];
 
   @Expose()
   @Column({ type: 'timestamp', nullable: true })
