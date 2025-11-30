@@ -22,7 +22,15 @@ export class CommentService {
   async findOne(id: number): Promise<Comment> {
     const comment = await this.commentRepo.findOne({
       where: { id },
-      relations: ['user', 'post', 'parentComment', 'replies'],
+      relations: [
+        'user',
+        'post',
+        'parentComment',
+        'replies',
+        'replies.user',
+        'replies.likes',
+        'likes',
+      ],
     });
 
     if (!comment) {
@@ -38,7 +46,14 @@ export class CommentService {
     await this.postService.findOne(postId);
     return await this.commentRepo.find({
       where: { post: { id: postId } },
-      relations: ['user', 'parentComment', 'replies'],
+      relations: [
+        'user',
+        'replies',
+        'parentComment',
+        'replies.user',
+        'replies.likes',
+        'likes',
+      ],
     });
   }
 

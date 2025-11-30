@@ -85,6 +85,7 @@ export class User {
 
   @Expose()
   @OneToMany(() => Message, (message) => message.sender)
+  @ApiProperty({ type: () => [Message] })
   sentMessages: Message[];
 
   @Expose()

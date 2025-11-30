@@ -41,6 +41,7 @@ export class Message {
 
   @Expose()
   @OneToMany(() => MessageRead, (read) => read.message, { cascade: true })
+  @ApiProperty({ type: () => MessageRead })
   reads: MessageRead[];
 
   @Expose()

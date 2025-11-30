@@ -1,11 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { Like } from 'src/like/entities/like.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -31,6 +34,16 @@ export class UserPost {
   @ManyToOne(() => User, (user) => user.posts, { nullable: false })
   @ApiProperty({ type: () => User })
   creator: User;
+
+  @Expose()
+  @OneToMany(() => Like, (like) => like.post)
+  @ApiProperty({ type: () => [Like] })
+  likes: Like[];
+
+  @Expose()
+  @OneToMany(() => Comment, (c) => c.post)
+  @ApiProperty({ type: () => [Comment] })
+  comments: Comment[];
 
   @Expose()
   @Column({ type: 'timestamp', nullable: true })

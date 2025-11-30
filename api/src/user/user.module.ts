@@ -9,9 +9,7 @@ import { UserPost } from 'src/post/entities/user-post.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
-    TypeOrmModule.forFeature([Message]),
-    TypeOrmModule.forFeature([UserPost]),
+    TypeOrmModule.forFeature([User, UserPost, Message]),
     forwardRef(() => FollowModule),
   ],
   controllers: [UserController],

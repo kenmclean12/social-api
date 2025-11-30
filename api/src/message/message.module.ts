@@ -9,9 +9,7 @@ import { Message, MessageRead } from './entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Message]),
-    TypeOrmModule.forFeature([MessageRead]),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([Message, MessageRead, User]),
     forwardRef(() => ConversationModule),
     UserModule,
   ],

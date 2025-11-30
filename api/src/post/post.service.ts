@@ -20,8 +20,18 @@ export class PostService {
   async findOne(id: number): Promise<UserPost> {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['creator'],
+      relations: [
+        'creator',
+        'likes',
+        'comments',
+        'comments.user',
+        'comments.likes',
+        'comments.replies',
+        'comments.replies.user',
+        'comments.replies.likes',
+      ],
     });
+
     if (!post) {
       throw new NotFoundException(
         `No Post was found with the provided Post ID: ${id}`,
@@ -34,7 +44,16 @@ export class PostService {
   async findByUserId(userId: number): Promise<UserPost[]> {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },
-      relations: ['creator'],
+      relations: [
+        'creator',
+        'likes',
+        'comments',
+        'comments.user',
+        'comments.likes',
+        'comments.replies',
+        'comments.replies.user',
+        'comments.replies.likes',
+      ],
     });
 
     if (posts.length === 0) {
@@ -45,7 +64,9 @@ export class PostService {
   }
 
   async findAll(): Promise<UserPost[]> {
-    return await this.postRepo.find({ relations: ['creator'] });
+    return await this.postRepo.find({
+      relations: ['creator', 'likes', 'comments'],
+    });
   }
 
   async create(dto: PostCreateDto): Promise<UserPost> {
