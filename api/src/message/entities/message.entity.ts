@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Reaction } from 'src/common/types';
 import { Conversation } from 'src/conversation/entities/conversation.entity';
 import {
   Column,
@@ -12,6 +11,14 @@ import {
 import { User } from 'src/user/entities/user.entity';
 import { MessageRead } from './message-read.entity';
 import { Expose } from 'class-transformer';
+
+interface Reaction {
+  messageId: string;
+  userId: number;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+}
 
 @Entity()
 export class Message {

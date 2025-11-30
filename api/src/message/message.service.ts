@@ -11,7 +11,6 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { UserService } from 'src/user/user.service';
 import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
-import { MessageActionDto } from './dto/message-action.dto';
 
 @Injectable()
 export class MessageService {
@@ -69,10 +68,7 @@ export class MessageService {
     return await this.messageRepo.save({ sender: user, conversation, content });
   }
 
-  async markMessageRead({
-    id,
-    userId,
-  }: MessageActionDto): Promise<MessageRead> {
+  async markMessageRead(id: number, userId: number): Promise<MessageRead> {
     const message = await this.findOne(id);
     const user = await this.userService.findOneInternal(userId);
     return await this.messageReadRepo.save({ message, user });
@@ -99,7 +95,7 @@ export class MessageService {
     return await this.messageRepo.save(message);
   }
 
-  async remove({ id, userId }: MessageActionDto): Promise<Message> {
+  async remove(id: number, userId: number): Promise<Message> {
     const message = await this.findOne(id);
     await this.assertUserIsInitiator(userId, message.conversation.id);
     return await this.messageRepo.remove(message);

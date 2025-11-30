@@ -12,7 +12,6 @@ import { MessageService } from './message.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
-import { MessageActionDto } from './dto/message-action.dto';
 
 @Controller('message')
 @ApiTags('Message')
@@ -45,8 +44,11 @@ export class MessageController {
   @ApiOkResponse({ type: MessageRead })
   @ApiOperation({ description: 'Mark a message as read' })
   @Post('read')
-  async markMessageRead(@Body() dto: MessageActionDto): Promise<MessageRead> {
-    return await this.messageService.markMessageRead(dto);
+  async markMessageRead(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('userId', ParseIntPipe) userId: number,
+  ): Promise<MessageRead> {
+    return await this.messageService.markMessageRead(id, userId);
   }
 
   @ApiOkResponse({ type: Message })
@@ -60,9 +62,12 @@ export class MessageController {
   }
 
   @ApiOkResponse({ type: Message })
-  @ApiOperation({ description: 'Delete a message by message ID' })
-  @Delete()
-  async remove(@Body() dto: MessageActionDto): Promise<Message> {
-    return await this.messageService.remove(dto);
+  @ApiOperation({ description: 'Remove a message by message ID' })
+  @Delete(':id')
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('userId', ParseIntPipe) userId: number,
+  ): Promise<Message> {
+    return await this.messageService.remove(id, userId);
   }
 }
