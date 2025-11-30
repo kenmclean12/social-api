@@ -3,6 +3,7 @@ import { Expose } from 'class-transformer';
 import { Conversation } from 'src/conversation/entities/conversation.entity';
 import { Follow } from 'src/follow/entities/follow.entity';
 import { Message } from 'src/message/entities';
+import { UserPost } from 'src/post/entities/user-post.entity';
 import {
   Column,
   Entity,
@@ -66,6 +67,11 @@ export class User {
   @Column({ type: 'varchar', default: null })
   @ApiProperty()
   hashedRefreshToken: string | null;
+
+  @Expose()
+  @OneToMany(() => UserPost, (post) => post.creator, { nullable: false })
+  @ApiProperty({ type: () => UserPost })
+  posts: UserPost[];
 
   @Expose()
   @OneToMany(() => Follow, (follow) => follow.follower)

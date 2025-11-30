@@ -1,13 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
-export class Post {
+export class UserPost {
   @PrimaryGeneratedColumn()
   @ApiProperty()
   id: number;
@@ -22,5 +25,15 @@ export class Post {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   @ApiProperty()
-  content?: string;
+  textContent?: string;
+
+  @Expose()
+  @ManyToOne(() => User, (user) => user.posts, { nullable: false })
+  @ApiProperty({ type: () => User })
+  creator: User;
+
+  @Expose()
+  @Column({ type: 'timestamp', nullable: true })
+  @ApiProperty()
+  editedAt?: Date;
 }

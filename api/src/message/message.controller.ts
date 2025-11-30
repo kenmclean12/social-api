@@ -46,7 +46,7 @@ export class MessageController {
   @Post('read')
   async markMessageRead(
     @Param('id', ParseIntPipe) id: number,
-    @Body('userId', ParseIntPipe) userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
   ): Promise<MessageRead> {
     return await this.messageService.markMessageRead(id, userId);
   }
@@ -63,10 +63,10 @@ export class MessageController {
 
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Remove a message by message ID' })
-  @Delete(':id')
+  @Delete(':id/:userId')
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Body('userId', ParseIntPipe) userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
   ): Promise<Message> {
     return await this.messageService.remove(id, userId);
   }
