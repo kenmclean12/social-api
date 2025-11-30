@@ -8,7 +8,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { FollowDto, SafeFollowDto } from './dto';
 
 @Injectable()
@@ -39,9 +39,7 @@ export class FollowService {
       throw new NotFoundException(`Follow record with ID ${id} not found`);
     }
 
-    return plainToInstance(SafeFollowDto, follow, {
-      excludeExtraneousValues: true,
-    });
+    return this.toSafeFollow(follow);
   }
 
   async findFollowingByUserId(id: number): Promise<SafeFollowDto[]> {
@@ -56,15 +54,7 @@ export class FollowService {
       );
     }
 
-    const result: SafeFollowDto[] = [];
-    for (const record of following) {
-      const dto = plainToInstance(SafeFollowDto, record, {
-        excludeExtraneousValues: true,
-      });
-      result.push(dto);
-    }
-
-    return result;
+    return following.map((f) => this.toSafeFollow(f));
   }
 
   async findFollowersByUserId(id: number): Promise<SafeFollowDto[]> {
@@ -79,15 +69,7 @@ export class FollowService {
       );
     }
 
-    const result: SafeFollowDto[] = [];
-    for (const record of followers) {
-      const dto = plainToInstance(SafeFollowDto, record, {
-        excludeExtraneousValues: true,
-      });
-      result.push(dto);
-    }
-
-    return result;
+    return followers.map((f) => this.toSafeFollow(f));
   }
 
   async create({ followerId, followingId }: FollowDto): Promise<SafeFollowDto> {
@@ -97,17 +79,18 @@ export class FollowService {
     const saved = await this.followRepo.save({ follower, following });
     const full = await this.findOne(saved.id);
 
-    const plain = instanceToPlain(full);
-    return plainToInstance(SafeFollowDto, plain, {
-      excludeExtraneousValues: true,
-    });
+    return this.toSafeFollow(full);
   }
 
   async remove(id: number): Promise<SafeFollowDto> {
     const follow = await this.findOne(id);
     await this.followRepo.remove(follow);
 
-    return plainToInstance(SafeFollowDto, follow, {
+    return this.toSafeFollow(follow);
+  }
+
+  private toSafeFollow(entity: any): SafeFollowDto {
+    return plainToInstance(SafeFollowDto, entity, {
       excludeExtraneousValues: true,
     });
   }

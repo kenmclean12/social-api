@@ -32,12 +32,6 @@ export class ConversationService {
     private readonly userService: UserService,
   ) {}
 
-  private toSafe(conversation: Conversation): SafeConversationDto {
-    return plainToInstance(SafeConversationDto, conversation, {
-      excludeExtraneousValues: true,
-    });
-  }
-
   async findOneInternal(id: number): Promise<Conversation> {
     const conversation = await this.conversationRepo
       .createQueryBuilder('conversation')
@@ -153,5 +147,11 @@ export class ConversationService {
 
     await this.conversationRepo.remove(conversation);
     return this.toSafe(conversation);
+  }
+
+  private toSafe(conversation: Conversation): SafeConversationDto {
+    return plainToInstance(SafeConversationDto, conversation, {
+      excludeExtraneousValues: true,
+    });
   }
 }

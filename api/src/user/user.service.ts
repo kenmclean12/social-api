@@ -47,10 +47,7 @@ export class UserService {
     const followers =
       (await this.followService.findFollowersByUserId(id)) || [];
 
-    const safeUser = plainToInstance(UserWithCountsResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
-
+    const safeUser = this.toSafe(UserWithCountsResponseDto, user);
     safeUser.followingCount = following.length;
     safeUser.followerCount = followers.length;
 
@@ -88,10 +85,7 @@ export class UserService {
 
     const resultSet = new Set<SafeUserDto>();
     for (const user of users) {
-      const safeUser = plainToInstance(SafeUserDto, user, {
-        excludeExtraneousValues: true,
-      });
-      resultSet.add(safeUser);
+      resultSet.add(this.toSafe(SafeUserDto, user));
     }
 
     return Array.from(resultSet);
@@ -118,9 +112,7 @@ export class UserService {
       );
     }
 
-    return plainToInstance(SafeUserDto, savedUser, {
-      excludeExtraneousValues: true,
-    });
+    return this.toSafe(SafeUserDto, savedUser);
   }
 
   async createInternal(dto: UserCreateDto): Promise<User> {
@@ -162,18 +154,14 @@ export class UserService {
       );
     }
 
-    return plainToInstance(SafeUserDto, savedUser, {
-      excludeExtraneousValues: true,
-    });
+    return this.toSafe(SafeUserDto, savedUser);
   }
 
   async delete(id: number): Promise<SafeUserDto> {
     const userToDelete = await this.findOneInternal(id);
     await this.userRepo.remove(userToDelete);
 
-    return plainToInstance(SafeUserDto, userToDelete, {
-      excludeExtraneousValues: true,
-    });
+    return this.toSafe(SafeUserDto, userToDelete);
   }
 
   async resetPassword({
@@ -204,9 +192,7 @@ export class UserService {
       );
     }
 
-    return plainToInstance(SafeUserDto, savedUser, {
-      excludeExtraneousValues: true,
-    });
+    return this.toSafe(SafeUserDto, savedUser);
   }
 
   async assertUserFields(fields: Partial<User>) {
@@ -215,5 +201,9 @@ export class UserService {
         await assertUnique(this.userRepo, field as keyof User, 'User', value);
       }
     }
+  }
+
+  private toSafe<T>(cls: new () => T, data: any): T {
+    return plainToInstance(cls, data, { excludeExtraneousValues: true });
   }
 }
