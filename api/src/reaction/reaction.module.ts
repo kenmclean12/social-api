@@ -8,16 +8,16 @@ import { UserPost } from 'src/post/entities/user-post.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { UserModule } from 'src/user/user.module';
 import { MessageModule } from 'src/message/message.module';
-import { PostService } from 'src/post/post.service';
-import { CommentService } from 'src/comment/comment.service';
+import { PostModule } from 'src/post/post.module';
+import { CommentModule } from 'src/comment/comment.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Reaction, Message, UserPost, Comment]),
     UserModule,
     MessageModule,
-    PostService,
-    CommentService,
+    PostModule,
+    CommentModule,
   ],
   controllers: [ReactionController],
   providers: [ReactionService],
