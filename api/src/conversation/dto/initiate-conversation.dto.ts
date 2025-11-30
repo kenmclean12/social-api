@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ConversationCreateDto } from './conversation-create.dto';
-import { MessageCreateDto } from 'src/message/dto';
+import { MessageUpdateDto, NoConversationMessageDto } from 'src/message/dto';
 
 export class InitiateConversationDto {
   @ApiProperty({ type: () => ConversationCreateDto })
   conversation: ConversationCreateDto;
 
-  @ApiProperty({ type: () => MessageCreateDto })
-  firstMessage: MessageCreateDto;
+  @ApiProperty({ type: () => MessageUpdateDto })
+  firstMessage: NoConversationMessageDto;
 }

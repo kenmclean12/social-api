@@ -1,37 +1,26 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { Message } from 'src/message/entities';
-import { SafeUserDto } from 'src/user/dto';
+import { User } from 'src/user/entities/user.entity';
 
 export class SafeConversationDto {
   @Expose()
-  @ApiProperty()
   id: number;
 
   @Expose()
-  @ApiProperty({ type: String, format: 'date-time' })
-  createdAt: Date;
+  name: string;
 
   @Expose()
-  @ApiProperty({ description: 'Group chat name if any' })
-  name?: string;
+  closed: boolean;
 
   @Expose()
-  @Type(() => SafeUserDto)
-  @ApiProperty({ type: () => SafeUserDto })
-  initiator: SafeUserDto;
+  @Type(() => User)
+  initiator: User;
 
   @Expose()
-  @Type(() => SafeUserDto)
-  @ApiProperty({ type: () => [SafeUserDto] })
-  participants: SafeUserDto[];
+  @Type(() => User)
+  participants: User[];
 
   @Expose()
   @Type(() => Message)
-  @ApiProperty({ type: () => [Message] })
   messages: Message[];
-
-  @Expose()
-  @ApiProperty()
-  closed: boolean;
 }

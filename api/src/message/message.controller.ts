@@ -32,7 +32,7 @@ export class MessageController {
   }
 
   @ApiOkResponse({ type: Message })
-  @ApiOperation({ description: 'Get a message by message ID' })
+  @ApiOperation({ description: 'Get a message by Conversation ID' })
   @ApiProperty()
   @Get('conversation/:id')
   async findByConversationId(
@@ -42,7 +42,7 @@ export class MessageController {
   }
 
   @ApiOkResponse({ type: Message })
-  @ApiOperation({ description: 'Get a message by message ID' })
+  @ApiOperation({ description: 'Create a message' })
   @ApiProperty()
   @Post()
   async create(@Body() dto: MessageCreateDto): Promise<Message> {
