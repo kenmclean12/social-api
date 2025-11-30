@@ -63,9 +63,4 @@ export class UserCreateDto {
   @MaxLength(255)
   @ApiProperty({ example: 'http://avatars.com/avatar/123' })
   avatarUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiProperty({ example: 'hijofasu8r389fh9qw80eu' })
-  hashedRefreshToken?: string;
 }

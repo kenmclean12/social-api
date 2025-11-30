@@ -47,13 +47,13 @@ export class User {
   @ApiProperty()
   description?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, default: null })
   @ApiProperty()
-  avatarUrl?: string;
+  avatarUrl: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', default: null })
   @ApiProperty()
-  hashedRefreshToken?: string;
+  hashedRefreshToken: string | null;
 
   @OneToMany(() => Follow, (follow) => follow.follower)
   @ApiProperty({ type: () => [Follow], required: false })
