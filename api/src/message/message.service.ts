@@ -11,6 +11,7 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { UserService } from 'src/user/user.service';
 import { Message } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
+import { MessageRemoveDto } from './dto/message-remove.dto';
 
 @Injectable()
 export class MessageService {
@@ -58,6 +59,7 @@ export class MessageService {
     conversationId,
     content,
   }: MessageCreateDto): Promise<Message> {
+    await this.assertUserInConversation(userId, conversationId);
     const user = await this.userService.findOneInternal(userId);
     const conversation =
       await this.conversationService.findOneInternal(conversationId);
@@ -80,13 +82,49 @@ export class MessageService {
       );
     }
 
+    await this.assertUserIsInitiator(userId, message.conversation.id);
     message.content = content;
     message.editedAt = new Date();
     return await this.messageRepo.save(message);
   }
 
-  async remove(id: number): Promise<Message> {
+  async remove({ id, userId }: MessageRemoveDto): Promise<Message> {
     const message = await this.findOne(id);
+    await this.assertUserIsInitiator(userId, message.conversation.id);
     return await this.messageRepo.remove(message);
+  }
+
+  private async assertUserInConversation(
+    userId: number,
+    conversationId: number,
+  ) {
+    const conversation =
+      await this.conversationService.findOneInternal(conversationId);
+
+    const isInitiator = conversation.initiator?.id === userId;
+    const isParticipant = conversation.participants?.some(
+      (p) => p.id === userId,
+    );
+
+    if (!isInitiator && !isParticipant) {
+      throw new UnauthorizedException(
+        'You are not a participant in this conversation',
+      );
+    }
+
+    return conversation;
+  }
+
+  private async assertUserIsInitiator(userId: number, conversationId: number) {
+    const conversation =
+      await this.conversationService.findOneInternal(conversationId);
+
+    if (conversation.initiator?.id !== userId) {
+      throw new UnauthorizedException(
+        'Only the initiator of this conversation can perform this action',
+      );
+    }
+
+    return conversation;
   }
 }
