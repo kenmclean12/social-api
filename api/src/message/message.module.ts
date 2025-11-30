@@ -7,10 +7,11 @@ import { ConversationModule } from 'src/conversation/conversation.module';
 import { UserModule } from 'src/user/user.module';
 import { Message, MessageRead } from './entities';
 import { Like } from 'src/like/entities/like.entity';
+import { Reaction } from 'src/reaction/entities/reaction.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Message, MessageRead, User, Like]),
+    TypeOrmModule.forFeature([Message, MessageRead, User, Like, Reaction]),
     forwardRef(() => ConversationModule),
     UserModule,
   ],

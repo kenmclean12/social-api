@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Like } from 'src/like/entities/like.entity';
+import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -39,6 +40,11 @@ export class UserPost {
   @OneToMany(() => Like, (like) => like.post)
   @ApiProperty({ type: () => [Like] })
   likes: Like[];
+
+  @Expose()
+  @OneToMany(() => Reaction, (r) => r.post)
+  @ApiProperty({ type: () => [Reaction] })
+  reactions: Reaction[];
 
   @Expose()
   @OneToMany(() => Comment, (c) => c.post)

@@ -6,6 +6,7 @@ import { Message } from 'src/message/entities';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToMany,
   OneToMany,
@@ -18,6 +19,11 @@ export class User {
   @PrimaryGeneratedColumn()
   @ApiProperty()
   id: number;
+
+  @Expose()
+  @CreateDateColumn()
+  @ApiProperty()
+  createdAt: Date;
 
   @Expose()
   @Column({ type: 'varchar', length: 30 })

@@ -7,12 +7,12 @@ import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
 import { UserModule } from 'src/user/user.module';
 import { PostModule } from 'src/post/post.module';
+import { Reaction } from 'src/reaction/entities/reaction.entity';
+import { Like } from 'src/like/entities/like.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Comment]),
-    TypeOrmModule.forFeature([User]),
-    TypeOrmModule.forFeature([UserPost]),
+    TypeOrmModule.forFeature([Comment, UserPost, User, Reaction, Like]),
     UserModule,
     PostModule,
   ],

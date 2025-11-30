@@ -30,6 +30,7 @@ export class CommentService {
         'replies.user',
         'replies.likes',
         'likes',
+        'reactions',
       ],
     });
 
@@ -53,7 +54,9 @@ export class CommentService {
         'replies.user',
         'replies.likes',
         'likes',
+        'reactions',
       ],
+      order: { createdAt: 'ASC' },
     });
   }
 

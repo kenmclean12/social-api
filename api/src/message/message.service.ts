@@ -27,7 +27,7 @@ export class MessageService {
   async findOne(id: number): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
-      relations: ['reads', 'likes'],
+      relations: ['reads', 'likes', 'reactions'],
     });
 
     if (!message) {
@@ -40,19 +40,19 @@ export class MessageService {
   }
 
   async findByConversationId(id: number): Promise<Message[]> {
-    const message = await this.messageRepo.find({
+    const messages = await this.messageRepo.find({
       where: { conversation: { id } },
-      relations: ['reads', 'likes'],
+      relations: ['reads', 'likes', 'reactions'],
       order: { createdAt: 'ASC' },
     });
 
-    if (!message) {
+    if (messages.length === 0) {
       throw new NotFoundException(
         `No messages found with the provided Conversation ID: ${id}`,
       );
     }
 
-    return message;
+    return messages;
   }
 
   async create({

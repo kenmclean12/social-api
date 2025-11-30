@@ -1,9 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Like } from 'src/like/entities/like.entity';
 import { UserPost } from 'src/post/entities/user-post.entity';
+import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -16,6 +18,10 @@ export class Comment {
   @PrimaryGeneratedColumn()
   @ApiProperty()
   id: number;
+
+  @CreateDateColumn()
+  @ApiProperty()
+  createdAt: Date;
 
   @ManyToOne(() => User, { nullable: false })
   @ApiProperty({ type: () => User })
@@ -36,6 +42,10 @@ export class Comment {
   @OneToMany(() => Like, (like) => like.comment)
   @ApiProperty({ type: () => [Like] })
   likes?: Like[];
+
+  @OneToMany(() => Reaction, (r) => r.comment)
+  @ApiProperty({ type: () => [Reaction] })
+  reactions?: Reaction[];
 
   @OneToMany(() => Comment, (c) => c.parentComment)
   @ApiProperty({ type: () => [Comment], isArray: true })

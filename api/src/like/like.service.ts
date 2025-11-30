@@ -27,6 +27,7 @@ export class LikeService {
     return await this.likeRepo.find({
       where: { [relation]: { id } },
       relations: ['user'],
+      order: { createdAt: 'ASC' },
     });
   }
 

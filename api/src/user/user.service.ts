@@ -59,7 +59,7 @@ export class UserService {
       where: { id: In(ids) },
     });
 
-    if (!users) {
+    if (users.length === 0) {
       throw new NotFoundException(
         'Could not fetch users with provided ID Array',
       );
@@ -78,10 +78,7 @@ export class UserService {
   }
 
   async findAll(): Promise<SafeUserDto[]> {
-    const users = await this.userRepo.find();
-    if (!users) {
-      throw new Error('Failed to fetch all Users from the database');
-    }
+    const users = await this.userRepo.find({ order: { createdAt: 'ASC' } });
 
     const resultSet = new Set<SafeUserDto>();
     for (const user of users) {

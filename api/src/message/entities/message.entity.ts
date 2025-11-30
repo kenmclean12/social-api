@@ -12,6 +12,7 @@ import { User } from 'src/user/entities/user.entity';
 import { MessageRead } from './message-read.entity';
 import { Expose } from 'class-transformer';
 import { Like } from 'src/like/entities/like.entity';
+import { Reaction } from 'src/reaction/entities/reaction.entity';
 
 @Entity()
 export class Message {
@@ -49,6 +50,11 @@ export class Message {
   @OneToMany(() => Like, (like) => like.message)
   @ApiProperty({ type: () => [Like] })
   likes?: Like[];
+
+  @Expose()
+  @OneToMany(() => Reaction, (r) => r.message)
+  @ApiProperty({ type: () => [Reaction] })
+  reactions?: Reaction[];
 
   @Expose()
   @Column({ type: 'timestamp', nullable: true })

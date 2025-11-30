@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Like {
+export class Reaction {
   @PrimaryGeneratedColumn()
   @ApiProperty()
   id: number;
@@ -20,21 +20,24 @@ export class Like {
   @ApiProperty({ type: () => User })
   user: User;
 
-  @ManyToOne(() => Message, (m) => m.likes, {
+  @ApiProperty({ type: 'string', required: true })
+  reaction: string;
+
+  @ManyToOne(() => Message, (m) => m.reactions, {
     nullable: true,
     onDelete: 'CASCADE',
   })
   @ApiProperty({ type: () => Message, required: false })
   message?: Message;
 
-  @ManyToOne(() => UserPost, (p) => p.likes, {
+  @ManyToOne(() => UserPost, (u) => u.reactions, {
     nullable: true,
     onDelete: 'CASCADE',
   })
   @ApiProperty({ type: () => UserPost, required: false })
   post?: UserPost;
 
-  @ManyToOne(() => Comment, (c) => c.likes, {
+  @ManyToOne(() => Comment, (c) => c.reactions, {
     nullable: true,
     onDelete: 'CASCADE',
   })

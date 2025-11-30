@@ -60,6 +60,7 @@ export class ConversationService {
       .leftJoinAndSelect('conversation.participants', 'participants')
       .where('initiator.id = :id', { id })
       .orWhere('participants.id = :id', { id })
+      .orderBy('messages.createdAt', 'ASC')
       .distinct(true)
       .getMany();
 

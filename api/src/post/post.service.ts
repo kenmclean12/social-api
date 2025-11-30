@@ -23,6 +23,7 @@ export class PostService {
       relations: [
         'creator',
         'likes',
+        'reactions',
         'comments',
         'comments.user',
         'comments.likes',
@@ -47,6 +48,7 @@ export class PostService {
       relations: [
         'creator',
         'likes',
+        'reactions',
         'comments',
         'comments.user',
         'comments.likes',
@@ -54,6 +56,7 @@ export class PostService {
         'comments.replies.user',
         'comments.replies.likes',
       ],
+      order: { createdAt: 'ASC' },
     });
 
     if (posts.length === 0) {
@@ -65,7 +68,8 @@ export class PostService {
 
   async findAll(): Promise<UserPost[]> {
     return await this.postRepo.find({
-      relations: ['creator', 'likes', 'comments'],
+      relations: ['creator', 'likes', 'comments', 'reactions'],
+      order: { createdAt: 'ASC' },
     });
   }
 

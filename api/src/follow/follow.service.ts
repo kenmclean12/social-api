@@ -46,9 +46,10 @@ export class FollowService {
     const following = await this.followRepo.find({
       where: { following: { id } },
       relations: ['follower'],
+      order: { createdAt: 'ASC' },
     });
 
-    if (!following) {
+    if (following.length === 0) {
       throw new NotFoundException(
         `No Following Records Found for User ID: ${id}`,
       );
@@ -61,6 +62,7 @@ export class FollowService {
     const followers = await this.followRepo.find({
       where: { follower: { id } },
       relations: ['following'],
+      order: { createdAt: 'ASC' },
     });
 
     if (!followers) {
