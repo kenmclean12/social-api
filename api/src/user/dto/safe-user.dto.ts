@@ -41,10 +41,10 @@ export class SafeUserDto {
   @Expose()
   @Type(() => SafeUserDto)
   @ApiProperty({ type: () => [SafeUserDto], required: false })
-  following: SafeUserDto[];
+  following?: SafeUserDto[];
 
   @Expose()
   @Type(() => SafeUserDto)
   @ApiProperty({ type: () => [SafeUserDto], required: false })
-  followers: SafeUserDto[];
+  followers?: SafeUserDto[];
 }

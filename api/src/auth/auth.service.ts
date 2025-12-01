@@ -8,7 +8,7 @@ import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/entities/user.entity';
 import { LoginDto, TokenResponseDto } from './dto';
-import { UserCreateDto } from 'src/user/dto';
+import { SafeUserDto, UserCreateDto } from 'src/user/dto';
 
 @Injectable()
 export class AuthService {
@@ -40,23 +40,29 @@ export class AuthService {
   private async issueTokens(user: User) {
     const access_token = await this.jwtService.signAsync(
       { sub: user.id },
-      {
-        expiresIn: '15m',
-      },
+      { expiresIn: '15m' },
     );
-
     const refresh_token = await this.jwtService.signAsync(
       { sub: user.id },
-      {
-        secret: process.env.REFRESH_TOKEN_SECRET,
-        expiresIn: '7d',
-      },
+      { secret: process.env.REFRESH_TOKEN_SECRET, expiresIn: '7d' },
     );
 
     const hashed = await bcrypt.hash(refresh_token, 10);
     await this.userService.update(user.id, { hashedRefreshToken: hashed });
 
-    return { access_token, refresh_token };
+    const safeUser: SafeUserDto = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userName: user.userName,
+      email: user.email,
+      age: user.age,
+      phoneNumber: user.phoneNumber,
+      description: user.description,
+      avatarUrl: user.avatarUrl || undefined,
+    };
+
+    return { access_token, refresh_token, user: safeUser };
   }
 
   async refreshTokens(refreshToken: string) {
