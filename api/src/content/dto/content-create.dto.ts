@@ -4,12 +4,6 @@ import { IsNotEmpty, IsNumber, IsOptional, IsEnum } from 'class-validator';
 import { ContentType } from '../entity/content.entity';
 
 export class ContentCreateDto {
-  @IsNotEmpty()
-  @IsNumber()
-  @Type(() => Number)
-  @ApiProperty()
-  userId: number;
-
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
@@ -23,7 +17,7 @@ export class ContentCreateDto {
   postId?: number;
 
   @IsNotEmpty()
-  @IsEnum({ enum: ContentType })
+  @IsEnum(ContentType)
   @ApiProperty({ enum: ContentType })
   type: ContentType;
 
