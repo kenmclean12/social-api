@@ -9,6 +9,7 @@ A fully-featured social media backend built with NestJS and Websockets. This API
 - **Messages & Conversations:** Real-time messaging with Websockets, initiate or manage conversations.
 - **Likes & Reactions:** Like or react to posts, remove reactions.
 - **Comments:** Add, edit, or delete comments on posts.
+- **Notifications:** Receive notifications for likes/reactions to posts, messages, and comments. Also receive notifications for follows.
 - **Personalized Feed:** View posts from users you follow, with fallback to random posts.
 - **Explore Feed:** Filter posts by most liked, most reacted, recent, or oldest.
 - **Dockerized:** Easily run locally or in production using Docker and Docker Compose.
