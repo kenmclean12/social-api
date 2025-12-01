@@ -1,0 +1,12 @@
+services:
+  social-api:
+    build: ./api
+    container_name: social-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./api:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start:dev
