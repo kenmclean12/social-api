@@ -6,14 +6,17 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ContentService } from './content.service';
 import { Content } from './entity/content.entity';
 import { ContentCreateDto } from './dto/content-create.dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('content')
 @ApiTags('Content')
+@UseGuards(JwtAuthGuard)
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 

@@ -10,6 +10,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   PasswordResetDto,
@@ -18,9 +20,11 @@ import {
   UserUpdateDto,
   UserWithCountsResponseDto,
 } from './dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('user')
 @ApiTags('User')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -61,8 +65,9 @@ export class UserController {
 
   @ApiOkResponse({ type: SafeUserDto })
   @ApiOperation({ summary: 'Delete a User from the Database' })
-  @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number): Promise<SafeUserDto> {
+  @Delete('self')
+  async delete(@Req() req): Promise<SafeUserDto> {
+    const id = req.user.id as number;
     return await this.userService.delete(id);
   }
 

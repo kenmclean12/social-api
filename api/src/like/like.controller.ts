@@ -7,15 +7,18 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LikeService } from './like.service';
 import { Like } from './entities/like.entity';
 import { LikeCreateDto } from './dto';
 import { EntityType } from 'src/common/types';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('like')
 @ApiTags('Like')
+@UseGuards(JwtAuthGuard)
 export class LikeController {
   constructor(private readonly likeService: LikeService) {}
 

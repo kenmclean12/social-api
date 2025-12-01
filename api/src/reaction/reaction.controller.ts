@@ -7,14 +7,17 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ReactionService } from './reaction.service';
 import { Reaction } from './entities/reaction.entity';
 import { ReactionCreateDto } from './dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('reaction')
 @ApiTags('Reaction')
+@UseGuards(JwtAuthGuard)
 export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}
 

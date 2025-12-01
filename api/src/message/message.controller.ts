@@ -7,14 +7,17 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('message')
 @ApiTags('Message')
+@UseGuards(JwtAuthGuard)
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 

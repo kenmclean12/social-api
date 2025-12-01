@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -19,9 +20,11 @@ import {
   InitiateConversationResponseDto,
   SafeConversationDto,
 } from './dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('conversation')
 @ApiTags('Conversation')
+@UseGuards(JwtAuthGuard)
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 

@@ -7,14 +7,17 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { Comment } from './entities/comment.entity';
 import { CommentCreateDto, CommentUpdateDto } from './dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('comment')
 @ApiTags('Comment')
+@UseGuards(JwtAuthGuard)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 

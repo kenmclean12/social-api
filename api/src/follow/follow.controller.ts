@@ -6,13 +6,16 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FollowService } from './follow.service';
 import { FollowDto, SafeFollowDto } from './dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('follow')
 @ApiTags('Follow')
+@UseGuards(JwtAuthGuard)
 export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
