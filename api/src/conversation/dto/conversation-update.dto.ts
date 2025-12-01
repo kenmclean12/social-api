@@ -4,6 +4,7 @@ import { IsBoolean, IsOptional } from 'class-validator';
 
 export class ConversationUpdateDto extends OmitType(ConversationCreateDto, [
   'recipientIds',
+  'initiatorId',
 ] as const) {
   @IsBoolean()
   @IsOptional()

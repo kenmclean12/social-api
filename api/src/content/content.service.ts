@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
@@ -62,8 +63,16 @@ export class ContentService {
     } as DeepPartial<Content>);
   }
 
-  async remove(id: number): Promise<Content> {
+  async remove(id: number, userId: number): Promise<Content> {
     const content = await this.findOne(id);
+    const ownerId = content.post?.creator?.id || content.message?.sender?.id;
+
+    if (ownerId !== userId) {
+      throw new UnauthorizedException(
+        'You do not have permission to perform this action.',
+      );
+    }
+
     await this.contentRepo.remove(content);
     return content;
   }

@@ -7,12 +7,14 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { Comment } from './entities/comment.entity';
-import { CommentCreateDto, CommentUpdateDto } from './dto';
+import { CommentCreateDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('comment')
@@ -48,9 +50,11 @@ export class CommentController {
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CommentUpdateDto,
+    @Req() req,
+    @Query('content') content: string,
   ): Promise<Comment> {
-    return await this.commentService.update(id, dto);
+    const userId = req.user.id as number;
+    return await this.commentService.update(id, userId, content);
   }
 
   @ApiOkResponse({ type: Comment })
@@ -60,8 +64,9 @@ export class CommentController {
   @Delete(':id/:userId')
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req,
   ): Promise<Comment> {
+    const userId = req.user.id as number;
     return await this.commentService.remove(id, userId);
   }
 }

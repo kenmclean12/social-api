@@ -7,10 +7,6 @@ export enum AlterParticipantType {
 }
 
 export class AlterParticipantsDto {
-  @IsNumber()
-  @ApiProperty({ example: 1 })
-  initiatorId: number;
-
   @IsArray()
   @ArrayNotEmpty()
   @IsNumber({}, { each: true })

@@ -96,7 +96,8 @@ export class PostService {
 
   async update(
     id: number,
-    { userId, ...rest }: PostUpdateDto,
+    userId: number,
+    dto: PostUpdateDto,
   ): Promise<UserPost> {
     await this.userService.findOneInternal(userId);
     const existingPost = await this.findOne(id);
@@ -104,20 +105,20 @@ export class PostService {
       throw new UnauthorizedException('Only the creator can update the post');
     }
 
-    if (rest.attachments) {
+    if (dto.attachments) {
       const contentArray: Content[] = [];
-      for (const a of rest.attachments) {
+      for (const a of dto.attachments) {
         const savedContent = await this.contentService.create(a);
         contentArray.push(savedContent);
       }
 
-      rest.attachments = contentArray;
+      dto.attachments = contentArray;
     }
 
-    const mergedPost = this.postRepo.merge(existingPost, rest);
+    const mergedPost = this.postRepo.merge(existingPost, dto);
     if (!mergedPost) {
       throw new Error(
-        `Failed to merge post with provided data: ${JSON.stringify({ userId, ...rest })}`,
+        `Failed to merge post with provided data: ${JSON.stringify({ userId, ...dto })}`,
       );
     }
     return await this.postRepo.save(mergedPost);

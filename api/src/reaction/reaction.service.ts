@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Reaction } from './entities/reaction.entity';
@@ -70,10 +74,20 @@ export class ReactionService {
     return await this.reactionRepo.save(reactionEntity);
   }
 
-  async remove(id: number): Promise<Reaction> {
-    const reaction = await this.reactionRepo.findOne({ where: { id } });
+  async remove(id: number, userId: number): Promise<Reaction> {
+    const reaction = await this.reactionRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
     if (!reaction) {
       throw new BadRequestException(`Reaction with ID ${id} not found`);
+    }
+
+    if (reaction.user.id !== userId) {
+      throw new UnauthorizedException(
+        'Reactions can only be removed by the user that created it',
+      );
     }
 
     await this.reactionRepo.remove(reaction);

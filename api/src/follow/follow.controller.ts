@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -65,7 +66,11 @@ export class FollowController {
     summary: 'Remove a Follow Record by ID',
   })
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<SafeFollowDto> {
-    return await this.followService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
+  ): Promise<SafeFollowDto> {
+    const userId = req.user.id as number;
+    return await this.followService.remove(id, userId);
   }
 }

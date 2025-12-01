@@ -7,6 +7,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { FollowDto, SafeFollowDto } from './dto';
@@ -21,7 +22,10 @@ export class FollowService {
   ) {}
 
   async findOne(id: number): Promise<Follow> {
-    const follow = await this.followRepo.findOne({ where: { id } });
+    const follow = await this.followRepo.findOne({
+      where: { id },
+      relations: ['follower', 'following'],
+    });
     if (!follow) {
       throw new NotFoundException(`Follow record with ID ${id} not found`);
     }
@@ -84,8 +88,15 @@ export class FollowService {
     return this.toSafeFollow(full);
   }
 
-  async remove(id: number): Promise<SafeFollowDto> {
+  async remove(id: number, userId: number): Promise<SafeFollowDto> {
     const follow = await this.findOne(id);
+
+    if (follow.follower.id !== userId && follow.following.id !== userId) {
+      throw new UnauthorizedException(
+        'Only the follower or user being followed can remove a follow',
+      );
+    }
+
     await this.followRepo.remove(follow);
 
     return this.toSafeFollow(follow);

@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
@@ -14,7 +15,6 @@ import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AlterParticipantsDto,
   ConversationCreateDto,
-  ConversationRemoveDto,
   ConversationUpdateDto,
   InitiateConversationDto,
   InitiateConversationResponseDto,
@@ -79,8 +79,10 @@ export class ConversationController {
   async alterParticipants(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AlterParticipantsDto,
+    @Req() req,
   ): Promise<SafeConversationDto> {
-    return await this.conversationService.alterParticipants(id, dto);
+    const userId = req.user.id as number;
+    return await this.conversationService.alterParticipants(id, userId, dto);
   }
 
   @ApiOkResponse({ type: SafeConversationDto })
@@ -90,19 +92,22 @@ export class ConversationController {
   async update(
     @Body() dto: ConversationUpdateDto,
     @Param('id', ParseIntPipe) id: number,
+    @Req() req,
   ): Promise<SafeConversationDto> {
-    return await this.conversationService.update(id, dto);
+    const userId = req.user.id as number;
+    return await this.conversationService.update(id, userId, dto);
   }
 
   @ApiOkResponse({ type: SafeConversationDto })
-  @ApiBody({ type: ConversationRemoveDto })
   @ApiOperation({
-    summary: 'Remove Conversation by Conversation ID and Initiator User ID',
+    summary: 'Remove Conversation by Conversation ID',
   })
-  @Delete()
+  @Delete(':id')
   async remove(
-    @Body() dto: ConversationRemoveDto,
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
   ): Promise<SafeConversationDto> {
-    return await this.conversationService.remove(dto);
+    const userId = req.user.id as number;
+    return await this.conversationService.remove(id, userId);
   }
 }

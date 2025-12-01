@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
@@ -58,19 +59,22 @@ export class MessageController {
   @ApiOperation({ description: 'Update message content by message ID' })
   @Patch(':id')
   async update(
+    @Req() req,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: MessageUpdateDto,
   ): Promise<Message> {
-    return await this.messageService.update(id, dto);
+    const userId = req.user.id as number;
+    return await this.messageService.update(id, userId, dto);
   }
 
   @ApiOkResponse({ type: Message })
   @ApiOperation({ description: 'Remove a message by message ID' })
-  @Delete(':id/:userId')
+  @Delete(':id')
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req,
   ): Promise<Message> {
+    const userId = req.user.id as number;
     return await this.messageService.remove(id, userId);
   }
 }

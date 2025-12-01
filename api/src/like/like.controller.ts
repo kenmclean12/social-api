@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -47,9 +48,10 @@ export class LikeController {
   @ApiOperation({ description: 'Delete a like by ID' })
   @Delete(':id')
   async delete(
+    @Req() req,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ message: string }> {
-    await this.likeService.delete(id);
-    return { message: `Like with ID ${id} deleted successfully` };
+  ): Promise<Like> {
+    const userId = req.user.id as number;
+    return await this.likeService.delete(id, userId);
   }
 }

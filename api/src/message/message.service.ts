@@ -97,7 +97,8 @@ export class MessageService {
 
   async update(
     id: number,
-    { senderId, content, attachments }: MessageUpdateDto,
+    userId: number,
+    { content, attachments }: MessageUpdateDto,
   ): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
@@ -110,7 +111,7 @@ export class MessageService {
       );
     }
 
-    if (message.sender.id !== senderId) {
+    if (message.sender.id !== userId) {
       throw new UnauthorizedException(
         'Only the author of a message can update the content',
       );

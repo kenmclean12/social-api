@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Like } from './entities/like.entity';
@@ -72,12 +76,23 @@ export class LikeService {
     return await this.likeRepo.save(like);
   }
 
-  async delete(id: number): Promise<void> {
-    const like = await this.likeRepo.findOne({ where: { id } });
+  async delete(id: number, userId: number): Promise<Like> {
+    const like = await this.likeRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
     if (!like) {
       throw new BadRequestException(`Like with ID ${id} not found`);
     }
+
+    if (like.user.id !== userId) {
+      throw new UnauthorizedException(
+        'Only the user who liked the content can remove the like',
+      );
+    }
     await this.likeRepo.remove(like);
+    return like;
   }
 }
 

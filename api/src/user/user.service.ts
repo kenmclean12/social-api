@@ -175,11 +175,10 @@ export class UserService {
     return this.toSafe(SafeUserDto, userToDelete);
   }
 
-  async resetPassword({
-    userId,
-    oldPassword,
-    newPassword,
-  }: PasswordResetDto): Promise<SafeUserDto> {
+  async resetPassword(
+    userId: number,
+    { oldPassword, newPassword }: PasswordResetDto,
+  ): Promise<SafeUserDto> {
     const existingUser = await this.findOneInternal(userId);
 
     const passwordMatching = await bcrypt.compare(

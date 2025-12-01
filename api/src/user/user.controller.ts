@@ -56,10 +56,8 @@ export class UserController {
   @ApiBody({ type: UserUpdateDto })
   @ApiOperation({ summary: 'Update a Users Information' })
   @Patch(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UserUpdateDto,
-  ): Promise<SafeUserDto> {
+  async update(@Req() req, @Body() dto: UserUpdateDto): Promise<SafeUserDto> {
+    const id = req.user.id as number;
     return await this.userService.update(id, dto);
   }
 
@@ -75,7 +73,11 @@ export class UserController {
   @ApiBody({ type: PasswordResetDto })
   @ApiOperation({ summary: 'Reset a Users Password' })
   @Post('reset-password')
-  async resetPassword(@Body() dto: PasswordResetDto): Promise<SafeUserDto> {
-    return await this.userService.resetPassword(dto);
+  async resetPassword(
+    @Req() req,
+    @Body() dto: PasswordResetDto,
+  ): Promise<SafeUserDto> {
+    const userId = req.user.id as number;
+    return await this.userService.resetPassword(userId, dto);
   }
 }

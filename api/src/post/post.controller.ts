@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PostCreateDto, PostUpdateDto } from './dto';
@@ -59,17 +60,20 @@ export class PostController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: PostUpdateDto,
+    @Req() req,
   ): Promise<UserPost> {
-    return await this.postService.update(id, dto);
+    const userId = req.user.id as number;
+    return await this.postService.update(id, userId, dto);
   }
 
   @ApiOkResponse({ type: UserPost })
   @ApiOperation({ description: 'Remove a Post by Post ID' })
-  @Delete(':id/:userId')
+  @Delete(':id')
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req,
   ): Promise<UserPost> {
+    const userId = req.user.id as number;
     return await this.postService.remove(id, userId);
   }
 }

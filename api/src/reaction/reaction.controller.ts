@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -45,7 +46,11 @@ export class ReactionController {
   @ApiOkResponse({ type: Reaction })
   @ApiOperation({ description: 'Remove a Reaction by ID' })
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<Reaction> {
-    return await this.reactionService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
+  ): Promise<Reaction> {
+    const userId = req.user.id as number;
+    return await this.reactionService.remove(id, userId);
   }
 }

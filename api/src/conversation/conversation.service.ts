@@ -15,7 +15,6 @@ import {
   AlterParticipantsDto,
   AlterParticipantType,
   ConversationCreateDto,
-  ConversationRemoveDto,
   ConversationUpdateDto,
   InitiateConversationDto,
   InitiateConversationResponseDto,
@@ -95,28 +94,46 @@ export class ConversationService {
 
   async alterParticipants(
     id: number,
+    userId: number,
     dto: AlterParticipantsDto,
   ): Promise<SafeConversationDto> {
-    await this.userService.findOneInternal(dto.initiatorId);
+    await this.userService.findOneInternal(userId);
     const conversation = await this.findOneInternal(id);
 
-    if (conversation.initiator.id !== dto.initiatorId)
+    const isInitiator = conversation.initiator.id === userId;
+    const isParticipant = conversation.participants.some(
+      (p) => p.id === userId,
+    );
+
+    if (!isInitiator && !isParticipant) {
       throw new UnauthorizedException(
-        'Only the initiating user can modify participants.',
+        'Only the initiator or participants can modify this conversation.',
       );
+    }
 
     const users = await this.userService.findByIds(dto.recipientIds);
 
     if (dto.alterType === AlterParticipantType.ADD) {
+      if (!isInitiator) {
+        throw new UnauthorizedException(
+          'Only the initiator can add participants.',
+        );
+      }
       const existingIds = new Set(conversation.participants.map((p) => p.id));
       conversation.participants.push(
         ...users.filter((u) => !existingIds.has(u.id)),
       );
     } else {
-      const removeIds = new Set(users.map((u) => u.id));
-      conversation.participants = conversation.participants.filter(
-        (p) => !removeIds.has(p.id),
-      );
+      if (isInitiator) {
+        const removeIds = new Set(users.map((u) => u.id));
+        conversation.participants = conversation.participants.filter(
+          (p) => !removeIds.has(p.id),
+        );
+      } else {
+        conversation.participants = conversation.participants.filter(
+          (p) => p.id !== userId,
+        );
+      }
     }
 
     const saved = await this.conversationRepo.save(conversation);
@@ -125,23 +142,27 @@ export class ConversationService {
 
   async update(
     id: number,
+    userId: number,
     dto: ConversationUpdateDto,
   ): Promise<SafeConversationDto> {
     const conversation = await this.findOneInternal(id);
-    await this.userService.findOneInternal(dto.initiatorId);
+    await this.userService.findOneInternal(userId);
+
+    if (conversation.initiator.id !== userId) {
+      throw new UnauthorizedException(
+        'Only the initiator can alter the conversation',
+      );
+    }
 
     const merged = this.conversationRepo.merge(conversation, dto);
     const saved = await this.conversationRepo.save(merged);
     return this.toSafe(await this.findOneInternal(saved.id));
   }
 
-  async remove({
-    id,
-    initiatorId,
-  }: ConversationRemoveDto): Promise<SafeConversationDto> {
+  async remove(id: number, userId: number): Promise<SafeConversationDto> {
     const conversation = await this.findOneInternal(id);
 
-    if (conversation.initiator.id !== initiatorId)
+    if (conversation.initiator.id !== userId)
       throw new UnauthorizedException(
         'Only the initiating user can remove the conversation.',
       );
