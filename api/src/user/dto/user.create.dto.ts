@@ -52,13 +52,13 @@ export class UserCreateDto {
   @ApiProperty({ example: 'strongpassword123' })
   password: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(500)
   @ApiProperty({ example: 'Just a regular user.' })
   description?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(255)
   @ApiProperty({ example: 'http://avatars.com/avatar/123' })
