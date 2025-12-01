@@ -11,6 +11,7 @@ import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
 import { ReactionModule } from './reaction/reaction.module';
 import { ContentModule } from './content/content.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ContentModule } from './content/content.module';
     LikeModule,
     ReactionModule,
     ContentModule,
+    WebsocketModule,
   ],
 })
 export class AppModule {}

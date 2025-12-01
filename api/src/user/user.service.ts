@@ -20,6 +20,7 @@ import {
   UserUpdateDto,
   UserWithCountsResponseDto,
 } from './dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -28,6 +29,7 @@ export class UserService {
     private readonly userRepo: Repository<User>,
     @Inject(forwardRef(() => FollowService))
     private readonly followService: FollowService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async findOneInternal(id: number): Promise<User> {
@@ -75,6 +77,18 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async findByToken(token: string): Promise<User | null> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      const userId = payload.sub;
+      if (!userId) return null;
+
+      return this.findOneInternal(userId as number);
+    } catch (e) {
+      return null;
+    }
   }
 
   async findAll(): Promise<SafeUserDto[]> {
