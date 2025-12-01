@@ -56,14 +56,26 @@ export class MessageService {
   }
 
   async create({
-    userId,
+    senderId,
     conversationId,
     content,
+    // attachments,
   }: MessageCreateDto): Promise<Message> {
-    await this.assertUserInConversation(userId, conversationId);
-    const user = await this.userService.findOneInternal(userId);
+    await this.assertUserInConversation(senderId, conversationId);
+    const user = await this.userService.findOneInternal(senderId);
     const conversation =
       await this.conversationService.findOneInternal(conversationId);
+
+    // IMPLEMENT CONTENT SAVE
+    // const newMessageData: Partial<Message> = {
+    //   sender: user,
+    //   conversation,
+    //   content,
+    // };
+
+    // if (attachments) {
+    //   newMessageData.attachments = attachments;
+    // }
 
     return await this.messageRepo.save({ sender: user, conversation, content });
   }
@@ -76,7 +88,7 @@ export class MessageService {
 
   async update(
     id: number,
-    { userId, content }: MessageUpdateDto,
+    { senderId, content }: MessageUpdateDto,
   ): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
@@ -89,7 +101,7 @@ export class MessageService {
       );
     }
 
-    if (message.sender.id !== userId) {
+    if (message.sender.id !== senderId) {
       throw new UnauthorizedException(
         'Only the author of a message can update the content',
       );

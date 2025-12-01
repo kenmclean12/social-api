@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { Comment } from 'src/comment/entities/comment.entity';
+import { Content } from 'src/content/entity/content.entity';
 import { Like } from 'src/like/entities/like.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -26,6 +27,10 @@ export class UserPost {
   @Column({ type: 'varchar', length: 150, nullable: true })
   @ApiProperty()
   title?: string;
+
+  @OneToMany(() => Content, (c) => c.post, { cascade: true })
+  @ApiProperty({ type: () => [Content], required: false, isArray: true })
+  contents: Content[];
 
   @Column({ type: 'varchar', length: 1000, nullable: true })
   @ApiProperty()

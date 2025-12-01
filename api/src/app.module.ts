@@ -10,6 +10,7 @@ import { ConversationModule } from './conversation/conversation.module';
 import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
 import { ReactionModule } from './reaction/reaction.module';
+import { ContentModule } from './content/content.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ReactionModule } from './reaction/reaction.module';
     CommentModule,
     LikeModule,
     ReactionModule,
+    ContentModule,
   ],
 })
 export class AppModule {}

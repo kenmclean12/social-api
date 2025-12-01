@@ -8,10 +8,18 @@ import { UserPost } from './entities/user-post.entity';
 import { Like } from 'src/like/entities/like.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
+import { Content } from 'src/content/entity/content.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserPost, User, Like, Comment, Reaction]),
+    TypeOrmModule.forFeature([
+      UserPost,
+      User,
+      Like,
+      Comment,
+      Reaction,
+      Content,
+    ]),
     UserModule,
   ],
   controllers: [PostController],
