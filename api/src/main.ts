@@ -9,8 +9,13 @@ async function bootstrap() {
     .setTitle('Social API')
     .setDescription('API documentation for Social API')
     .setVersion('1.0')
-    // .addBearerAuth()
+    .addBearerAuth()
     .build();
+
+  app.enableCors({
+    origin: process.env.UI_URL,
+    credentials: true,
+  });
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
