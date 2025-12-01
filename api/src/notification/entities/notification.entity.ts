@@ -1,0 +1,55 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { Message } from 'src/message/entities/message.entity';
+import { UserPost } from 'src/post/entities/user-post.entity';
+
+export enum NotificationType {
+  FOLLOW = 'FOLLOW',
+
+  POST_LIKE = 'POST_LIKE',
+  POST_COMMENT = 'POST_COMMENT',
+  POST_REACTION = 'POST_REACTION',
+
+  COMMENT_LIKE = 'COMMENT_LIKE',
+  COMMENT_REACTION = 'COMMENT_REACTION',
+
+  MESSAGE_REACTION = 'MESSAGE_REACTION',
+  MESSAGE = 'MESSAGE',
+}
+
+@Entity()
+export class Notification {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => User, { eager: true })
+  recipient: User;
+
+  @ManyToOne(() => User, { eager: true })
+  actionUser: User;
+
+  @Column({ type: 'enum', enum: NotificationType })
+  type: NotificationType;
+
+  @ManyToOne(() => UserPost, { nullable: true })
+  post?: UserPost;
+
+  @ManyToOne(() => Comment, { nullable: true })
+  comment?: Comment;
+
+  @ManyToOne(() => Message, { nullable: true })
+  message?: Message;
+
+  @Column({ default: false })
+  read: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+}
