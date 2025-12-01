@@ -43,7 +43,7 @@ export class MessageController {
 
   @ApiOkResponse({ type: MessageRead })
   @ApiOperation({ description: 'Mark a message as read' })
-  @Post('read')
+  @Post(':id/read/:userId')
   async markMessageRead(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,

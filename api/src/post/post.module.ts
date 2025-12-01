@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { Like } from 'src/like/entities/like.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { Content } from 'src/content/entity/content.entity';
+import { ContentModule } from 'src/content/content.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Content } from 'src/content/entity/content.entity';
       Content,
     ]),
     UserModule,
+    forwardRef(() => ContentModule),
   ],
   controllers: [PostController],
   providers: [PostService],

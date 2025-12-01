@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Content } from './entity/content.entity';
 import { Message } from 'src/message/entities';
@@ -13,8 +13,8 @@ import { PostModule } from 'src/post/post.module';
   imports: [
     TypeOrmModule.forFeature([Content, Message, UserPost]),
     UserModule,
-    MessageModule,
-    PostModule,
+    forwardRef(() => MessageModule),
+    forwardRef(() => PostModule),
   ],
   controllers: [ContentController],
   providers: [ContentService],

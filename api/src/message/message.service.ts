@@ -11,6 +11,8 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { UserService } from 'src/user/user.service';
 import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
+import { ContentService } from 'src/content/content.service';
+import { Content } from 'src/content/entity/content.entity';
 
 @Injectable()
 export class MessageService {
@@ -22,6 +24,8 @@ export class MessageService {
     @Inject(forwardRef(() => ConversationService))
     private readonly conversationService: ConversationService,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => ContentService))
+    private readonly contentService: ContentService,
   ) {}
 
   async findOne(id: number): Promise<Message> {
@@ -59,25 +63,30 @@ export class MessageService {
     senderId,
     conversationId,
     content,
-    // attachments,
+    attachments,
   }: MessageCreateDto): Promise<Message> {
     await this.assertUserInConversation(senderId, conversationId);
     const user = await this.userService.findOneInternal(senderId);
     const conversation =
       await this.conversationService.findOneInternal(conversationId);
 
-    // IMPLEMENT CONTENT SAVE
-    // const newMessageData: Partial<Message> = {
-    //   sender: user,
-    //   conversation,
-    //   content,
-    // };
+    const newMessageData: Partial<Message> = {
+      sender: user,
+      conversation,
+      content,
+    };
 
-    // if (attachments) {
-    //   newMessageData.attachments = attachments;
-    // }
+    if (attachments) {
+      const contentArray: Content[] = [];
+      for (const a of attachments) {
+        const savedContent = await this.contentService.create(a);
+        contentArray.push(savedContent);
+      }
 
-    return await this.messageRepo.save({ sender: user, conversation, content });
+      newMessageData.attachments = contentArray;
+    }
+
+    return await this.messageRepo.save(newMessageData);
   }
 
   async markMessageRead(id: number, userId: number): Promise<MessageRead> {
@@ -88,7 +97,7 @@ export class MessageService {
 
   async update(
     id: number,
-    { senderId, content }: MessageUpdateDto,
+    { senderId, content, attachments }: MessageUpdateDto,
   ): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
@@ -105,6 +114,16 @@ export class MessageService {
       throw new UnauthorizedException(
         'Only the author of a message can update the content',
       );
+    }
+
+    if (attachments) {
+      const contentArray: Content[] = [];
+      for (const a of attachments) {
+        const savedContent = await this.contentService.create(a);
+        contentArray.push(savedContent);
+      }
+
+      message.attachments = contentArray;
     }
 
     message.content = content;

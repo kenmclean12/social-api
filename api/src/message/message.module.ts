@@ -9,6 +9,7 @@ import { Message, MessageRead } from './entities';
 import { Like } from 'src/like/entities/like.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { Content } from 'src/content/entity/content.entity';
+import { ContentModule } from 'src/content/content.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Content } from 'src/content/entity/content.entity';
     ]),
     forwardRef(() => ConversationModule),
     UserModule,
+    forwardRef(() => ContentModule),
   ],
   controllers: [MessageController],
   providers: [MessageService],

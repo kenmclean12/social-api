@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Content } from './entity/content.entity';
@@ -13,7 +18,9 @@ export class ContentService {
   constructor(
     @InjectRepository(Content)
     private readonly contentRepo: Repository<Content>,
+    @Inject(forwardRef(() => MessageService))
     private readonly messageService: MessageService,
+    @Inject(forwardRef(() => PostService))
     private readonly postService: PostService,
   ) {}
 

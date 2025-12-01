@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,6 +10,8 @@ import { Repository } from 'typeorm';
 import { UserPost } from './entities/user-post.entity';
 import { PostCreateDto, PostUpdateDto } from './dto';
 import { UserService } from 'src/user/user.service';
+import { ContentService } from 'src/content/content.service';
+import { Content } from 'src/content/entity/content.entity';
 
 @Injectable()
 export class PostService {
@@ -15,6 +19,8 @@ export class PostService {
     @InjectRepository(UserPost)
     private readonly postRepo: Repository<UserPost>,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => ContentService))
+    private readonly contentService: ContentService,
   ) {}
 
   async findOne(id: number): Promise<UserPost> {
@@ -75,7 +81,17 @@ export class PostService {
 
   async create(dto: PostCreateDto): Promise<UserPost> {
     const user = await this.userService.findOneInternal(dto.userId);
-    return await this.postRepo.save({ ...dto, creator: user });
+    const dataToSave = { ...dto, creator: user };
+    if (dto.attachments) {
+      const contentArray: Content[] = [];
+      for (const a of dto.attachments) {
+        const savedContent = await this.contentService.create(a);
+        contentArray.push(savedContent);
+      }
+
+      dataToSave.attachments = contentArray;
+    }
+    return await this.postRepo.save(dataToSave);
   }
 
   async update(
@@ -84,6 +100,19 @@ export class PostService {
   ): Promise<UserPost> {
     await this.userService.findOneInternal(userId);
     const existingPost = await this.findOne(id);
+    if (existingPost.creator.id !== userId) {
+      throw new UnauthorizedException('Only the creator can update the post');
+    }
+
+    if (rest.attachments) {
+      const contentArray: Content[] = [];
+      for (const a of rest.attachments) {
+        const savedContent = await this.contentService.create(a);
+        contentArray.push(savedContent);
+      }
+
+      rest.attachments = contentArray;
+    }
 
     const mergedPost = this.postRepo.merge(existingPost, rest);
     if (!mergedPost) {
