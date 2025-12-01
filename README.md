@@ -1,9 +1,7 @@
 # NestJS Social Media API
-
 A fully-featured social media backend built with NestJS and Websockets. This API is dockerized for easy deployment and development, and uses JWT authentication to secure sensitive routes.
 
 ## Features
-
 - **User Management:** Register, login, update, and delete accounts.
 - **Authentication:** JWT-based auth guards on protected routes for secure access.
 - **Posts & Content:** Create posts with text or file uploads, fetch, update, delete.
@@ -16,7 +14,6 @@ A fully-featured social media backend built with NestJS and Websockets. This API
 - **Dockerized:** Easily run locally or in production using Docker and Docker Compose.
 
 ## Technologies
-
 - [NestJS](https://nestjs.com/)
 - [TypeORM](https://typeorm.io/)
 - [PostgreSQL](https://www.postgresql.org/)
@@ -28,20 +25,6 @@ A fully-featured social media backend built with NestJS and Websockets. This API
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 20+
 - Docker & Docker Compose
 - PostgreSQL (or use host DB)
-
-### Environment Variables
-
-Create a `.env` file in `api/` with the following:
-
-```env
-DB_HOST=host.docker.internal
-DB_PORT=5432
-DB_USERNAME=ken
-DB_PASSWORD=Kenmaster12
-DB_NAME=nestjs-1
-JWT_SECRET=your-jwt-secret
-WS_CORS_ORIGIN=http://localhost:3000
