@@ -6,11 +6,13 @@ import { User } from './entities/user.entity';
 import { FollowModule } from 'src/follow/follow.module';
 import { Message } from 'src/message/entities';
 import { UserPost } from 'src/post/entities/user-post.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, UserPost, Message]),
     forwardRef(() => FollowModule),
+    JwtModule,
   ],
   controllers: [UserController],
   providers: [UserService],
