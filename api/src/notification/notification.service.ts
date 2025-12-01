@@ -14,6 +14,7 @@ import { NotificationCreateDto, NotificationUpdateDto } from './dto';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
+import { NotificationsGateway } from './notification.gateway';
 
 @Injectable()
 export class NotificationService {
@@ -24,6 +25,7 @@ export class NotificationService {
     private readonly postService: PostService,
     private readonly commentService: CommentService,
     private readonly messageService: MessageService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async findAllForUser(userId: number): Promise<Notification[]> {
@@ -98,6 +100,7 @@ export class NotificationService {
       read: false,
     };
 
+    this.notificationsGateway.sendNotification(recipient.id, notification);
     return await this.notificationRepo.save(notification);
   }
 

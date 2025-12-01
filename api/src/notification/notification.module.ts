@@ -11,6 +11,7 @@ import { PostModule } from 'src/post/post.module';
 import { CommentModule } from 'src/comment/comment.module';
 import { MessageModule } from 'src/message/message.module';
 import { Notification } from './entities/notification.entity';
+import { NotificationsGateway } from './notification.gateway';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { Notification } from './entities/notification.entity';
     MessageModule,
   ],
   controllers: [NotificationController],
-  providers: [NotificationService],
-  exports: [NotificationService],
+  providers: [NotificationService, NotificationsGateway],
+  exports: [NotificationService, NotificationsGateway],
 })
 export class NotificationModule {}
