@@ -20,15 +20,6 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
-  @ApiOkResponse({ type: SafeFollowDto })
-  @ApiOperation({
-    summary: 'Find a Follow Record by ID',
-  })
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<SafeFollowDto> {
-    return await this.followService.findOneWithRelations(id);
-  }
-
   @ApiOkResponse({ type: SafeFollowDto, isArray: true })
   @ApiOperation({
     summary: 'Find All Following Records for a Particular User by User ID',
