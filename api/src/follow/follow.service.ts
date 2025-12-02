@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from 'src/user/user.service';
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -51,8 +52,8 @@ export class FollowService {
 
   async findFollowingByUserId(id: number): Promise<SafeFollowDto[]> {
     const following = await this.followRepo.find({
-      where: { following: { id } },
-      relations: ['follower'],
+      where: { follower: { id } },
+      relations: ['following'],
       order: { createdAt: 'ASC' },
     });
 
@@ -67,8 +68,8 @@ export class FollowService {
 
   async findFollowersByUserId(id: number): Promise<SafeFollowDto[]> {
     const followers = await this.followRepo.find({
-      where: { follower: { id } },
-      relations: ['following'],
+      where: { following: { id } },
+      relations: ['follower'],
       order: { createdAt: 'ASC' },
     });
 
@@ -81,10 +82,29 @@ export class FollowService {
     return followers.map((f) => this.toSafeFollow(f));
   }
 
+  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
+    const existing = await this.followRepo.findOne({
+      where: { follower: { id: followerId }, following: { id: followingId } },
+    });
+
+    return !!existing;
+  }
+
   async create({ followerId, followingId }: FollowDto): Promise<SafeFollowDto> {
+    if (followerId === followingId) {
+      throw new BadRequestException('You cannot follow yourself');
+    }
+
+    const existingFollow = await this.followRepo.findOne({
+      where: { follower: { id: followerId }, following: { id: followingId } },
+    });
+
+    if (existingFollow) {
+      throw new BadRequestException('Already following this user');
+    }
+
     const follower = await this.userService.findOneInternal(followerId);
     const following = await this.userService.findOneInternal(followingId);
-
     const saved = await this.followRepo.save({ follower, following });
     const full = await this.findOne(saved.id);
 
