@@ -16,7 +16,6 @@ import {
 import {
   PasswordResetDto,
   SafeUserDto,
-  UserCreateDto,
   UserUpdateDto,
   UserWithCountsResponseDto,
 } from './dto';
@@ -42,14 +41,6 @@ export class UserController {
   @Get()
   async findAll(): Promise<SafeUserDto[]> {
     return await this.userService.findAll();
-  }
-
-  @ApiOkResponse({ type: SafeUserDto })
-  @ApiBody({ type: UserCreateDto })
-  @ApiOperation({ summary: 'Create a User' })
-  @Post()
-  async create(@Body() dto: UserCreateDto): Promise<SafeUserDto> {
-    return await this.userService.create(dto);
   }
 
   @ApiOkResponse({ type: SafeUserDto })
