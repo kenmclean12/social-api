@@ -30,8 +30,6 @@ export class UserService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Follow)
     private readonly followRepo: Repository<Follow>,
-    @Inject(forwardRef(() => FollowService))
-    private readonly followService: FollowService,
     private readonly jwtService: JwtService,
   ) {}
 

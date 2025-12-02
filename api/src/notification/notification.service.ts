@@ -3,7 +3,6 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,6 +16,8 @@ import { UserPost } from 'src/post/entities/user-post.entity';
 import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { NotificationsGateway } from './notification.gateway';
+import { SafeNotificationDto } from './dto/safe-notification.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class NotificationService {
@@ -45,15 +46,23 @@ export class NotificationService {
     });
   }
 
-  async findAllForUser(userId: number): Promise<Notification[]> {
-    return await this.notificationRepo.find({
+  async findAllForUser(userId: number): Promise<SafeNotificationDto[]> {
+    const notifications = await this.notificationRepo.find({
       where: { recipient: { id: userId } },
       relations: ['actionUser', 'post', 'comment', 'message'],
       order: { createdAt: 'DESC' },
     });
+
+    const responseArray: SafeNotificationDto[] = [];
+    for (const n of notifications) {
+      const safeNotification = this.toSafeNotification(n);
+      responseArray.push(safeNotification);
+    }
+
+    return responseArray;
   }
 
-  async create(dto: NotificationCreateDto): Promise<Notification> {
+  async create(dto: NotificationCreateDto): Promise<SafeNotificationDto> {
     const { recipientId, actorId, type, postId, commentId, messageId } = dto;
     if (recipientId === actorId) {
       throw new BadRequestException('Cannot notify yourself');
@@ -119,14 +128,21 @@ export class NotificationService {
     };
 
     const saved = await this.notificationRepo.save(notification);
-    this.notificationsGateway.sendNotification(recipient.id, notification);
-    return saved;
+    if (!saved) {
+      throw new Error(
+        `Could not save updated notification with data: ${JSON.stringify(notification)}`,
+      );
+    }
+
+    const safeNotification = this.toSafeNotification(saved);
+    this.notificationsGateway.sendNotification(recipient.id, safeNotification);
+    return safeNotification;
   }
 
   async markRead(
     id: number,
     dto: NotificationUpdateDto,
-  ): Promise<Notification> {
+  ): Promise<SafeNotificationDto> {
     const notification = await this.notificationRepo.findOne({ where: { id } });
 
     if (!notification) {
@@ -135,26 +151,19 @@ export class NotificationService {
 
     notification.read = dto.read;
 
-    return await this.notificationRepo.save(notification);
-  }
-
-  async remove(id: number, userId: number): Promise<Notification> {
-    const notification = await this.notificationRepo.findOne({
-      where: { id },
-      relations: ['recipient'],
-    });
-
-    if (!notification) {
-      throw new BadRequestException(`Notification with ID ${id} not found`);
-    }
-
-    if (notification.recipient.id !== userId) {
-      throw new UnauthorizedException(
-        'Notifications can only be removed by the recipient',
+    const saved = await this.notificationRepo.save(notification);
+    if (!saved) {
+      throw new Error(
+        `Could not save updated notification with data: ${JSON.stringify(notification)}`,
       );
     }
 
-    await this.notificationRepo.remove(notification);
-    return notification;
+    return this.toSafeNotification(saved);
+  }
+
+  private toSafeNotification(entity: any): SafeNotificationDto {
+    return plainToInstance(SafeNotificationDto, entity, {
+      excludeExtraneousValues: true,
+    });
   }
 }
