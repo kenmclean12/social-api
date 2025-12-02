@@ -12,6 +12,7 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { FollowDto, SafeFollowDto } from './dto';
 import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class FollowService {
@@ -87,7 +88,19 @@ export class FollowService {
     const saved = await this.followRepo.save({ follower, following });
     const full = await this.findOne(saved.id);
 
-    // const notification = await this.not
+    const existingNotification = await this.notificationService.findOneInternal(
+      followingId,
+      followerId,
+      NotificationType.FOLLOW,
+    );
+
+    if (!existingNotification) {
+      await this.notificationService.create({
+        recipientId: followingId,
+        actorId: followerId,
+        type: NotificationType.FOLLOW,
+      });
+    }
 
     return this.toSafeFollow(full);
   }

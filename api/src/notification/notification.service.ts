@@ -31,9 +31,24 @@ export class NotificationService {
     private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
+  async findOneInternal(
+    recipientId: number,
+    actionUserId: number,
+    type: NotificationType,
+  ): Promise<Notification | null> {
+    return await this.notificationRepo.findOne({
+      where: {
+        recipient: { id: recipientId },
+        actionUser: { id: actionUserId },
+        type,
+      },
+    });
+  }
+
   async findAllForUser(userId: number): Promise<Notification[]> {
     return await this.notificationRepo.find({
       where: { recipient: { id: userId } },
+      relations: ['actionUser', 'post', 'comment', 'message'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -103,8 +118,9 @@ export class NotificationService {
       read: false,
     };
 
+    const saved = await this.notificationRepo.save(notification);
     this.notificationsGateway.sendNotification(recipient.id, notification);
-    return await this.notificationRepo.save(notification);
+    return saved;
   }
 
   async markRead(
