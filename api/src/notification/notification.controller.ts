@@ -48,15 +48,4 @@ export class NotificationController {
   ): Promise<Notification> {
     return await this.notificationService.markRead(id, dto);
   }
-
-  @ApiOkResponse({ type: Notification })
-  @ApiOperation({ summary: 'Delete a notification (only by recipient)' })
-  @Delete(':id')
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req,
-  ): Promise<Notification> {
-    const userId = req.user.id as number;
-    return await this.notificationService.remove(id, userId);
-  }
 }
