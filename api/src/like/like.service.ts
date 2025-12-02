@@ -14,6 +14,8 @@ import { MessageService } from 'src/message/message.service';
 import { PostService } from 'src/post/post.service';
 import { CommentService } from 'src/comment/comment.service';
 import { EntityType } from 'src/common/types';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class LikeService {
@@ -25,6 +27,7 @@ export class LikeService {
     private readonly messageService: MessageService,
     private readonly postService: PostService,
     private readonly commentService: CommentService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findLikesForEntity(type: EntityType, id: number): Promise<Like[]> {
@@ -43,21 +46,33 @@ export class LikeService {
     let entity: { id: number } | null = null;
     let relationKey: EntityType | null = null;
 
+    let recipientId: number;
+    let notificationType: NotificationType;
+    let contentId: number;
     switch (true) {
       case !!messageId: {
         const message = await this.messageService.findOne(messageId);
+        recipientId = message.sender.id;
+        contentId = messageId;
+        notificationType = NotificationType.MESSAGE_LIKE;
         entity = message;
         relationKey = 'message';
         break;
       }
       case !!postId: {
         const post = await this.postService.findOne(postId);
+        recipientId = post.creator.id;
+        contentId = postId;
+        notificationType = NotificationType.POST_LIKE;
         entity = post;
         relationKey = 'post';
         break;
       }
       case !!commentId: {
         const comment = await this.commentService.findOne(commentId);
+        recipientId = comment.user.id;
+        contentId = commentId;
+        notificationType = NotificationType.COMMENT_LIKE;
         entity = comment;
         relationKey = 'comment';
         break;
@@ -71,12 +86,22 @@ export class LikeService {
     const existingLike = await this.likeRepo.findOne({
       where: { user: { id: userId }, [relationKey]: { id: entity.id } },
     });
+
     if (existingLike) {
       throw new BadRequestException(`User already liked this ${relationKey}`);
     }
 
     const like: Partial<Like> = { user, [relationKey]: entity };
-    return await this.likeRepo.save(like);
+    const saved = await this.likeRepo.save(like);
+
+    await this.notificationService.create({
+      recipientId,
+      actorId: userId,
+      type: notificationType,
+      [relationKey]: contentId,
+    });
+
+    return saved;
   }
 
   async delete(id: number, userId: number): Promise<Like> {

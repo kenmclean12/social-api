@@ -94,6 +94,7 @@ export class NotificationService {
       }
 
       case NotificationType.MESSAGE:
+      case NotificationType.MESSAGE_LIKE:
       case NotificationType.MESSAGE_REACTION: {
         if (!messageId) {
           throw new BadRequestException(

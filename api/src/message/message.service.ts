@@ -32,7 +32,7 @@ export class MessageService {
   async findOne(id: number): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
-      relations: ['reads', 'likes', 'reactions'],
+      relations: ['reads', 'likes', 'reactions', 'sender'],
     });
 
     if (!message) {
