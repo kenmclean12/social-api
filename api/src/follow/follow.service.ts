@@ -82,14 +82,6 @@ export class FollowService {
     return followers.map((f) => this.toSafeFollow(f));
   }
 
-  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
-    const existing = await this.followRepo.findOne({
-      where: { follower: { id: followerId }, following: { id: followingId } },
-    });
-
-    return !!existing;
-  }
-
   async create({ followerId, followingId }: FollowDto): Promise<SafeFollowDto> {
     if (followerId === followingId) {
       throw new BadRequestException('You cannot follow yourself');

@@ -42,19 +42,6 @@ export class FollowController {
     return await this.followService.findFollowersByUserId(id);
   }
 
-  @ApiOkResponse({ type: 'boolean' })
-  @ApiOperation({
-    summary: 'Check whether a user is following another by following ID',
-  })
-  @Get('is-following/:followingId')
-  async isFollowing(
-    @Param('followingId', ParseIntPipe) id: number,
-    @Req() req,
-  ): Promise<boolean> {
-    const userId = req.user.id as number;
-    return await this.followService.isFollowing(id, userId);
-  }
-
   @ApiOkResponse({ type: SafeFollowDto })
   @ApiBody({ type: FollowDto })
   @ApiOperation({
