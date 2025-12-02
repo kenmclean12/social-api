@@ -10,6 +10,7 @@ import { PostModule } from 'src/post/post.module';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { Like } from 'src/like/entities/like.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from 'src/auth/auth.module';
     forwardRef(() => UserModule),
     AuthModule,
     PostModule,
+    forwardRef(() => NotificationModule),
   ],
   controllers: [CommentController],
   providers: [CommentService],

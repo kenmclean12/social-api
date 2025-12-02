@@ -11,6 +11,8 @@ import { Comment } from './entities/comment.entity';
 import { PostService } from 'src/post/post.service';
 import { CommentCreateDto } from './dto';
 import { UserService } from 'src/user/user.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class CommentService {
@@ -20,6 +22,8 @@ export class CommentService {
     private readonly postService: PostService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    @Inject(forwardRef(() => NotificationService))
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findOne(id: number): Promise<Comment> {
@@ -73,7 +77,18 @@ export class CommentService {
       result.parentComment = parentComment;
     }
 
-    return await this.commentRepo.save(result);
+    const saved = await this.commentRepo.save(result);
+
+    if (post.creator.id !== user.id) {
+      await this.notificationService.create({
+        recipientId: post.creator.id,
+        actorId: dto.userId,
+        type: NotificationType.POST_COMMENT,
+        postId: post.id,
+      });
+    }
+
+    return saved;
   }
 
   async update(id: number, userId: number, content: string): Promise<Comment> {

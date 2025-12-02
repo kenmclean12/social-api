@@ -22,7 +22,6 @@ export enum NotificationType {
 
   MESSAGE_LIKE = 'MESSAGE_LIKE',
   MESSAGE_REACTION = 'MESSAGE_REACTION',
-  MESSAGE = 'MESSAGE',
 }
 
 @Entity()
