@@ -12,6 +12,7 @@ import { CommentModule } from 'src/comment/comment.module';
 import { MessageModule } from 'src/message/message.module';
 import { Notification } from './entities/notification.entity';
 import { NotificationsGateway } from './notification.gateway';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { NotificationsGateway } from './notification.gateway';
     PostModule,
     CommentModule,
     MessageModule,
+    AuthModule,
   ],
   controllers: [NotificationController],
   providers: [NotificationService, NotificationsGateway],

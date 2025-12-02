@@ -10,6 +10,7 @@ import { UserModule } from 'src/user/user.module';
 import { MessageModule } from 'src/message/message.module';
 import { PostModule } from 'src/post/post.module';
 import { CommentModule } from 'src/comment/comment.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CommentModule } from 'src/comment/comment.module';
     MessageModule,
     PostModule,
     CommentModule,
+    AuthModule,
   ],
   controllers: [LikeController],
   providers: [LikeService],

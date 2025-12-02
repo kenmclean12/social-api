@@ -5,11 +5,13 @@ import { ConversationController } from './conversation.controller';
 import { ConversationService } from './conversation.service';
 import { UserModule } from 'src/user/user.module';
 import { MessageModule } from 'src/message/message.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Conversation]),
     UserModule,
+    AuthModule,
     forwardRef(() => MessageModule),
   ],
   controllers: [ConversationController],

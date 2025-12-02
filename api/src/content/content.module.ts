@@ -8,11 +8,13 @@ import { ContentService } from './content.service';
 import { UserModule } from 'src/user/user.module';
 import { MessageModule } from 'src/message/message.module';
 import { PostModule } from 'src/post/post.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Content, Message, UserPost]),
     UserModule,
+    AuthModule,
     forwardRef(() => MessageModule),
     forwardRef(() => PostModule),
   ],

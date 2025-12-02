@@ -10,6 +10,7 @@ import { Comment } from 'src/comment/entities/comment.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { Content } from 'src/content/entity/content.entity';
 import { ContentModule } from 'src/content/content.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ContentModule } from 'src/content/content.module';
       Content,
     ]),
     UserModule,
+    AuthModule,
     forwardRef(() => ContentModule),
   ],
   controllers: [PostController],

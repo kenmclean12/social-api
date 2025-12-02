@@ -9,11 +9,13 @@ import { UserModule } from 'src/user/user.module';
 import { PostModule } from 'src/post/post.module';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
 import { Like } from 'src/like/entities/like.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Comment, UserPost, User, Reaction, Like]),
     UserModule,
+    AuthModule,
     PostModule,
   ],
   controllers: [CommentController],

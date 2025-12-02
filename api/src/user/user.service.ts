@@ -21,12 +21,15 @@ import {
   UserWithCountsResponseDto,
 } from './dto';
 import { JwtService } from '@nestjs/jwt';
+import { Follow } from 'src/follow/entities/follow.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Follow)
+    private readonly followRepo: Repository<Follow>,
     @Inject(forwardRef(() => FollowService))
     private readonly followService: FollowService,
     private readonly jwtService: JwtService,
@@ -44,14 +47,17 @@ export class UserService {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
 
-    const following =
-      (await this.followService.findFollowingByUserId(id)) || [];
-    const followers =
-      (await this.followService.findFollowersByUserId(id)) || [];
+    const followingCount = await this.followRepo.count({
+      where: { follower: { id } },
+    });
+
+    const followerCount = await this.followRepo.count({
+      where: { following: { id } },
+    });
 
     const safeUser = this.toSafe(UserWithCountsResponseDto, user);
-    safeUser.followingCount = following.length;
-    safeUser.followerCount = followers.length;
+    safeUser.followingCount = followingCount;
+    safeUser.followerCount = followerCount;
 
     return safeUser;
   }

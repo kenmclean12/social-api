@@ -4,9 +4,10 @@ import { FollowModule } from 'src/follow/follow.module';
 import { FeedController } from './feed.controller';
 import { FeedService } from './feed.service';
 import { UserPost } from 'src/post/entities/user-post.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserPost]), FollowModule],
+  imports: [TypeOrmModule.forFeature([UserPost]), FollowModule, AuthModule],
   controllers: [FeedController],
   providers: [FeedService],
   exports: [FeedService],
