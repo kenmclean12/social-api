@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToMany,
-  JoinTable,
   OneToMany,
   Column,
   CreateDateColumn,
@@ -31,7 +30,6 @@ export class Conversation {
   initiator: User;
 
   @ManyToMany(() => User, (user) => user.participatingConversations)
-  @JoinTable()
   @ApiProperty({ type: () => [User] })
   participants: User[];
 

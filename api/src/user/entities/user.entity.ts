@@ -8,6 +8,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -75,32 +76,52 @@ export class User {
   hashedRefreshToken: string | null;
 
   @Expose()
-  @OneToMany(() => UserPost, (post) => post.creator, { nullable: false })
+  @OneToMany(() => UserPost, (post) => post.creator, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => UserPost })
   posts: UserPost[];
 
   @Expose()
-  @OneToMany(() => Follow, (follow) => follow.follower)
+  @OneToMany(() => Follow, (follow) => follow.follower, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => [Follow], required: false })
   following: Follow[];
 
   @Expose()
-  @OneToMany(() => Follow, (follow) => follow.following)
+  @OneToMany(() => Follow, (follow) => follow.following, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => [Follow], required: false })
   followers: Follow[];
 
   @Expose()
-  @OneToMany(() => Message, (message) => message.sender)
+  @OneToMany(() => Message, (message) => message.sender, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => [Message] })
   sentMessages: Message[];
 
   @Expose()
-  @OneToMany(() => Conversation, (conversation) => conversation.initiator)
+  @OneToMany(() => Conversation, (conversation) => conversation.initiator, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => [Conversation] })
   initiatedConversations: Conversation[];
 
   @Expose()
   @ManyToMany(() => Conversation)
+  @JoinTable({
+    name: 'user_conversations',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'conversationId', referencedColumnName: 'id' },
+  })
   @ApiProperty({ type: () => [Conversation] })
   participatingConversations: User[];
 }
