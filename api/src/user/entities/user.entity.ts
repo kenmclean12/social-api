@@ -65,7 +65,7 @@ export class User {
   description?: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 255, default: null })
+  @Column({ type: 'varchar', default: null })
   @ApiProperty()
   avatarUrl: string | null;
 

@@ -60,7 +60,6 @@ export class UserCreateDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
   @ApiProperty({ example: 'http://avatars.com/avatar/123' })
   avatarUrl?: string;
 }
