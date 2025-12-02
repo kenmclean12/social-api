@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Patch,
   Body,
   Param,
@@ -12,7 +11,7 @@ import {
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { NotificationService } from './notification.service';
-import { NotificationCreateDto, NotificationUpdateDto } from './dto';
+import { NotificationUpdateDto } from './dto';
 import { SafeNotificationDto } from './dto/safe-notification.dto';
 
 @Controller('notification')
@@ -27,16 +26,6 @@ export class NotificationController {
   async findAllForUser(@Req() req): Promise<SafeNotificationDto[]> {
     const userId = req.user.id as number;
     return await this.notificationService.findAllForUser(userId);
-  }
-
-  @ApiOkResponse({ type: SafeNotificationDto })
-  @ApiBody({ type: NotificationCreateDto })
-  @ApiOperation({ summary: 'Create a notification' })
-  @Post()
-  async create(
-    @Body() dto: NotificationCreateDto,
-  ): Promise<SafeNotificationDto> {
-    return await this.notificationService.create(dto);
   }
 
   @ApiOkResponse({ type: SafeNotificationDto })
