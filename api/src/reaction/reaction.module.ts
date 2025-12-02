@@ -11,6 +11,7 @@ import { MessageModule } from 'src/message/message.module';
 import { PostModule } from 'src/post/post.module';
 import { CommentModule } from 'src/comment/comment.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from 'src/auth/auth.module';
     PostModule,
     CommentModule,
     AuthModule,
+    NotificationModule,
   ],
   controllers: [ReactionController],
   providers: [ReactionService],
