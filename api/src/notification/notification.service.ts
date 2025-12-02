@@ -15,9 +15,9 @@ import { NotificationCreateDto, NotificationUpdateDto } from './dto';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
-import { NotificationsGateway } from './notification.gateway';
 import { SafeNotificationDto } from './dto/safe-notification.dto';
 import { plainToInstance } from 'class-transformer';
+import { WebsocketGateway } from 'src/websocket/websocket.gateway';
 
 @Injectable()
 export class NotificationService {
@@ -29,7 +29,8 @@ export class NotificationService {
     private readonly postService: PostService,
     private readonly commentService: CommentService,
     private readonly messageService: MessageService,
-    private readonly notificationsGateway: NotificationsGateway,
+    @Inject(forwardRef(() => WebsocketGateway))
+    private readonly websocketGateway: WebsocketGateway,
   ) {}
 
   async findOneInternal(
@@ -135,7 +136,7 @@ export class NotificationService {
     }
 
     const safeNotification = this.toSafeNotification(saved);
-    this.notificationsGateway.sendNotification(recipient.id, safeNotification);
+    this.websocketGateway.sendNotification(recipient.id, safeNotification);
     return safeNotification;
   }
 

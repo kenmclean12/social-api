@@ -4,6 +4,7 @@ import { SafeUserDto } from 'src/user/dto';
 import { NotificationType } from '../entities/notification.entity';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { Message } from 'src/message/entities';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 export class SafeNotificationDto {
   @Expose()

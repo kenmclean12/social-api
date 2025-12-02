@@ -10,6 +10,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
 import { MessageService } from 'src/message/message.service';
+import { forwardRef, Inject } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
@@ -19,33 +20,27 @@ import { MessageService } from 'src/message/message.service';
 export class WebsocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  @WebSocketServer()
-  server: Server;
+  @WebSocketServer() server: Server;
 
   constructor(
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly messageService: MessageService,
   ) {}
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth?.token as string;
+      const token = client.handshake.auth?.token;
+      if (!token) return client.disconnect();
 
-      if (!token) {
-        client.disconnect();
-        return;
-      }
-
-      const user = await this.userService.findByToken(token);
-      if (!user) {
-        client.disconnect();
-        return;
-      }
+      const user = await this.userService.findByToken(token as string);
+      if (!user) return client.disconnect();
 
       client.data.user = user;
+      await client.join(`user_${user.id}`);
+
       console.log(`WS Connected: ${user.firstName} ${user.lastName}`);
-    } catch (err) {
-      console.error('WS Connection Error:', err);
+    } catch {
       client.disconnect();
     }
   }
@@ -55,10 +50,23 @@ export class WebsocketGateway
     if (user) console.log(`WS Disconnected: ${user.username}`);
   }
 
+  @SubscribeMessage('conversation:join')
+  async handleJoinConversation(
+    @MessageBody() data: { conversationId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    await client.join(`conversation_${data.conversationId}`);
+    return { joined: data.conversationId };
+  }
+
   @SubscribeMessage('message:send')
   async handleSendMessage(
     @MessageBody()
-    body: { senderId: number; conversationId: number; content: string },
+    body: {
+      senderId: number;
+      conversationId: number;
+      content: string;
+    },
     @ConnectedSocket() client: Socket,
   ) {
     const user = client.data.user;
@@ -69,21 +77,14 @@ export class WebsocketGateway
       attachments: undefined,
     });
 
-    this.server.to(this.room(body.conversationId)).emit('message:new', message);
+    this.server
+      .to(`conversation_${body.conversationId}`)
+      .emit('message:new', message);
 
     return message;
   }
 
-  @SubscribeMessage('conversation:join')
-  async handleJoinConversation(
-    @MessageBody() data: { conversationId: number },
-    @ConnectedSocket() client: Socket,
-  ) {
-    await client.join(this.room(data.conversationId));
-    return { joined: data.conversationId };
-  }
-
-  private room(id: number): string {
-    return `conversation_${id}`;
+  sendNotification(userId: number, notif: any) {
+    this.server.to(`user_${userId}`).emit('notification', notif);
   }
 }

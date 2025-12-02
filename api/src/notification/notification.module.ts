@@ -11,8 +11,8 @@ import { PostModule } from 'src/post/post.module';
 import { CommentModule } from 'src/comment/comment.module';
 import { MessageModule } from 'src/message/message.module';
 import { Notification } from './entities/notification.entity';
-import { NotificationsGateway } from './notification.gateway';
 import { AuthModule } from 'src/auth/auth.module';
+import { WebsocketModule } from 'src/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -22,9 +22,10 @@ import { AuthModule } from 'src/auth/auth.module';
     CommentModule,
     MessageModule,
     AuthModule,
+    forwardRef(() => WebsocketModule),
   ],
   controllers: [NotificationController],
-  providers: [NotificationService, NotificationsGateway],
-  exports: [NotificationService, NotificationsGateway],
+  providers: [NotificationService],
+  exports: [NotificationService],
 })
 export class NotificationModule {}
