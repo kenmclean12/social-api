@@ -18,6 +18,7 @@ export class PostService {
   constructor(
     @InjectRepository(UserPost)
     private readonly postRepo: Repository<UserPost>,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     @Inject(forwardRef(() => ContentService))
     private readonly contentService: ContentService,

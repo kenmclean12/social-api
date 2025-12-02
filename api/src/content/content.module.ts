@@ -13,7 +13,7 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Content, Message, UserPost]),
-    UserModule,
+    forwardRef(() => UserModule),
     AuthModule,
     forwardRef(() => MessageModule),
     forwardRef(() => PostModule),

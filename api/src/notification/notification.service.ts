@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -21,6 +23,7 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly postService: PostService,
     private readonly commentService: CommentService,

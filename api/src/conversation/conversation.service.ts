@@ -28,6 +28,7 @@ export class ConversationService {
     private readonly conversationRepo: Repository<Conversation>,
     @Inject(forwardRef(() => MessageService))
     private readonly messageService: MessageService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
 

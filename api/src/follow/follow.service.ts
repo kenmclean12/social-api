@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { FollowDto, SafeFollowDto } from './dto';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class FollowService {
@@ -19,6 +20,7 @@ export class FollowService {
     private readonly followRepo: Repository<Follow>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findOne(id: number): Promise<Follow> {
@@ -84,6 +86,8 @@ export class FollowService {
 
     const saved = await this.followRepo.save({ follower, following });
     const full = await this.findOne(saved.id);
+
+    // const notification = await this.not
 
     return this.toSafeFollow(full);
   }

@@ -5,12 +5,14 @@ import { Follow } from './entities/follow.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Follow]),
     forwardRef(() => UserModule),
     AuthModule,
+    forwardRef(() => NotificationModule),
   ],
   controllers: [FollowController],
   providers: [FollowService],

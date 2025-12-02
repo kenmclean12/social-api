@@ -22,7 +22,7 @@ import { AuthModule } from 'src/auth/auth.module';
       Reaction,
       Content,
     ]),
-    UserModule,
+    forwardRef(() => UserModule),
     AuthModule,
     forwardRef(() => ContentModule),
   ],

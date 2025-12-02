@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -16,6 +18,7 @@ export class CommentService {
     @InjectRepository(Comment)
     private readonly commentRepo: Repository<Comment>,
     private readonly postService: PostService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
 

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -18,6 +20,7 @@ export class LikeService {
   constructor(
     @InjectRepository(Like)
     private readonly likeRepo: Repository<Like>,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly messageService: MessageService,
     private readonly postService: PostService,
