@@ -12,8 +12,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { PostCreateDto, PostUpdateDto } from './dto';
-import { UserPost } from './entities/user-post.entity';
+import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('post')
@@ -22,50 +21,43 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @ApiOkResponse({ type: UserPost, isArray: true })
+  @ApiOkResponse({ type: PostResponseDto, isArray: true })
   @ApiOperation({
     description: 'Find all Posts for a particular user by User ID',
   })
   @Get('posts/:userId')
   async findByUserId(
     @Param('userId', ParseIntPipe) id: number,
-  ): Promise<UserPost[]> {
+  ): Promise<PostResponseDto[]> {
     return await this.postService.findByUserId(id);
   }
 
-  @ApiOkResponse({ type: UserPost, isArray: true })
-  @ApiOperation({ description: 'Find all Posts' })
-  @Get()
-  async findAll(): Promise<UserPost[]> {
-    return await this.postService.findAll();
-  }
-
-  @ApiOkResponse({ type: UserPost })
+  @ApiOkResponse({ type: PostResponseDto })
   @ApiOperation({ description: 'Create a Post' })
   @Post()
-  async create(@Body() dto: PostCreateDto): Promise<UserPost> {
+  async create(@Body() dto: PostCreateDto): Promise<PostResponseDto> {
     return await this.postService.create(dto);
   }
 
-  @ApiOkResponse({ type: UserPost })
+  @ApiOkResponse({ type: PostResponseDto })
   @ApiOperation({ description: 'Update a Post by Post ID' })
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: PostUpdateDto,
     @Req() req,
-  ): Promise<UserPost> {
+  ): Promise<PostResponseDto> {
     const userId = req.user.id as number;
     return await this.postService.update(id, userId, dto);
   }
 
-  @ApiOkResponse({ type: UserPost })
+  @ApiOkResponse({ type: PostResponseDto })
   @ApiOperation({ description: 'Remove a Post by Post ID' })
   @Delete(':id')
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
-  ): Promise<UserPost> {
+  ): Promise<PostResponseDto> {
     const userId = req.user.id as number;
     return await this.postService.remove(id, userId);
   }

@@ -1,19 +1,17 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
-  Post,
-  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ContentService } from './content.service';
-import { Content } from './entity/content.entity';
-import { ContentCreateDto } from './dto/content-create.dto';
+import { ContentType } from './entity/content.entity';
 import { JwtAuthGuard } from 'src/auth/guards';
+import { Response } from 'express';
+import { ContentResponseDto } from './dto';
 
 @Controller('content')
 @ApiTags('Content')
@@ -21,38 +19,39 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
-  @ApiOkResponse({ type: Content })
+  @ApiOkResponse({ type: ContentResponseDto })
   @ApiOperation({ description: 'Get a content item by Content ID' })
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Content> {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ContentResponseDto> {
     return await this.contentService.findOne(id);
   }
 
-  @ApiOkResponse({ type: [Content] })
-  @ApiOperation({ description: 'Get all content entries' })
-  @Get()
-  async findAll(): Promise<Content[]> {
-    return await this.contentService.findAll();
-  }
-
-  @ApiOkResponse({ type: Content })
+  @Get(':id/file')
   @ApiOperation({
-    description:
-      'Create a content entry (image, file, video, etc.) and attach it to a message or post',
+    description: 'Get raw file data for a content record by Content ID',
   })
-  @Post()
-  async create(@Body() dto: ContentCreateDto): Promise<Content> {
-    return await this.contentService.create(dto);
-  }
-
-  @ApiOkResponse({ type: Content })
-  @ApiOperation({ description: 'Remove a content item by Content ID' })
-  @Delete(':id')
-  async remove(
+  async getFile(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req,
-  ): Promise<Content> {
-    const userId = req.user.id as number;
-    return await this.contentService.remove(id, userId);
+    @Res() res: Response,
+  ): Promise<void> {
+    const content = await this.contentService.findOneInternal(id);
+    const mime =
+      content.type === ContentType.IMAGE
+        ? 'image/jpeg'
+        : content.type === ContentType.VIDEO
+          ? 'video/mp4'
+          : content.type === ContentType.AUDIO
+            ? 'audio/mpeg'
+            : 'application/octet-stream';
+
+    res.set({
+      'Content-Type': mime,
+      'Content-Length': content.data.length,
+      'Content-Disposition': 'inline',
+    });
+
+    res.send(content.data);
   }
 }

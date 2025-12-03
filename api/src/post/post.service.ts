@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserPost } from './entities/user-post.entity';
-import { PostCreateDto, PostUpdateDto } from './dto';
+import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { UserService } from 'src/user/user.service';
 import { ContentService } from 'src/content/content.service';
 import { Content } from 'src/content/entity/content.entity';
@@ -24,7 +24,7 @@ export class PostService {
     private readonly contentService: ContentService,
   ) {}
 
-  async findOne(id: number): Promise<UserPost> {
+  async findOneInternal(id: number): Promise<UserPost> {
     const post = await this.postRepo.findOne({
       where: { id },
       relations: [
@@ -49,7 +49,7 @@ export class PostService {
     return post;
   }
 
-  async findByUserId(userId: number): Promise<UserPost[]> {
+  async findByUserId(userId: number): Promise<PostResponseDto[]> {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },
       relations: [
@@ -70,17 +70,15 @@ export class PostService {
       throw new NotFoundException(`No Posts found for User ID: ${userId}`);
     }
 
-    return posts;
+    const responseDtos: PostResponseDto[] = [];
+    for (const p of posts) {
+      responseDtos.push(this.toResponseDto(p));
+    }
+
+    return responseDtos;
   }
 
-  async findAll(): Promise<UserPost[]> {
-    return await this.postRepo.find({
-      relations: ['creator', 'likes', 'comments', 'reactions'],
-      order: { createdAt: 'ASC' },
-    });
-  }
-
-  async create(dto: PostCreateDto): Promise<UserPost> {
+  async create(dto: PostCreateDto): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
     const dataToSave = { ...dto, creator: user };
     if (dto.attachments) {
@@ -92,16 +90,18 @@ export class PostService {
 
       dataToSave.attachments = contentArray;
     }
-    return await this.postRepo.save(dataToSave);
+
+    const saved = await this.postRepo.save(dataToSave);
+    return this.toResponseDto(saved);
   }
 
   async update(
     id: number,
     userId: number,
     dto: PostUpdateDto,
-  ): Promise<UserPost> {
+  ): Promise<PostResponseDto> {
     await this.userService.findOneInternal(userId);
-    const existingPost = await this.findOne(id);
+    const existingPost = await this.findOneInternal(id);
     if (existingPost.creator.id !== userId) {
       throw new UnauthorizedException('Only the creator can update the post');
     }
@@ -122,11 +122,13 @@ export class PostService {
         `Failed to merge post with provided data: ${JSON.stringify({ userId, ...dto })}`,
       );
     }
-    return await this.postRepo.save(mergedPost);
+
+    const saved = await this.postRepo.save(mergedPost);
+    return this.toResponseDto(saved);
   }
 
-  async remove(id: number, userId: number): Promise<UserPost> {
-    const existingPost = await this.findOne(id);
+  async remove(id: number, userId: number): Promise<PostResponseDto> {
+    const existingPost = await this.findOneInternal(id);
     await this.userService.findOneInternal(userId);
 
     if (existingPost.creator.id !== userId) {
@@ -134,6 +136,17 @@ export class PostService {
     }
 
     await this.postRepo.remove(existingPost);
-    return existingPost;
+    return this.toResponseDto(existingPost);
+  }
+
+  toResponseDto(post: UserPost): PostResponseDto {
+    return new PostResponseDto({
+      id: post.id,
+      title: post.title,
+      createdAt: post.createdAt,
+      creatorId: post.creator.id,
+      attachments:
+        post.contents?.map((a) => this.contentService.toResponseDto(a)) ?? [],
+    });
   }
 }

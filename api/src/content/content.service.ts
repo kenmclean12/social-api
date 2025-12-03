@@ -13,6 +13,7 @@ import { Message } from 'src/message/entities/message.entity';
 import { MessageService } from 'src/message/message.service';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { PostService } from 'src/post/post.service';
+import { ContentResponseDto } from './dto';
 
 @Injectable()
 export class ContentService {
@@ -25,10 +26,10 @@ export class ContentService {
     private readonly postService: PostService,
   ) {}
 
-  async findOne(id: number): Promise<Content> {
+  async findOneInternal(id: number): Promise<Content> {
     const content = await this.contentRepo.findOne({
       where: { id },
-      relations: ['message', 'post'],
+      relations: ['post', 'post.creator', 'message', 'message.sender'],
     });
 
     if (!content) {
@@ -40,8 +41,30 @@ export class ContentService {
     return content;
   }
 
-  async findAll() {
-    return this.contentRepo.find({ relations: ['message', 'post'] });
+  async findOne(id: number): Promise<ContentResponseDto> {
+    const content = await this.contentRepo.findOne({
+      where: { id },
+    });
+
+    if (!content) {
+      throw new NotFoundException(
+        `No content found with the provided Content ID: ${id}`,
+      );
+    }
+
+    return this.toResponseDto(content);
+  }
+
+  async getFileData(id: number): Promise<ContentResponseDto> {
+    const content = await this.contentRepo.findOne({
+      where: { id },
+    });
+
+    if (!content) {
+      throw new NotFoundException(`Content ${id} not found`);
+    }
+
+    return this.toResponseDto(content);
   }
 
   async create(dto: ContentCreateDto): Promise<Content> {
@@ -52,7 +75,7 @@ export class ContentService {
 
     let post: UserPost | null = null;
     if (dto.postId) {
-      post = await this.postService.findOne(dto.postId);
+      post = await this.postService.findOneInternal(dto.postId);
     }
 
     return await this.contentRepo.save({
@@ -64,7 +87,7 @@ export class ContentService {
   }
 
   async remove(id: number, userId: number): Promise<Content> {
-    const content = await this.findOne(id);
+    const content = await this.findOneInternal(id);
     const ownerId = content.post?.creator?.id || content.message?.sender?.id;
 
     if (ownerId !== userId) {
@@ -73,7 +96,14 @@ export class ContentService {
       );
     }
 
-    await this.contentRepo.remove(content);
-    return content;
+    return await this.contentRepo.remove(content);
+  }
+
+  toResponseDto(content: Content): ContentResponseDto {
+    return new ContentResponseDto({
+      id: content.id,
+      type: content.type,
+      url: `/content/${content.id}/file`,
+    });
   }
 }
