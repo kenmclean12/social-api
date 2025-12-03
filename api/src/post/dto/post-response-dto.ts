@@ -6,7 +6,10 @@ export class PostResponseDto {
   id: number;
 
   @ApiProperty()
-  title: string;
+  title?: string;
+
+  @ApiProperty()
+  textContent?: string;
 
   @ApiProperty()
   createdAt: Date;
