@@ -8,24 +8,14 @@ import { UserModule } from 'src/user/user.module';
 import { Message, MessageRead } from './entities';
 import { Like } from 'src/like/entities/like.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
-import { Content } from 'src/content/entity/content.entity';
-import { ContentModule } from 'src/content/content.module';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Message,
-      MessageRead,
-      User,
-      Like,
-      Reaction,
-      Content,
-    ]),
+    TypeOrmModule.forFeature([Message, MessageRead, User, Like, Reaction]),
     forwardRef(() => ConversationModule),
     forwardRef(() => UserModule),
     AuthModule,
-    forwardRef(() => ContentModule),
   ],
   controllers: [MessageController],
   providers: [MessageService],

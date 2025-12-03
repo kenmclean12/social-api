@@ -72,10 +72,7 @@ export class WebsocketGateway
     const user = client.data.user;
     if (!user) return;
 
-    const message = await this.messageService.create({
-      ...body,
-      attachments: undefined,
-    });
+    const message = await this.messageService.create(body);
 
     this.server
       .to(`conversation_${body.conversationId}`)

@@ -1,4 +1,3 @@
-// jwt.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -15,6 +14,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     const user = await this.userService.findOneInternal(payload.sub as number);
-    return user; // this gets attached to req.user
+    return user;
   }
 }

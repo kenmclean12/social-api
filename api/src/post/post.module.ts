@@ -8,23 +8,13 @@ import { UserPost } from './entities/user-post.entity';
 import { Like } from 'src/like/entities/like.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
-import { Content } from 'src/content/entity/content.entity';
-import { ContentModule } from 'src/content/content.module';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      UserPost,
-      User,
-      Like,
-      Comment,
-      Reaction,
-      Content,
-    ]),
+    TypeOrmModule.forFeature([UserPost, User, Like, Comment, Reaction]),
     forwardRef(() => UserModule),
     AuthModule,
-    forwardRef(() => ContentModule),
   ],
   controllers: [PostController],
   providers: [PostService],

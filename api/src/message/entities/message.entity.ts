@@ -13,7 +13,6 @@ import { MessageRead } from './message-read.entity';
 import { Expose } from 'class-transformer';
 import { Like } from 'src/like/entities/like.entity';
 import { Reaction } from 'src/reaction/entities/reaction.entity';
-import { Content } from 'src/content/entity/content.entity';
 
 @Entity()
 export class Message {
@@ -31,11 +30,6 @@ export class Message {
   @Column({ type: 'varchar', length: 500 })
   @ApiProperty()
   content: string;
-
-  @Expose()
-  @OneToMany(() => Content, (c) => c.message, { cascade: true })
-  @ApiProperty({ type: () => [Content], required: false, isArray: true })
-  attachments: Content[];
 
   @Expose()
   @ManyToOne(() => User, (user) => user.sentMessages, { nullable: false })

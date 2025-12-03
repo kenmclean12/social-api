@@ -10,9 +10,6 @@ import { Repository } from 'typeorm';
 import { UserPost } from './entities/user-post.entity';
 import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { UserService } from 'src/user/user.service';
-import { ContentService } from 'src/content/content.service';
-import { Content } from 'src/content/entity/content.entity';
-
 @Injectable()
 export class PostService {
   constructor(
@@ -20,14 +17,12 @@ export class PostService {
     private readonly postRepo: Repository<UserPost>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-    @Inject(forwardRef(() => ContentService))
-    private readonly contentService: ContentService,
   ) {}
 
   async findOneInternal(id: number): Promise<UserPost> {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['creator', 'likes', 'reactions', 'comments', 'contents'],
+      relations: ['creator', 'likes', 'reactions', 'comments'],
     });
 
     if (!post) {
@@ -42,7 +37,7 @@ export class PostService {
   async findByUserId(userId: number): Promise<PostResponseDto[]> {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },
-      relations: ['creator', 'likes', 'reactions', 'comments', 'contents'],
+      relations: ['creator', 'likes', 'reactions', 'comments'],
       order: { createdAt: 'ASC' },
     });
 
@@ -61,21 +56,6 @@ export class PostService {
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
     const savedPost = await this.postRepo.save({ ...dto, creator: user });
-
-    if (dto.attachments && dto.attachments.length > 0) {
-      const contentArray: Content[] = [];
-      for (const a of dto.attachments) {
-        const savedContent = await this.contentService.create({
-          ...a,
-          postId: savedPost.id,
-        });
-        contentArray.push(savedContent);
-      }
-
-      savedPost.contents = contentArray;
-      await this.postRepo.save(savedPost);
-    }
-
     return this.toResponseDto(savedPost);
   }
 
@@ -88,16 +68,6 @@ export class PostService {
     const existingPost = await this.findOneInternal(id);
     if (existingPost.creator.id !== userId) {
       throw new UnauthorizedException('Only the creator can update the post');
-    }
-
-    if (dto.attachments) {
-      const contentArray: Content[] = [];
-      for (const a of dto.attachments) {
-        const savedContent = await this.contentService.create(a);
-        contentArray.push(savedContent);
-      }
-
-      dto.attachments = contentArray;
     }
 
     const mergedPost = this.postRepo.merge(existingPost, dto);
@@ -130,10 +100,6 @@ export class PostService {
       textContent: post.textContent ?? '',
       createdAt: post.createdAt,
       creatorId: post.creator.id,
-
-      contents:
-        post.contents?.map((a) => this.contentService.toResponseDto(a)) ?? [],
-
       commentCount: post.comments?.length ?? 0,
       likeCount: post.likes?.length ?? 0,
       reactionCount: post.reactions?.length ?? 0,

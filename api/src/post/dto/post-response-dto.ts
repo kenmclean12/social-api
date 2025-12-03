@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ContentResponseDto } from 'src/content/dto';
 
 export class PostResponseDto {
   @ApiProperty()
@@ -13,9 +12,6 @@ export class PostResponseDto {
 
   @ApiProperty()
   createdAt: Date;
-
-  @ApiProperty({ type: () => ContentResponseDto, isArray: true })
-  contents: ContentResponseDto[];
 
   @ApiProperty()
   creatorId: number;
