@@ -60,7 +60,7 @@ export class LikeService {
         break;
       }
       case !!postId: {
-        const post = await this.postService.findOne(postId);
+        const post = await this.postService.findOneInternal(postId);
         recipientId = post.creator.id;
         contentId = postId;
         notificationType = NotificationType.POST_LIKE;

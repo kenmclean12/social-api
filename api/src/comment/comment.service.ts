@@ -51,7 +51,7 @@ export class CommentService {
   }
 
   async findByPostId(postId: number): Promise<Comment[]> {
-    await this.postService.findOne(postId);
+    await this.postService.findOneInternal(postId);
     return await this.commentRepo.find({
       where: { post: { id: postId } },
       relations: [
@@ -69,7 +69,7 @@ export class CommentService {
 
   async create(dto: CommentCreateDto): Promise<Comment> {
     const user = await this.userService.findOneInternal(dto.userId);
-    const post = await this.postService.findOne(dto.postId);
+    const post = await this.postService.findOneInternal(dto.postId);
 
     const result: Partial<Comment> = { content: dto.content, user, post };
     if (dto.parentCommentId) {

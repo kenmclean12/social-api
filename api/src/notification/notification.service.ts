@@ -88,7 +88,7 @@ export class NotificationService {
             'postId is required for POST notifications',
           );
         }
-        post = await this.postService.findOne(postId);
+        post = await this.postService.findOneInternal(postId);
         break;
       }
 
