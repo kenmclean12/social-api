@@ -123,6 +123,7 @@ export class PostService {
     return {
       id: post.id,
       title: post.title ?? '',
+      textContent: post.textContent ?? '',
       createdAt: post.createdAt,
       creatorId: post.creator.id,
 
