@@ -27,17 +27,7 @@ export class PostService {
   async findOneInternal(id: number): Promise<UserPost> {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: [
-        'creator',
-        'likes',
-        'reactions',
-        'comments',
-        'comments.user',
-        'comments.likes',
-        'comments.replies',
-        'comments.replies.user',
-        'comments.replies.likes',
-      ],
+      relations: ['creator', 'likes', 'reactions', 'comments', 'contents'],
     });
 
     if (!post) {
@@ -52,17 +42,7 @@ export class PostService {
   async findByUserId(userId: number): Promise<PostResponseDto[]> {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },
-      relations: [
-        'creator',
-        'likes',
-        'reactions',
-        'comments',
-        'comments.user',
-        'comments.likes',
-        'comments.replies',
-        'comments.replies.user',
-        'comments.replies.likes',
-      ],
+      relations: ['creator', 'likes', 'reactions', 'comments', 'contents'],
       order: { createdAt: 'ASC' },
     });
 
@@ -140,13 +120,18 @@ export class PostService {
   }
 
   toResponseDto(post: UserPost): PostResponseDto {
-    return new PostResponseDto({
+    return {
       id: post.id,
-      title: post.title,
+      title: post.title ?? '',
       createdAt: post.createdAt,
       creatorId: post.creator.id,
-      attachments:
+
+      contents:
         post.contents?.map((a) => this.contentService.toResponseDto(a)) ?? [],
-    });
+
+      commentCount: post.comments?.length ?? 0,
+      likeCount: post.likes?.length ?? 0,
+      reactionCount: post.reactions?.length ?? 0,
+    };
   }
 }

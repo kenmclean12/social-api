@@ -12,10 +12,19 @@ export class PostResponseDto {
   createdAt: Date;
 
   @ApiProperty({ type: () => ContentResponseDto, isArray: true })
-  attachments: ContentResponseDto[];
+  contents: ContentResponseDto[];
 
   @ApiProperty()
   creatorId: number;
+
+  @ApiProperty()
+  commentCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  reactionCount: number;
 
   constructor(partial: Partial<PostResponseDto>) {
     Object.assign(this, partial);
