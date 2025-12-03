@@ -60,19 +60,23 @@ export class PostService {
 
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
-    const dataToSave = { ...dto, creator: user };
-    if (dto.attachments) {
+    const savedPost = await this.postRepo.save({ ...dto, creator: user });
+
+    if (dto.attachments && dto.attachments.length > 0) {
       const contentArray: Content[] = [];
       for (const a of dto.attachments) {
-        const savedContent = await this.contentService.create(a);
+        const savedContent = await this.contentService.create({
+          ...a,
+          postId: savedPost.id,
+        });
         contentArray.push(savedContent);
       }
 
-      dataToSave.attachments = contentArray;
+      savedPost.contents = contentArray;
+      await this.postRepo.save(savedPost);
     }
 
-    const saved = await this.postRepo.save(dataToSave);
-    return this.toResponseDto(saved);
+    return this.toResponseDto(savedPost);
   }
 
   async update(
