@@ -37,14 +37,15 @@ export class ContentController {
     @Res() res: Response,
   ): Promise<void> {
     const content = await this.contentService.findOneInternal(id);
-    const mime =
-      content.type === ContentType.IMAGE
-        ? 'image/jpeg'
-        : content.type === ContentType.VIDEO
-          ? 'video/mp4'
-          : content.type === ContentType.AUDIO
-            ? 'audio/mpeg'
-            : 'application/octet-stream';
+    const mimeMap: Record<ContentType, string> = {
+      [ContentType.IMAGE]: 'image/jpeg',
+      [ContentType.VIDEO]: 'video/mp4',
+      [ContentType.GIF]: 'image/gif',
+      [ContentType.AUDIO]: 'audio/mpeg',
+      [ContentType.FILE]: 'application/octet-stream',
+    };
+
+    const mime = mimeMap[content.type] ?? 'application/octet-stream';
 
     res.set({
       'Content-Type': mime,
