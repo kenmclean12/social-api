@@ -100,9 +100,6 @@ export class PostService {
       textContent: post.textContent ?? '',
       createdAt: post.createdAt,
       creatorId: post.creator.id,
-      commentCount: post.comments?.length ?? 0,
-      likeCount: post.likes?.length ?? 0,
-      reactionCount: post.reactions?.length ?? 0,
     };
   }
 }

@@ -16,15 +16,6 @@ export class PostResponseDto {
   @ApiProperty()
   creatorId: number;
 
-  @ApiProperty()
-  commentCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
-  reactionCount: number;
-
   constructor(partial: Partial<PostResponseDto>) {
     Object.assign(this, partial);
   }
