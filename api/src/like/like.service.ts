@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -35,79 +36,33 @@ export class LikeService {
     const relation = getRelationName(type);
     return await this.likeRepo.find({
       where: { [relation]: { id } },
-      relations: ['user'],
+      relations: ['user', 'post', 'message', 'comment'],
       order: { createdAt: 'ASC' },
     });
   }
 
   async create(dto: LikeCreateDto): Promise<Like> {
-    const { userId, messageId, postId, commentId } = dto;
-    const user = await this.userService.findOneInternal(userId);
+    const user = await this.userService.findOneInternal(dto.userId);
 
-    let entity: { id: number } | null = null;
-    let relationKey: EntityType | null = null;
+    const { entity, relationKey, recipientId, notificationType, contentId } =
+      await this.resolveTarget(dto);
 
-    let recipientId: number;
-    let notificationType: NotificationType;
-    let contentId: number;
-    switch (true) {
-      case !!messageId: {
-        const message = await this.messageService.findOne(messageId);
-        recipientId = message.sender.id;
-        contentId = messageId;
-        notificationType = NotificationType.MESSAGE_LIKE;
-        entity = message;
-        relationKey = 'message';
-        break;
-      }
-      case !!postId: {
-        const post = await this.postService.findOneInternal(postId);
-        recipientId = post.creator.id;
-        contentId = postId;
-        notificationType = NotificationType.POST_LIKE;
-        entity = post;
-        relationKey = 'post';
-        break;
-      }
-      case !!commentId: {
-        const comment = await this.commentService.findOne(commentId);
-        recipientId = comment.user.id;
-        contentId = commentId;
-        notificationType = NotificationType.COMMENT_LIKE;
-        entity = comment;
-        relationKey = 'comment';
-        break;
-      }
-      default:
-        throw new BadRequestException(
-          'Must provide one of messageId, postId, commentId',
-        );
-    }
+    await this.ensureNotAlreadyLiked(dto.userId, entity.id, relationKey);
 
-    const existingLike = await this.likeRepo.findOne({
-      where: { user: { id: userId }, [relationKey]: { id: entity.id } },
+    const saved = await this.likeRepo.save({
+      user,
+      [relationKey]: entity,
     });
 
-    if (existingLike) {
-      throw new BadRequestException(`User already liked this ${relationKey}`);
-    }
-
-    const like: Partial<Like> = { user, [relationKey]: entity };
-    const saved = await this.likeRepo.save(like);
-
-    const notificationPayload: NotificationCreateDto = {
+    await this.createNotification({
+      actorId: dto.userId,
       recipientId,
-      actorId: userId,
-      type: notificationType,
-    };
+      notificationType,
+      relationKey,
+      contentId,
+    });
 
-    if (relationKey === 'post') notificationPayload.postId = contentId;
-    if (relationKey === 'message') notificationPayload.messageId = contentId;
-    if (relationKey === 'comment') notificationPayload.commentId = contentId;
-
-    await this.notificationService.create(notificationPayload);
-
-    return saved;
+    return this.findLikeWithRelationsOrFail(saved.id);
   }
 
   async delete(id: number, userId: number): Promise<Like> {
@@ -125,7 +80,101 @@ export class LikeService {
         'Only the user who liked the content can remove the like',
       );
     }
+
     await this.likeRepo.remove(like);
+    return like;
+  }
+
+  private async resolveTarget(dto: LikeCreateDto) {
+    const { messageId, postId, commentId } = dto;
+
+    if (messageId) {
+      const message = await this.messageService.findOne(messageId);
+      return {
+        entity: message,
+        relationKey: 'message' as EntityType,
+        recipientId: message.sender.id,
+        notificationType: NotificationType.MESSAGE_LIKE,
+        contentId: messageId,
+      };
+    }
+
+    if (postId) {
+      const post = await this.postService.findOneInternal(postId);
+      return {
+        entity: post,
+        relationKey: 'post' as EntityType,
+        recipientId: post.creator.id,
+        notificationType: NotificationType.POST_LIKE,
+        contentId: postId,
+      };
+    }
+
+    if (commentId) {
+      const comment = await this.commentService.findOne(commentId);
+      return {
+        entity: comment,
+        relationKey: 'comment' as EntityType,
+        recipientId: comment.user.id,
+        notificationType: NotificationType.COMMENT_LIKE,
+        contentId: commentId,
+      };
+    }
+
+    throw new BadRequestException(
+      'Must provide one of messageId, postId, commentId',
+    );
+  }
+
+  private async ensureNotAlreadyLiked(
+    userId: number,
+    entityId: number,
+    relationKey: EntityType,
+  ) {
+    const existing = await this.likeRepo.findOne({
+      where: { user: { id: userId }, [relationKey]: { id: entityId } },
+    });
+
+    if (existing) {
+      throw new BadRequestException(`User already liked this ${relationKey}`);
+    }
+  }
+
+  private async createNotification(args: {
+    actorId: number;
+    recipientId: number;
+    notificationType: NotificationType;
+    relationKey: EntityType;
+    contentId: number;
+  }) {
+    const { actorId, recipientId, notificationType, relationKey, contentId } =
+      args;
+
+    const payload: NotificationCreateDto = {
+      actorId,
+      recipientId,
+      type: notificationType,
+    };
+
+    if (relationKey === 'post') payload.postId = contentId;
+    if (relationKey === 'message') payload.messageId = contentId;
+    if (relationKey === 'comment') payload.commentId = contentId;
+
+    await this.notificationService.create(payload);
+  }
+
+  private async findLikeWithRelationsOrFail(id: number) {
+    const like = await this.likeRepo.findOne({
+      where: { id },
+      relations: ['user', 'post', 'message', 'comment'],
+    });
+
+    if (!like) {
+      throw new NotFoundException(
+        `Like with ID ${id} not found after creation`,
+      );
+    }
+
     return like;
   }
 }
