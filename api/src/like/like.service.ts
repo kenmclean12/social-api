@@ -16,6 +16,7 @@ import { CommentService } from 'src/comment/comment.service';
 import { EntityType } from 'src/common/types';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
+import { NotificationCreateDto } from 'src/notification/dto';
 
 @Injectable()
 export class LikeService {
@@ -94,12 +95,17 @@ export class LikeService {
     const like: Partial<Like> = { user, [relationKey]: entity };
     const saved = await this.likeRepo.save(like);
 
-    await this.notificationService.create({
+    const notificationPayload: NotificationCreateDto = {
       recipientId,
       actorId: userId,
       type: notificationType,
-      [relationKey]: contentId,
-    });
+    };
+
+    if (relationKey === 'post') notificationPayload.postId = contentId;
+    if (relationKey === 'message') notificationPayload.messageId = contentId;
+    if (relationKey === 'comment') notificationPayload.commentId = contentId;
+
+    await this.notificationService.create(notificationPayload);
 
     return saved;
   }
@@ -107,7 +113,7 @@ export class LikeService {
   async delete(id: number, userId: number): Promise<Like> {
     const like = await this.likeRepo.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'message', 'post', 'comment'],
     });
 
     if (!like) {
