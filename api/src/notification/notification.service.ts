@@ -99,7 +99,7 @@ export class NotificationService {
             'commentId is required for COMMENT notifications',
           );
         }
-        comment = await this.commentService.findOne(commentId);
+        comment = await this.commentService.findOneInternal(commentId);
         break;
       }
 

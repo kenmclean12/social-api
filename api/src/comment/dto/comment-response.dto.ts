@@ -15,6 +15,10 @@ export class CommentResponseDto {
 
   @Expose()
   @ApiProperty()
+  content: string;
+
+  @Expose()
+  @ApiProperty()
   user: UserResponseDto;
 
   @Expose()
@@ -28,12 +32,4 @@ export class CommentResponseDto {
   @Expose()
   @ApiProperty()
   replies?: CommentResponseDto[];
-
-  @Expose()
-  @ApiProperty()
-  likes?: LikeResponseDto[];
-
-  @Expose()
-  @ApiProperty()
-  reactions?: ReactionResponseDto[];
 }

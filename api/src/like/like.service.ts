@@ -80,9 +80,9 @@ export class LikeService {
     return convertToResponseDto(LikeResponseDto, {
       ...like,
       userId: like.user.id,
-      postId: dto.postId ?? undefined,
-      commentId: dto.commentId ?? undefined,
-      messageId: dto.messageId ?? undefined,
+      postId: like.post?.id ?? undefined,
+      commentId: like.comment?.id ?? undefined,
+      messageId: like.message?.id ?? undefined,
     });
   }
 

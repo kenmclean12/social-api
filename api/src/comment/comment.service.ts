@@ -56,6 +56,7 @@ export class CommentService {
 
   async findByPostId(postId: number): Promise<CommentResponseDto[]> {
     await this.postService.findOneInternal(postId);
+
     const comments = await this.commentRepo.find({
       where: { post: { id: postId } },
       relations: [
@@ -75,10 +76,16 @@ export class CommentService {
         ...c,
         user: convertToResponseDto(UserResponseDto, c.user),
         postId,
-        parentCommentId: c.parentComment?.id ?? undefined,
-        replies: convertToResponseDto(CommentResponseDto, c.replies),
-        likes: convertToResponseDto(LikeResponseDto, c.likes),
-        reactions: convertToResponseDto(ReactionResponseDto, c.reactions),
+        parentCommentId: c.parentComment?.id,
+        replies: c.replies?.map((r) =>
+          convertToResponseDto(CommentResponseDto, {
+            ...r,
+            user: convertToResponseDto(UserResponseDto, r.user),
+            postId,
+            parentCommentId: r.parentComment?.id,
+            replies: [],
+          }),
+        ),
       }),
     );
   }
@@ -88,6 +95,7 @@ export class CommentService {
     const post = await this.postService.findOneInternal(dto.postId);
 
     const result: Partial<Comment> = { content: dto.content, user, post };
+
     if (dto.parentCommentId) {
       const parentComment = await this.findOneInternal(dto.parentCommentId);
       result.parentComment = parentComment;
@@ -108,9 +116,8 @@ export class CommentService {
       ...saved,
       user: convertToResponseDto(UserResponseDto, saved.user),
       postId: post.id,
-      parentCommentId: dto.parentCommentId
-        ? result.parentComment?.id
-        : undefined,
+      parentCommentId: saved.parentComment?.id,
+      replies: [],
     });
   }
 
@@ -135,12 +142,16 @@ export class CommentService {
       ...saved,
       user: convertToResponseDto(UserResponseDto, saved.user),
       postId: comment.post.id,
-      parentCommentId: comment.parentComment
-        ? comment.parentComment?.id
-        : undefined,
-      replies: convertToResponseDto(CommentResponseDto, comment.replies),
-      likes: convertToResponseDto(LikeResponseDto, comment.likes),
-      reactions: convertToResponseDto(ReactionResponseDto, comment.reactions),
+      parentCommentId: comment.parentComment?.id,
+      replies: saved.replies?.map((r) =>
+        convertToResponseDto(CommentResponseDto, {
+          ...r,
+          user: convertToResponseDto(UserResponseDto, r.user),
+          postId: comment.post.id,
+          parentCommentId: r.parentComment?.id,
+          replies: [],
+        }),
+      ),
     });
   }
 
@@ -150,7 +161,7 @@ export class CommentService {
 
     if (user.id !== comment.user.id) {
       throw new UnauthorizedException(
-        `Only the author of a comment can remove it`,
+        'Only the author of a comment can remove it',
       );
     }
 
@@ -160,12 +171,20 @@ export class CommentService {
       ...comment,
       user: convertToResponseDto(UserResponseDto, comment.user),
       postId: comment.post.id,
-      parentCommentId: comment.parentComment
-        ? comment.parentComment.id
-        : undefined,
-      replies: convertToResponseDto(CommentResponseDto, comment.replies),
-      likes: convertToResponseDto(LikeResponseDto, comment.likes),
-      reactions: convertToResponseDto(ReactionResponseDto, comment.reactions),
+      parentCommentId: comment.parentComment?.id,
+      replies: comment.replies?.map((r) =>
+        convertToResponseDto(CommentResponseDto, {
+          ...r,
+          user: convertToResponseDto(UserResponseDto, r.user),
+          postId: comment.post.id,
+          parentCommentId: r.parentComment?.id,
+          replies: [],
+          likes: r.likes?.map((l) => convertToResponseDto(LikeResponseDto, l)),
+          reactions: r.reactions?.map((re) =>
+            convertToResponseDto(ReactionResponseDto, re),
+          ),
+        }),
+      ),
     });
   }
 }
