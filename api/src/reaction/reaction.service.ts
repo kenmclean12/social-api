@@ -133,7 +133,7 @@ export class ReactionService {
     }
 
     if (dto.commentId) {
-      const comment = await this.commentService.findOne(dto.commentId);
+      const comment = await this.commentService.findOneInternal(dto.commentId);
       return {
         entity: comment,
         relationKey: 'comment' as EntityType,

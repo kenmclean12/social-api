@@ -130,7 +130,7 @@ export class LikeService {
     }
 
     if (commentId) {
-      const comment = await this.commentService.findOne(commentId);
+      const comment = await this.commentService.findOneInternal(commentId);
       return {
         entity: comment,
         relationKey: 'comment' as EntityType,

@@ -14,7 +14,7 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { Comment } from './entities/comment.entity';
-import { CommentCreateDto } from './dto';
+import { CommentCreateDto, CommentResponseDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('comment')
@@ -23,27 +23,27 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @ApiOkResponse({ type: Comment, isArray: true })
+  @ApiOkResponse({ type: CommentResponseDto, isArray: true })
   @ApiOperation({
     description: 'Find comments for a particular Post by Post ID',
   })
   @Get(':postId')
   async findByPostId(
     @Param('postId', ParseIntPipe) postId: number,
-  ): Promise<Comment[]> {
+  ): Promise<CommentResponseDto[]> {
     return await this.commentService.findByPostId(postId);
   }
 
-  @ApiOkResponse({ type: Comment })
+  @ApiOkResponse({ type: CommentResponseDto })
   @ApiOperation({
     description: 'Create a Comment',
   })
   @Post()
-  async create(@Body() dto: CommentCreateDto): Promise<Comment> {
+  async create(@Body() dto: CommentCreateDto): Promise<CommentResponseDto> {
     return await this.commentService.create(dto);
   }
 
-  @ApiOkResponse({ type: Comment })
+  @ApiOkResponse({ type: CommentResponseDto })
   @ApiOperation({
     description: 'Update a Comment by Comment ID',
   })
@@ -52,12 +52,12 @@ export class CommentController {
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
     @Query('content') content: string,
-  ): Promise<Comment> {
+  ): Promise<CommentResponseDto> {
     const userId = req.user.id as number;
     return await this.commentService.update(id, userId, content);
   }
 
-  @ApiOkResponse({ type: Comment })
+  @ApiOkResponse({ type: CommentResponseDto })
   @ApiOperation({
     description: 'Remove a Comment',
   })
@@ -65,7 +65,7 @@ export class CommentController {
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
-  ): Promise<Comment> {
+  ): Promise<CommentResponseDto> {
     const userId = req.user.id as number;
     return await this.commentService.remove(id, userId);
   }

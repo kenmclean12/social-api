@@ -9,10 +9,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { PostService } from 'src/post/post.service';
-import { CommentCreateDto } from './dto';
+import { CommentCreateDto, CommentResponseDto } from './dto';
 import { UserService } from 'src/user/user.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
+import { convertToResponseDto } from 'src/common/utils';
+import { UserResponseDto } from 'src/user/dto';
+import { ReactionResponseDto } from 'src/reaction/dto';
+import { LikeResponseDto } from 'src/like/dto';
 
 @Injectable()
 export class CommentService {
@@ -26,7 +30,7 @@ export class CommentService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async findOne(id: number): Promise<Comment> {
+  async findOneInternal(id: number): Promise<Comment> {
     const comment = await this.commentRepo.findOne({
       where: { id },
       relations: [
@@ -50,9 +54,9 @@ export class CommentService {
     return comment;
   }
 
-  async findByPostId(postId: number): Promise<Comment[]> {
+  async findByPostId(postId: number): Promise<CommentResponseDto[]> {
     await this.postService.findOneInternal(postId);
-    return await this.commentRepo.find({
+    const comments = await this.commentRepo.find({
       where: { post: { id: postId } },
       relations: [
         'user',
@@ -65,15 +69,27 @@ export class CommentService {
       ],
       order: { createdAt: 'ASC' },
     });
+
+    return comments.map((c) =>
+      convertToResponseDto(CommentResponseDto, {
+        ...c,
+        user: convertToResponseDto(UserResponseDto, c.user),
+        postId,
+        parentCommentId: c.parentComment?.id ?? undefined,
+        replies: convertToResponseDto(CommentResponseDto, c.replies),
+        likes: convertToResponseDto(LikeResponseDto, c.likes),
+        reactions: convertToResponseDto(ReactionResponseDto, c.reactions),
+      }),
+    );
   }
 
-  async create(dto: CommentCreateDto): Promise<Comment> {
+  async create(dto: CommentCreateDto): Promise<CommentResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
     const post = await this.postService.findOneInternal(dto.postId);
 
     const result: Partial<Comment> = { content: dto.content, user, post };
     if (dto.parentCommentId) {
-      const parentComment = await this.findOne(dto.parentCommentId);
+      const parentComment = await this.findOneInternal(dto.parentCommentId);
       result.parentComment = parentComment;
     }
 
@@ -88,11 +104,22 @@ export class CommentService {
       });
     }
 
-    return saved;
+    return convertToResponseDto(CommentResponseDto, {
+      ...saved,
+      user: convertToResponseDto(UserResponseDto, saved.user),
+      postId: post.id,
+      parentCommentId: dto.parentCommentId
+        ? result.parentComment?.id
+        : undefined,
+    });
   }
 
-  async update(id: number, userId: number, content: string): Promise<Comment> {
-    const comment = await this.findOne(id);
+  async update(
+    id: number,
+    userId: number,
+    content: string,
+  ): Promise<CommentResponseDto> {
+    const comment = await this.findOneInternal(id);
     const user = await this.userService.findOneInternal(userId);
 
     if (user.id !== comment.user.id) {
@@ -102,11 +129,23 @@ export class CommentService {
     }
 
     comment.content = content;
-    return await this.commentRepo.save(comment);
+    const saved = await this.commentRepo.save(comment);
+
+    return convertToResponseDto(CommentResponseDto, {
+      ...saved,
+      user: convertToResponseDto(UserResponseDto, saved.user),
+      postId: comment.post.id,
+      parentCommentId: comment.parentComment
+        ? comment.parentComment?.id
+        : undefined,
+      replies: convertToResponseDto(CommentResponseDto, comment.replies),
+      likes: convertToResponseDto(LikeResponseDto, comment.likes),
+      reactions: convertToResponseDto(ReactionResponseDto, comment.reactions),
+    });
   }
 
-  async remove(id: number, userId: number): Promise<Comment> {
-    const comment = await this.findOne(id);
+  async remove(id: number, userId: number): Promise<CommentResponseDto> {
+    const comment = await this.findOneInternal(id);
     const user = await this.userService.findOneInternal(userId);
 
     if (user.id !== comment.user.id) {
@@ -116,6 +155,17 @@ export class CommentService {
     }
 
     await this.commentRepo.remove(comment);
-    return comment;
+
+    return convertToResponseDto(CommentResponseDto, {
+      ...comment,
+      user: convertToResponseDto(UserResponseDto, comment.user),
+      postId: comment.post.id,
+      parentCommentId: comment.parentComment
+        ? comment.parentComment.id
+        : undefined,
+      replies: convertToResponseDto(CommentResponseDto, comment.replies),
+      likes: convertToResponseDto(LikeResponseDto, comment.likes),
+      reactions: convertToResponseDto(ReactionResponseDto, comment.reactions),
+    });
   }
 }
