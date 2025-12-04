@@ -17,12 +17,6 @@ export class PostCreateDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(150)
-  @ApiProperty({ required: false })
-  title?: string;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(1000)
   @ApiProperty({ required: false })
   textContent?: string;

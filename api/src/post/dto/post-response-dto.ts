@@ -8,10 +8,6 @@ export class PostResponseDto {
 
   @Expose()
   @ApiProperty()
-  title?: string;
-
-  @Expose()
-  @ApiProperty()
   textContent?: string;
 
   @Expose()

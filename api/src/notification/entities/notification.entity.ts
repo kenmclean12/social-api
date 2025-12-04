@@ -38,13 +38,13 @@ export class Notification {
   @Column({ type: 'enum', enum: NotificationType })
   type: NotificationType;
 
-  @ManyToOne(() => UserPost, { nullable: true })
+  @ManyToOne(() => UserPost, { nullable: true, onDelete: 'CASCADE' })
   post?: UserPost;
 
-  @ManyToOne(() => Comment, { nullable: true })
+  @ManyToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
   comment?: Comment;
 
-  @ManyToOne(() => Message, { nullable: true })
+  @ManyToOne(() => Message, { nullable: true, onDelete: 'CASCADE' })
   message?: Message;
 
   @Column({ default: false })
