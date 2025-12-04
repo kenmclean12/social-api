@@ -86,7 +86,7 @@ export class ReactionService {
     const user = await this.userService.findOneInternal(userId);
     const reaction = await this.reactionRepo.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'message', 'comment', 'post'],
     });
 
     if (!reaction) {
@@ -100,7 +100,13 @@ export class ReactionService {
     }
 
     await this.reactionRepo.remove(reaction);
-    return convertToResponseDto(ReactionResponseDto, reaction);
+    return convertToResponseDto(ReactionResponseDto, {
+      ...reaction,
+      user: convertToResponseDto(SafeUserDto, user),
+      messageId: reaction.message?.id ?? undefined,
+      postId: reaction.post?.id ?? undefined,
+      commentId: reaction.comment?.id ?? undefined,
+    });
   }
 
   private async resolveEntityAndNotification(dto: ReactionCreateDto) {
