@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Reaction } from './entities/reaction.entity';
@@ -32,7 +28,7 @@ export class ReactionService {
     type: EntityType,
     id: number,
   ): Promise<Reaction[]> {
-    const relation = getRelationName(type);
+    const relation = this.getRelationName(type);
     return await this.reactionRepo.find({
       where: { [relation]: { id } },
       relations: ['user'],
@@ -146,35 +142,15 @@ export class ReactionService {
     return saved;
   }
 
-  async remove(id: number, userId: number): Promise<Reaction> {
-    const reaction = await this.reactionRepo.findOne({
-      where: { id },
-      relations: ['user', 'message', 'post', 'comment'],
-    });
+  getRelationName(type: EntityType) {
+    const relationMap = {
+      message: 'message',
+      post: 'post',
+      comment: 'comment',
+    } as const;
 
-    if (!reaction) {
-      throw new BadRequestException(`Reaction with ID ${id} not found`);
-    }
-
-    if (reaction.user.id !== userId) {
-      throw new UnauthorizedException(
-        'Reactions can only be removed by the user that created it',
-      );
-    }
-
-    await this.reactionRepo.remove(reaction);
-    return reaction;
+    const relation = relationMap[type];
+    if (!relation) throw new BadRequestException('Invalid type');
+    return relation;
   }
-}
-
-function getRelationName(type: EntityType) {
-  const relationMap = {
-    message: 'message',
-    post: 'post',
-    comment: 'comment',
-  } as const;
-
-  const relation = relationMap[type];
-  if (!relation) throw new BadRequestException('Invalid type');
-  return relation;
 }

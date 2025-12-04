@@ -1,13 +1,10 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  Param,
   ParseIntPipe,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -41,16 +38,5 @@ export class ReactionController {
   @Post()
   async create(@Body() dto: ReactionCreateDto): Promise<Reaction> {
     return await this.reactionService.create(dto);
-  }
-
-  @ApiOkResponse({ type: Reaction })
-  @ApiOperation({ description: 'Remove a Reaction by ID' })
-  @Delete(':id')
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req,
-  ): Promise<Reaction> {
-    const userId = req.user.id as number;
-    return await this.reactionService.remove(id, userId);
   }
 }
