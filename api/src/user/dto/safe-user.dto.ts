@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Type } from 'class-transformer';
+import { Expose } from 'class-transformer';
 
 export class SafeUserDto {
   @Expose()
@@ -37,14 +37,4 @@ export class SafeUserDto {
   @Expose()
   @ApiProperty({ required: false })
   avatarUrl?: string;
-
-  @Expose()
-  @Type(() => SafeUserDto)
-  @ApiProperty({ type: () => [SafeUserDto], required: false })
-  following?: SafeUserDto[];
-
-  @Expose()
-  @Type(() => SafeUserDto)
-  @ApiProperty({ type: () => [SafeUserDto], required: false })
-  followers?: SafeUserDto[];
 }
