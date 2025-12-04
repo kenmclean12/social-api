@@ -65,29 +65,35 @@ export class FeedService {
     filter: 'mostLiked' | 'mostReacted' | 'recent' | 'oldest' = 'recent',
     limit = 20,
   ): Promise<PostResponseDto[]> {
-    const query = this.postRepo
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.likes', 'likes')
-      .leftJoinAndSelect('post.reactions', 'reactions')
-      .leftJoinAndSelect('post.creator', 'creator');
+    const posts = await this.postRepo.find({
+      relations: ['creator', 'likes', 'reactions', 'comments'],
+    });
+
+    let sortedPosts: UserPost[] = [];
 
     switch (filter) {
       case 'mostLiked':
-        query.orderBy('COUNT(likes.id)', 'DESC');
+        sortedPosts = posts.sort((a, b) => b.likes.length - a.likes.length);
         break;
       case 'mostReacted':
-        query.orderBy('COUNT(reactions.id)', 'DESC');
+        sortedPosts = posts.sort(
+          (a, b) => b.reactions.length - a.reactions.length,
+        );
         break;
       case 'recent':
-        query.orderBy('post.createdAt', 'DESC');
+        sortedPosts = posts.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        );
         break;
       case 'oldest':
-        query.orderBy('post.createdAt', 'ASC');
+        sortedPosts = posts.sort(
+          (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+        );
         break;
     }
 
-    const posts = await query.take(limit).getMany();
-
-    return posts.map((p) => this.postService.toResponseDto(p));
+    return sortedPosts
+      .slice(0, limit)
+      .map((p) => this.postService.toResponseDto(p));
   }
 }
