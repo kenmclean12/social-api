@@ -27,6 +27,10 @@ export class UserPost {
   @ApiProperty()
   textContent?: string;
 
+  @Column({ type: 'varchar', length: 250, nullable: true })
+  @ApiProperty()
+  contentUrl?: string;
+
   @Expose()
   @ManyToOne(() => User, (user) => user.posts, { nullable: false })
   @ApiProperty({ type: () => User })

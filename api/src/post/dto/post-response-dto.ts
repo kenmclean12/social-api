@@ -12,6 +12,10 @@ export class PostResponseDto {
 
   @Expose()
   @ApiProperty()
+  contentUrl?: string;
+
+  @Expose()
+  @ApiProperty()
   createdAt: Date;
 
   @Expose()

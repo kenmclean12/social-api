@@ -20,4 +20,10 @@ export class PostCreateDto {
   @MaxLength(1000)
   @ApiProperty({ required: false })
   textContent?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  @ApiProperty({ required: false })
+  contentUrl?: string;
 }
