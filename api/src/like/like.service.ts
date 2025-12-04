@@ -44,7 +44,15 @@ export class LikeService {
       order: { createdAt: 'ASC' },
     });
 
-    return likes.map((l) => convertToResponseDto(LikeResponseDto, l));
+    return likes.map((like) =>
+      convertToResponseDto(LikeResponseDto, {
+        ...like,
+        userId: like.user.id,
+        postId: relation === 'post' ? like.post?.id : undefined,
+        commentId: relation === 'comment' ? like.comment?.id : undefined,
+        messageId: relation === 'message' ? like.message?.id : undefined,
+      }),
+    );
   }
 
   async create(dto: LikeCreateDto): Promise<LikeResponseDto> {
@@ -68,20 +76,18 @@ export class LikeService {
       contentId,
     });
 
-    const like = this.findLikeWithRelationsOrFail(saved.id);
-    return convertToResponseDto(LikeResponseDto, like);
+    const like = await this.findLikeWithRelationsOrFail(saved.id);
+    return convertToResponseDto(LikeResponseDto, {
+      ...like,
+      userId: like.user.id,
+      postId: dto.postId ?? undefined,
+      commentId: dto.commentId ?? undefined,
+      messageId: dto.messageId ?? undefined,
+    });
   }
 
   async delete(id: number, userId: number): Promise<LikeResponseDto> {
-    const like = await this.likeRepo.findOne({
-      where: { id },
-      relations: ['user', 'message', 'post', 'comment'],
-    });
-
-    if (!like) {
-      throw new BadRequestException(`Like with ID ${id} not found`);
-    }
-
+    const like = await this.findLikeWithRelationsOrFail(id);
     if (like.user.id !== userId) {
       throw new UnauthorizedException(
         'Only the user who liked the content can remove the like',
@@ -89,7 +95,13 @@ export class LikeService {
     }
 
     await this.likeRepo.remove(like);
-    return convertToResponseDto(LikeResponseDto, like);
+    return convertToResponseDto(LikeResponseDto, {
+      ...like,
+      userId: like.user.id,
+      postId: like.post?.id ?? undefined,
+      commentId: like.comment?.id ?? undefined,
+      messageId: like.message?.id ?? undefined,
+    });
   }
 
   private async resolveTarget(dto: LikeCreateDto) {
@@ -185,7 +197,7 @@ export class LikeService {
     return like;
   }
 
-  getRelationName(type: EntityType) {
+  private getRelationName(type: EntityType) {
     const relationMap = {
       message: 'message',
       post: 'post',
