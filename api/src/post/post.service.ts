@@ -42,13 +42,21 @@ export class PostService {
       order: { createdAt: 'ASC' },
     });
 
-    return posts.map((p) => convertToResponseDto(PostResponseDto, p));
+    return posts.map((p) =>
+      convertToResponseDto(PostResponseDto, {
+        ...p,
+        creatorId: p.creator.id,
+      }),
+    );
   }
 
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
     const savedPost = await this.postRepo.save({ ...dto, creator: user });
-    return convertToResponseDto(PostResponseDto, savedPost);
+    return convertToResponseDto(PostResponseDto, {
+      ...savedPost,
+      creatorId: dto.userId,
+    });
   }
 
   async update(
@@ -70,7 +78,10 @@ export class PostService {
     }
 
     const saved = await this.postRepo.save(mergedPost);
-    return convertToResponseDto(PostResponseDto, saved);
+    return convertToResponseDto(PostResponseDto, {
+      ...saved,
+      creatorId: userId,
+    });
   }
 
   async remove(id: number, userId: number): Promise<PostResponseDto> {
@@ -82,6 +93,9 @@ export class PostService {
     }
 
     await this.postRepo.remove(existingPost);
-    return convertToResponseDto(PostResponseDto, existingPost);
+    return convertToResponseDto(PostResponseDto, {
+      ...existingPost,
+      creatorId: existingPost.creator.id,
+    });
   }
 }
