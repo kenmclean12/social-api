@@ -65,9 +65,7 @@ export class ReactionService {
         });
 
         if (existingMessageReaction) {
-          throw new BadRequestException(
-            'You have already reacted to this message.',
-          );
+          await this.reactionRepo.remove(existingMessageReaction);
         }
 
         break;
@@ -86,9 +84,7 @@ export class ReactionService {
         });
 
         if (existingPostReaction) {
-          throw new BadRequestException(
-            'You have already reacted to this post.',
-          );
+          await this.reactionRepo.remove(existingPostReaction);
         }
 
         break;
@@ -107,9 +103,7 @@ export class ReactionService {
         });
 
         if (existingCommentReaction) {
-          throw new BadRequestException(
-            'You have already reacted to this comment.',
-          );
+          await this.reactionRepo.remove(existingCommentReaction);
         }
 
         break;
