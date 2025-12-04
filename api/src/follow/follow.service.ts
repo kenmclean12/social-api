@@ -10,10 +10,10 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { FollowDto, SafeFollowDto } from './dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
+import { convertToResponseDto } from 'src/common/utils';
 
 @Injectable()
 export class FollowService {
@@ -25,29 +25,17 @@ export class FollowService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async findOne(id: number): Promise<Follow> {
+  async findOneInternal(id: number): Promise<Follow> {
     const follow = await this.followRepo.findOne({
       where: { id },
       relations: ['follower', 'following'],
     });
+
     if (!follow) {
       throw new NotFoundException(`Follow record with ID ${id} not found`);
     }
 
     return follow;
-  }
-
-  async findOneWithRelations(id: number): Promise<SafeFollowDto> {
-    const follow = await this.followRepo.findOne({
-      where: { id },
-      relations: ['follower', 'following'],
-    });
-
-    if (!follow) {
-      throw new NotFoundException(`Follow record with ID ${id} not found`);
-    }
-
-    return this.toSafeFollow(follow);
   }
 
   async findFollowingByUserId(id: number): Promise<SafeFollowDto[]> {
@@ -57,13 +45,7 @@ export class FollowService {
       order: { createdAt: 'ASC' },
     });
 
-    if (following.length === 0) {
-      throw new NotFoundException(
-        `No Following Records Found for User ID: ${id}`,
-      );
-    }
-
-    return following.map((f) => this.toSafeFollow(f));
+    return following.map((f) => convertToResponseDto(SafeFollowDto, f));
   }
 
   async findFollowersByUserId(id: number): Promise<SafeFollowDto[]> {
@@ -79,7 +61,7 @@ export class FollowService {
       );
     }
 
-    return followers.map((f) => this.toSafeFollow(f));
+    return followers.map((f) => convertToResponseDto(SafeFollowDto, f));
   }
 
   async create({ followerId, followingId }: FollowDto): Promise<SafeFollowDto> {
@@ -98,7 +80,7 @@ export class FollowService {
     const follower = await this.userService.findOneInternal(followerId);
     const following = await this.userService.findOneInternal(followingId);
     const saved = await this.followRepo.save({ follower, following });
-    const full = await this.findOne(saved.id);
+    const full = await this.findOneInternal(saved.id);
 
     const existingNotification = await this.notificationService.findOneInternal(
       followingId,
@@ -114,11 +96,11 @@ export class FollowService {
       });
     }
 
-    return this.toSafeFollow(full);
+    return convertToResponseDto(SafeFollowDto, full);
   }
 
   async remove(id: number, userId: number): Promise<SafeFollowDto> {
-    const follow = await this.findOne(id);
+    const follow = await this.findOneInternal(id);
 
     if (follow.follower.id !== userId && follow.following.id !== userId) {
       throw new UnauthorizedException(
@@ -127,13 +109,6 @@ export class FollowService {
     }
 
     await this.followRepo.remove(follow);
-
-    return this.toSafeFollow(follow);
-  }
-
-  private toSafeFollow(entity: any): SafeFollowDto {
-    return plainToInstance(SafeFollowDto, entity, {
-      excludeExtraneousValues: true,
-    });
+    return convertToResponseDto(SafeFollowDto, follow);
   }
 }
