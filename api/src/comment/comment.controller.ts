@@ -61,7 +61,7 @@ export class CommentController {
   @ApiOperation({
     description: 'Remove a Comment',
   })
-  @Delete(':id/:userId')
+  @Delete(':id')
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
