@@ -69,7 +69,9 @@ export class ConversationService {
 
   async create(dto: ConversationCreateDto): Promise<SafeConversationDto> {
     const initiator = await this.userService.findOneInternal(dto.initiatorId);
-    const participants = await this.userService.findByIds(dto.recipientIds);
+    const participants = await this.userService.findByIdsInternal(
+      dto.recipientIds,
+    );
 
     const conversation = this.conversationRepo.create({
       name: dto.name,
@@ -112,7 +114,7 @@ export class ConversationService {
       );
     }
 
-    const users = await this.userService.findByIds(dto.recipientIds);
+    const users = await this.userService.findByIdsInternal(dto.recipientIds);
 
     if (dto.alterType === AlterParticipantType.ADD) {
       if (!isInitiator) {

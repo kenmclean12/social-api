@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,8 +9,6 @@ import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { assertUnique } from 'src/common/utils';
-import { FollowService } from 'src/follow/follow.service';
-import { plainToInstance } from 'class-transformer';
 import {
   PasswordResetDto,
   SafeUserDto,
@@ -22,6 +18,7 @@ import {
 } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { Follow } from 'src/follow/entities/follow.entity';
+import { convertToResponseDto } from 'src/common/utils/convert-to-response-dto';
 
 @Injectable()
 export class UserService {
@@ -39,28 +36,7 @@ export class UserService {
     return user;
   }
 
-  async findOneWithFollowCounts(
-    id: number,
-  ): Promise<UserWithCountsResponseDto> {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-
-    const followingCount = await this.followRepo.count({
-      where: { follower: { id } },
-    });
-
-    const followerCount = await this.followRepo.count({
-      where: { following: { id } },
-    });
-
-    const safeUser = this.toSafe(UserWithCountsResponseDto, user);
-    safeUser.followingCount = followingCount;
-    safeUser.followerCount = followerCount;
-
-    return safeUser;
-  }
-
-  async findByIds(ids: number[]): Promise<User[]> {
+  async findByIdsInternal(ids: number[]): Promise<User[]> {
     const users = await this.userRepo.find({
       where: { id: In(ids) },
     });
@@ -83,7 +59,7 @@ export class UserService {
     return user;
   }
 
-  async findByToken(token: string): Promise<User | null> {
+  async findByTokenInternal(token: string): Promise<User | null> {
     try {
       const payload = await this.jwtService.verifyAsync(token);
       const userId = payload.sub;
@@ -95,12 +71,33 @@ export class UserService {
     }
   }
 
+  async findOneWithFollowCounts(
+    id: number,
+  ): Promise<UserWithCountsResponseDto> {
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+
+    const followingCount = await this.followRepo.count({
+      where: { follower: { id } },
+    });
+
+    const followerCount = await this.followRepo.count({
+      where: { following: { id } },
+    });
+
+    const safeUser = convertToResponseDto(UserWithCountsResponseDto, user);
+    safeUser.followingCount = followingCount;
+    safeUser.followerCount = followerCount;
+
+    return safeUser;
+  }
+
   async findAll(): Promise<SafeUserDto[]> {
     const users = await this.userRepo.find({ order: { createdAt: 'ASC' } });
 
     const resultSet = new Set<SafeUserDto>();
     for (const user of users) {
-      resultSet.add(this.toSafe(SafeUserDto, user));
+      resultSet.add(convertToResponseDto(SafeUserDto, user));
     }
 
     return Array.from(resultSet);
@@ -127,7 +124,7 @@ export class UserService {
       );
     }
 
-    return this.toSafe(SafeUserDto, savedUser);
+    return convertToResponseDto(SafeUserDto, savedUser);
   }
 
   async createInternal(dto: UserCreateDto): Promise<User> {
@@ -169,14 +166,14 @@ export class UserService {
       );
     }
 
-    return this.toSafe(SafeUserDto, savedUser);
+    return convertToResponseDto(SafeUserDto, savedUser);
   }
 
   async delete(id: number): Promise<SafeUserDto> {
     const userToDelete = await this.findOneInternal(id);
     await this.userRepo.remove(userToDelete);
 
-    return this.toSafe(SafeUserDto, userToDelete);
+    return convertToResponseDto(SafeUserDto, userToDelete);
   }
 
   async resetPassword(
@@ -206,7 +203,7 @@ export class UserService {
       );
     }
 
-    return this.toSafe(SafeUserDto, savedUser);
+    return convertToResponseDto(SafeUserDto, savedUser);
   }
 
   async assertUserFields(fields: Partial<User>) {
@@ -215,9 +212,5 @@ export class UserService {
         await assertUnique(this.userRepo, field as keyof User, 'User', value);
       }
     }
-  }
-
-  private toSafe<T>(cls: new () => T, data: any): T {
-    return plainToInstance(cls, data, { excludeExtraneousValues: true });
   }
 }

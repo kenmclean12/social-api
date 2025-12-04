@@ -33,7 +33,7 @@ export class WebsocketGateway
       const token = client.handshake.auth?.token;
       if (!token) return client.disconnect();
 
-      const user = await this.userService.findByToken(token as string);
+      const user = await this.userService.findByTokenInternal(token as string);
       if (!user) return client.disconnect();
 
       client.data.user = user;

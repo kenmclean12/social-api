@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { convertToResponseDto } from 'src/common/utils';
 import { FollowService } from 'src/follow/follow.service';
 import { PostResponseDto } from 'src/post/dto';
 import { UserPost } from 'src/post/entities/user-post.entity';
@@ -58,7 +59,7 @@ export class FeedService {
       }
     }
 
-    return posts.map((p) => this.postService.toResponseDto(p));
+    return posts.map((p) => convertToResponseDto(PostResponseDto, p));
   }
 
   async getExploreFeed(
@@ -94,6 +95,6 @@ export class FeedService {
 
     return sortedPosts
       .slice(0, limit)
-      .map((p) => this.postService.toResponseDto(p));
+      .map((p) => convertToResponseDto(PostResponseDto, p));
   }
 }

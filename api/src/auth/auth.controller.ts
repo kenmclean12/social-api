@@ -11,22 +11,23 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Authenticate user and return tokens' })
-  @ApiBody({ type: LoginDto })
   @ApiOkResponse({ type: TokenResponseDto })
+  @ApiBody({ type: LoginDto })
+  @ApiOperation({ summary: 'Authenticate user and return tokens' })
   login(@Body() dto: LoginDto): Promise<TokenResponseDto> {
     return this.authService.login(dto);
   }
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user and return tokens' })
-  @ApiBody({ type: UserCreateDto })
   @ApiOkResponse({ type: TokenResponseDto })
+  @ApiBody({ type: UserCreateDto })
+  @ApiOperation({ summary: 'Register a new user and return tokens' })
   register(@Body() dto: UserCreateDto): Promise<TokenResponseDto> {
     return this.authService.register(dto);
   }
 
   @Post('refresh')
+  @ApiOkResponse({ type: TokenResponseDto })
   @ApiOperation({ summary: 'Refresh access & refresh tokens' })
   @ApiBody({
     schema: {
@@ -36,7 +37,6 @@ export class AuthController {
       },
     },
   })
-  @ApiOkResponse({ type: TokenResponseDto })
   refresh(@Body('refreshToken') token: string): Promise<TokenResponseDto> {
     return this.authService.refreshTokens(token);
   }

@@ -1,6 +1,5 @@
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { User } from './entities/user.entity';
 import {
   Body,
   Controller,
@@ -27,7 +26,7 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOkResponse({ type: User })
+  @ApiOkResponse({ type: UserWithCountsResponseDto })
   @ApiOperation({ summary: 'Find a User by User ID' })
   @Get(':id')
   async findOne(
@@ -45,7 +44,7 @@ export class UserController {
 
   @ApiOkResponse({ type: SafeUserDto })
   @ApiBody({ type: UserUpdateDto })
-  @ApiOperation({ summary: 'Update a Users Information' })
+  @ApiOperation({ summary: 'Update user information by user ID' })
   @Patch(':id')
   async update(@Req() req, @Body() dto: UserUpdateDto): Promise<SafeUserDto> {
     const id = req.user.id as number;
@@ -53,16 +52,16 @@ export class UserController {
   }
 
   @ApiOkResponse({ type: SafeUserDto })
-  @ApiOperation({ summary: 'Delete a User from the Database' })
+  @ApiOperation({ summary: 'Delete your own user' })
   @Delete('self')
   async delete(@Req() req): Promise<SafeUserDto> {
     const id = req.user.id as number;
     return await this.userService.delete(id);
   }
 
-  @ApiOkResponse({ type: User })
+  @ApiOkResponse({ type: SafeUserDto })
   @ApiBody({ type: PasswordResetDto })
-  @ApiOperation({ summary: 'Reset a Users Password' })
+  @ApiOperation({ summary: 'Reset a user password' })
   @Post('reset-password')
   async resetPassword(
     @Req() req,

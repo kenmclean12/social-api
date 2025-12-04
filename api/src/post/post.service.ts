@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { UserPost } from './entities/user-post.entity';
 import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { UserService } from 'src/user/user.service';
+import { convertToResponseDto } from 'src/common/utils';
 @Injectable()
 export class PostService {
   constructor(
@@ -47,7 +48,7 @@ export class PostService {
 
     const responseDtos: PostResponseDto[] = [];
     for (const p of posts) {
-      responseDtos.push(this.toResponseDto(p));
+      responseDtos.push(convertToResponseDto(PostResponseDto, p));
     }
 
     return responseDtos;
@@ -56,7 +57,7 @@ export class PostService {
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
     const savedPost = await this.postRepo.save({ ...dto, creator: user });
-    return this.toResponseDto(savedPost);
+    return convertToResponseDto(PostResponseDto, savedPost);
   }
 
   async update(
@@ -78,7 +79,7 @@ export class PostService {
     }
 
     const saved = await this.postRepo.save(mergedPost);
-    return this.toResponseDto(saved);
+    return convertToResponseDto(PostResponseDto, saved);
   }
 
   async remove(id: number, userId: number): Promise<PostResponseDto> {
@@ -90,16 +91,6 @@ export class PostService {
     }
 
     await this.postRepo.remove(existingPost);
-    return this.toResponseDto(existingPost);
-  }
-
-  toResponseDto(post: UserPost): PostResponseDto {
-    return {
-      id: post.id,
-      title: post.title ?? '',
-      textContent: post.textContent ?? '',
-      createdAt: post.createdAt,
-      creatorId: post.creator.id,
-    };
+    return convertToResponseDto(PostResponseDto, existingPost);
   }
 }

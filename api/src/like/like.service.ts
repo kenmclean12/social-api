@@ -9,7 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Like } from './entities/like.entity';
-import { LikeCreateDto } from './dto';
+import { LikeCreateDto, LikeResponseDto } from './dto';
 import { UserService } from 'src/user/user.service';
 import { MessageService } from 'src/message/message.service';
 import { PostService } from 'src/post/post.service';
@@ -18,6 +18,7 @@ import { EntityType } from 'src/common/types';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationCreateDto } from 'src/notification/dto';
+import { convertToResponseDto } from 'src/common/utils';
 
 @Injectable()
 export class LikeService {
@@ -32,16 +33,21 @@ export class LikeService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async findLikesForEntity(type: EntityType, id: number): Promise<Like[]> {
-    const relation = getRelationName(type);
-    return await this.likeRepo.find({
+  async findLikesForEntity(
+    type: EntityType,
+    id: number,
+  ): Promise<LikeResponseDto[]> {
+    const relation = this.getRelationName(type);
+    const likes = await this.likeRepo.find({
       where: { [relation]: { id } },
       relations: ['user', 'post', 'message', 'comment'],
       order: { createdAt: 'ASC' },
     });
+
+    return likes.map((l) => convertToResponseDto(LikeResponseDto, l));
   }
 
-  async create(dto: LikeCreateDto): Promise<Like> {
+  async create(dto: LikeCreateDto): Promise<LikeResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
 
     const { entity, relationKey, recipientId, notificationType, contentId } =
@@ -62,10 +68,11 @@ export class LikeService {
       contentId,
     });
 
-    return this.findLikeWithRelationsOrFail(saved.id);
+    const like = this.findLikeWithRelationsOrFail(saved.id);
+    return convertToResponseDto(LikeResponseDto, like);
   }
 
-  async delete(id: number, userId: number): Promise<Like> {
+  async delete(id: number, userId: number): Promise<LikeResponseDto> {
     const like = await this.likeRepo.findOne({
       where: { id },
       relations: ['user', 'message', 'post', 'comment'],
@@ -82,7 +89,7 @@ export class LikeService {
     }
 
     await this.likeRepo.remove(like);
-    return like;
+    return convertToResponseDto(LikeResponseDto, like);
   }
 
   private async resolveTarget(dto: LikeCreateDto) {
@@ -177,19 +184,19 @@ export class LikeService {
 
     return like;
   }
-}
 
-function getRelationName(type: EntityType) {
-  const relationMap = {
-    message: 'message',
-    post: 'post',
-    comment: 'comment',
-  } as const;
+  getRelationName(type: EntityType) {
+    const relationMap = {
+      message: 'message',
+      post: 'post',
+      comment: 'comment',
+    } as const;
 
-  const relation = relationMap[type];
-  if (!relation) {
-    throw new BadRequestException('Invalid type');
+    const relation = relationMap[type];
+    if (!relation) {
+      throw new BadRequestException('Invalid type');
+    }
+
+    return relation;
   }
-
-  return relation;
 }
