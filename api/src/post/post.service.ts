@@ -42,16 +42,7 @@ export class PostService {
       order: { createdAt: 'ASC' },
     });
 
-    if (posts.length === 0) {
-      throw new NotFoundException(`No Posts found for User ID: ${userId}`);
-    }
-
-    const responseDtos: PostResponseDto[] = [];
-    for (const p of posts) {
-      responseDtos.push(convertToResponseDto(PostResponseDto, p));
-    }
-
-    return responseDtos;
+    return posts.map((p) => convertToResponseDto(PostResponseDto, p));
   }
 
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
