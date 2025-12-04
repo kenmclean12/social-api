@@ -13,7 +13,7 @@ export class ReactionResponseDto {
 
   @Expose()
   @ApiProperty()
-  reaction: number;
+  reaction: string;
 
   @Expose()
   @ApiProperty()
