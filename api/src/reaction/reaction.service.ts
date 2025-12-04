@@ -50,6 +50,7 @@ export class ReactionService {
     let recipientId: number;
     let notificationType: NotificationType;
     let contentId: number;
+
     switch (true) {
       case !!messageId: {
         const message = await this.messageService.findOne(messageId);
@@ -58,26 +59,62 @@ export class ReactionService {
         entity = message;
         notificationType = NotificationType.MESSAGE_REACTION;
         relationKey = 'message';
+
+        const existingMessageReaction = await this.reactionRepo.findOne({
+          where: { message: { id: messageId }, user: { id: userId } },
+        });
+
+        if (existingMessageReaction) {
+          throw new BadRequestException(
+            'You have already reacted to this message.',
+          );
+        }
+
         break;
       }
+
       case !!postId: {
         const post = await this.postService.findOneInternal(postId);
         recipientId = post.creator.id;
         contentId = postId;
+        entity = post;
         notificationType = NotificationType.POST_REACTION;
         relationKey = 'post';
-        entity = post;
+
+        const existingPostReaction = await this.reactionRepo.findOne({
+          where: { post: { id: postId }, user: { id: userId } },
+        });
+
+        if (existingPostReaction) {
+          throw new BadRequestException(
+            'You have already reacted to this post.',
+          );
+        }
+
         break;
       }
+
       case !!commentId: {
         const comment = await this.commentService.findOne(commentId);
         recipientId = comment.user.id;
         contentId = commentId;
+        entity = comment;
         notificationType = NotificationType.COMMENT_REACTION;
         relationKey = 'comment';
-        entity = comment;
+
+        const existingCommentReaction = await this.reactionRepo.findOne({
+          where: { comment: { id: commentId }, user: { id: userId } },
+        });
+
+        if (existingCommentReaction) {
+          throw new BadRequestException(
+            'You have already reacted to this comment.',
+          );
+        }
+
         break;
       }
+
       default:
         throw new BadRequestException(
           'Must provide one of messageId, postId, commentId',
