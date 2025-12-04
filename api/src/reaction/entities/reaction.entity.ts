@@ -4,6 +4,7 @@ import { Message } from 'src/message/entities';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
+  Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
@@ -20,8 +21,9 @@ export class Reaction {
   @ApiProperty({ type: () => User })
   user: User;
 
-  @ApiProperty({ type: 'string', required: true })
-  reaction: string;
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  @ApiProperty({ type: 'string' })
+  reaction?: string;
 
   @ManyToOne(() => Message, (m) => m.reactions, {
     nullable: true,
