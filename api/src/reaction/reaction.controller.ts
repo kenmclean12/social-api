@@ -8,9 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Reaction } from './entities/reaction.entity';
 import { ReactionService } from './reaction.service';
-import { ReactionCreateDto } from './dto';
+import { ReactionCreateDto, ReactionResponseDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('reaction')
@@ -19,7 +18,7 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}
 
-  @ApiOkResponse({ type: [Reaction] })
+  @ApiOkResponse({ type: [ReactionResponseDto] })
   @ApiOperation({
     description: 'Get all Reactions for a specific entity type and ID',
   })
@@ -27,16 +26,16 @@ export class ReactionController {
   async findReactions(
     @Query('type') type: 'message' | 'post' | 'comment',
     @Query('id', ParseIntPipe) id: number,
-  ): Promise<Reaction[]> {
+  ): Promise<ReactionResponseDto[]> {
     return await this.reactionService.findReactionsForEntity(type, id);
   }
 
-  @ApiOkResponse({ type: Reaction })
+  @ApiOkResponse({ type: ReactionResponseDto })
   @ApiOperation({
     description: 'Create a Reaction for a Message, Post, or Comment',
   })
   @Post()
-  async create(@Body() dto: ReactionCreateDto): Promise<Reaction> {
+  async create(@Body() dto: ReactionCreateDto): Promise<ReactionResponseDto> {
     return await this.reactionService.create(dto);
   }
 }

@@ -21,9 +21,9 @@ export class Reaction {
   @ApiProperty({ type: () => User })
   user: User;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
+  @Column({ type: 'varchar', length: 200 })
   @ApiProperty({ type: 'string' })
-  reaction?: string;
+  reaction: string;
 
   @ManyToOne(() => Message, (m) => m.reactions, {
     nullable: true,

@@ -6,11 +6,13 @@ import { UserService } from 'src/user/user.service';
 import { MessageService } from 'src/message/message.service';
 import { PostService } from 'src/post/post.service';
 import { CommentService } from 'src/comment/comment.service';
-import { ReactionCreateDto } from './dto';
+import { ReactionCreateDto, ReactionResponseDto } from './dto';
 import { EntityType } from 'src/common/types';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationCreateDto } from 'src/notification/dto';
+import { convertToResponseDto } from 'src/common/utils';
+import { SafeUserDto } from 'src/user/dto';
 
 @Injectable()
 export class ReactionService {
@@ -27,119 +29,125 @@ export class ReactionService {
   async findReactionsForEntity(
     type: EntityType,
     id: number,
-  ): Promise<Reaction[]> {
+  ): Promise<ReactionResponseDto[]> {
     const relation = this.getRelationName(type);
-    return await this.reactionRepo.find({
+    const reactions = await this.reactionRepo.find({
       where: { [relation]: { id } },
-      relations: ['user'],
+      relations: ['user', 'message', 'post', 'comment'],
       order: { createdAt: 'ASC' },
+    });
+
+    return reactions.map((r) =>
+      convertToResponseDto(ReactionResponseDto, {
+        ...r,
+        user: convertToResponseDto(SafeUserDto, r.user),
+        messageId: r.message?.id ?? undefined,
+        postId: r.post?.id ?? undefined,
+        commentId: r.comment?.id ?? undefined,
+      }),
+    );
+  }
+
+  async create(dto: ReactionCreateDto): Promise<ReactionResponseDto> {
+    const user = await this.userService.findOneInternal(dto.userId);
+    const { entity, relationKey, recipientId, notificationType, contentId } =
+      await this.resolveEntityAndNotification(dto);
+    await this.removeExistingReaction(user.id, entity.id, relationKey);
+
+    const saved = await this.reactionRepo.save({
+      user,
+      reaction: dto.reaction,
+      [relationKey]: entity,
+    });
+
+    await this.sendNotification({
+      actorId: user.id,
+      recipientId,
+      relationKey,
+      notificationType,
+      contentId,
+    });
+
+    return convertToResponseDto(ReactionResponseDto, {
+      ...saved,
+      user: convertToResponseDto(SafeUserDto, user),
+      messageId: dto.messageId ?? undefined,
+      postId: dto.postId ?? undefined,
+      commentId: dto.commentId ?? undefined,
     });
   }
 
-  async create(dto: ReactionCreateDto): Promise<Reaction> {
-    const { userId, messageId, postId, commentId, reaction } = dto;
-    const user = await this.userService.findOneInternal(userId);
-
-    let entity: { id: number } | null = null;
-    let relationKey: EntityType | null = null;
-
-    let recipientId: number;
-    let notificationType: NotificationType;
-    let contentId: number;
-
-    switch (true) {
-      case !!messageId: {
-        const message = await this.messageService.findOne(messageId);
-        recipientId = message.sender.id;
-        contentId = messageId;
-        entity = message;
-        notificationType = NotificationType.MESSAGE_REACTION;
-        relationKey = 'message';
-
-        const existingMessageReaction = await this.reactionRepo.findOne({
-          where: { message: { id: messageId }, user: { id: userId } },
-        });
-
-        if (existingMessageReaction) {
-          await this.reactionRepo.remove(existingMessageReaction);
-        }
-
-        break;
-      }
-
-      case !!postId: {
-        const post = await this.postService.findOneInternal(postId);
-        recipientId = post.creator.id;
-        contentId = postId;
-        entity = post;
-        notificationType = NotificationType.POST_REACTION;
-        relationKey = 'post';
-
-        const existingPostReaction = await this.reactionRepo.findOne({
-          where: { post: { id: postId }, user: { id: userId } },
-        });
-
-        if (existingPostReaction) {
-          await this.reactionRepo.remove(existingPostReaction);
-        }
-
-        break;
-      }
-
-      case !!commentId: {
-        const comment = await this.commentService.findOne(commentId);
-        recipientId = comment.user.id;
-        contentId = commentId;
-        entity = comment;
-        notificationType = NotificationType.COMMENT_REACTION;
-        relationKey = 'comment';
-
-        const existingCommentReaction = await this.reactionRepo.findOne({
-          where: { comment: { id: commentId }, user: { id: userId } },
-        });
-
-        if (existingCommentReaction) {
-          await this.reactionRepo.remove(existingCommentReaction);
-        }
-
-        break;
-      }
-
-      default:
-        throw new BadRequestException(
-          'Must provide one of messageId, postId, commentId',
-        );
+  private async resolveEntityAndNotification(dto: ReactionCreateDto) {
+    if (dto.messageId) {
+      const message = await this.messageService.findOne(dto.messageId);
+      return {
+        entity: message,
+        relationKey: 'message' as EntityType,
+        recipientId: message.sender.id,
+        notificationType: NotificationType.MESSAGE_REACTION,
+        contentId: dto.messageId,
+      };
     }
 
-    const reactionEntity: Partial<Reaction> = {
-      user,
-      reaction,
-      [relationKey]: entity,
-    };
+    if (dto.postId) {
+      const post = await this.postService.findOneInternal(dto.postId);
+      return {
+        entity: post,
+        relationKey: 'post' as EntityType,
+        recipientId: post.creator.id,
+        notificationType: NotificationType.POST_REACTION,
+        contentId: dto.postId,
+      };
+    }
 
-    const saved = await this.reactionRepo.save(reactionEntity);
+    if (dto.commentId) {
+      const comment = await this.commentService.findOne(dto.commentId);
+      return {
+        entity: comment,
+        relationKey: 'comment' as EntityType,
+        recipientId: comment.user.id,
+        notificationType: NotificationType.COMMENT_REACTION,
+        contentId: dto.commentId,
+      };
+    }
 
-    const notificationPayload: NotificationCreateDto = {
+    throw new BadRequestException(
+      'Must provide one of messageId, postId, commentId',
+    );
+  }
+
+  private async removeExistingReaction(
+    userId: number,
+    entityId: number,
+    relationKey: EntityType,
+  ) {
+    const existing = await this.reactionRepo.findOne({
+      where: { user: { id: userId }, [relationKey]: { id: entityId } },
+    });
+    if (existing) await this.reactionRepo.remove(existing);
+  }
+
+  private async sendNotification(args: {
+    actorId: number;
+    recipientId: number;
+    relationKey: EntityType;
+    notificationType: NotificationType;
+    contentId: number;
+  }) {
+    const { actorId, recipientId, relationKey, notificationType, contentId } =
+      args;
+
+    const payload: NotificationCreateDto = {
+      actorId,
       recipientId,
-      actorId: userId,
       type: notificationType,
     };
 
-    switch (relationKey) {
-      case 'post':
-        notificationPayload.postId = contentId;
-        break;
-      case 'message':
-        notificationPayload.messageId = contentId;
-        break;
-      case 'comment':
-        notificationPayload.commentId = contentId;
-        break;
-    }
+    if (relationKey === 'post') payload.postId = contentId;
+    if (relationKey === 'message') payload.messageId = contentId;
+    if (relationKey === 'comment') payload.commentId = contentId;
 
-    await this.notificationService.create(notificationPayload);
-
-    return saved;
+    await this.notificationService.create(payload);
   }
 
   getRelationName(type: EntityType) {
