@@ -10,7 +10,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { FollowDto, SafeFollowDto } from './dto';
+import { FollowDto, FollowResponseDto } from './dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { convertToResponseDto } from 'src/common/utils';
@@ -38,17 +38,17 @@ export class FollowService {
     return follow;
   }
 
-  async findFollowingByUserId(id: number): Promise<SafeFollowDto[]> {
+  async findFollowingByUserId(id: number): Promise<FollowResponseDto[]> {
     const following = await this.followRepo.find({
       where: { follower: { id } },
       relations: ['following'],
       order: { createdAt: 'ASC' },
     });
 
-    return following.map((f) => convertToResponseDto(SafeFollowDto, f));
+    return following.map((f) => convertToResponseDto(FollowResponseDto, f));
   }
 
-  async findFollowersByUserId(id: number): Promise<SafeFollowDto[]> {
+  async findFollowersByUserId(id: number): Promise<FollowResponseDto[]> {
     const followers = await this.followRepo.find({
       where: { following: { id } },
       relations: ['follower'],
@@ -61,10 +61,13 @@ export class FollowService {
       );
     }
 
-    return followers.map((f) => convertToResponseDto(SafeFollowDto, f));
+    return followers.map((f) => convertToResponseDto(FollowResponseDto, f));
   }
 
-  async create({ followerId, followingId }: FollowDto): Promise<SafeFollowDto> {
+  async create({
+    followerId,
+    followingId,
+  }: FollowDto): Promise<FollowResponseDto> {
     if (followerId === followingId) {
       throw new BadRequestException('You cannot follow yourself');
     }
@@ -96,10 +99,10 @@ export class FollowService {
       });
     }
 
-    return convertToResponseDto(SafeFollowDto, full);
+    return convertToResponseDto(FollowResponseDto, full);
   }
 
-  async remove(id: number, userId: number): Promise<SafeFollowDto> {
+  async remove(id: number, userId: number): Promise<FollowResponseDto> {
     const follow = await this.findOneInternal(id);
 
     if (follow.follower.id !== userId && follow.following.id !== userId) {
@@ -109,6 +112,6 @@ export class FollowService {
     }
 
     await this.followRepo.remove(follow);
-    return convertToResponseDto(SafeFollowDto, follow);
+    return convertToResponseDto(FollowResponseDto, follow);
   }
 }

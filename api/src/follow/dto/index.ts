@@ -1,2 +1,2 @@
 export { FollowDto } from './follow.dto';
-export { SafeFollowDto } from './safe-follow.dto';
+export { FollowResponseDto } from './follow-response.dto';

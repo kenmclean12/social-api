@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { UserResponseDto } from 'src/user/dto';
 
-export class SafeFollowDto {
+export class FollowResponseDto {
   @Expose()
   @ApiProperty()
   id: number;
