@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { SafeUserDto } from 'src/user/dto';
 import { NotificationType } from '../entities/notification.entity';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
+import { UserResponseDto } from 'src/user/dto';
 
 export class SafeNotificationDto {
   @Expose()
@@ -13,11 +13,11 @@ export class SafeNotificationDto {
 
   @Expose()
   @ApiProperty()
-  recipient: SafeUserDto;
+  recipient: UserResponseDto;
 
   @Expose()
   @ApiProperty()
-  actionUser: SafeUserDto;
+  actionUser: UserResponseDto;
 
   @Expose()
   @ApiProperty()

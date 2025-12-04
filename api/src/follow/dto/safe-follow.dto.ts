@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { SafeUserDto } from 'src/user/dto';
+import { UserResponseDto } from 'src/user/dto';
 
 export class SafeFollowDto {
   @Expose()
@@ -12,12 +12,12 @@ export class SafeFollowDto {
   createdAt: Date;
 
   @Expose()
-  @Type(() => SafeUserDto)
-  @ApiProperty({ type: () => SafeUserDto })
-  follower: SafeUserDto;
+  @Type(() => UserResponseDto)
+  @ApiProperty({ type: () => UserResponseDto })
+  follower: UserResponseDto;
 
   @Expose()
-  @Type(() => SafeUserDto)
-  @ApiProperty({ type: () => SafeUserDto })
-  following: SafeUserDto;
+  @Type(() => UserResponseDto)
+  @ApiProperty({ type: () => UserResponseDto })
+  following: UserResponseDto;
 }

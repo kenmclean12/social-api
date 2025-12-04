@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import {
   PasswordResetDto,
-  SafeUserDto,
+  UserResponseDto,
   UserUpdateDto,
   UserWithCountsResponseDto,
 } from './dto';
@@ -35,38 +35,41 @@ export class UserController {
     return await this.userService.findOneWithFollowCounts(id);
   }
 
-  @ApiOkResponse({ type: SafeUserDto, isArray: true })
+  @ApiOkResponse({ type: UserResponseDto, isArray: true })
   @ApiOperation({ summary: 'Find all Users' })
   @Get()
-  async findAll(): Promise<SafeUserDto[]> {
+  async findAll(): Promise<UserResponseDto[]> {
     return await this.userService.findAll();
   }
 
-  @ApiOkResponse({ type: SafeUserDto })
+  @ApiOkResponse({ type: UserResponseDto })
   @ApiBody({ type: UserUpdateDto })
   @ApiOperation({ summary: 'Update user information by user ID' })
   @Patch(':id')
-  async update(@Req() req, @Body() dto: UserUpdateDto): Promise<SafeUserDto> {
+  async update(
+    @Req() req,
+    @Body() dto: UserUpdateDto,
+  ): Promise<UserResponseDto> {
     const id = req.user.id as number;
     return await this.userService.update(id, dto);
   }
 
-  @ApiOkResponse({ type: SafeUserDto })
+  @ApiOkResponse({ type: UserResponseDto })
   @ApiOperation({ summary: 'Delete your own user' })
   @Delete('self')
-  async delete(@Req() req): Promise<SafeUserDto> {
+  async delete(@Req() req): Promise<UserResponseDto> {
     const id = req.user.id as number;
     return await this.userService.delete(id);
   }
 
-  @ApiOkResponse({ type: SafeUserDto })
+  @ApiOkResponse({ type: UserResponseDto })
   @ApiBody({ type: PasswordResetDto })
   @ApiOperation({ summary: 'Reset a user password' })
   @Post('reset-password')
   async resetPassword(
     @Req() req,
     @Body() dto: PasswordResetDto,
-  ): Promise<SafeUserDto> {
+  ): Promise<UserResponseDto> {
     const userId = req.user.id as number;
     return await this.userService.resetPassword(userId, dto);
   }

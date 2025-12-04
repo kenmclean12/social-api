@@ -11,8 +11,8 @@ import * as bcrypt from 'bcrypt';
 import { assertUnique } from 'src/common/utils';
 import {
   PasswordResetDto,
-  SafeUserDto,
   UserCreateDto,
+  UserResponseDto,
   UserUpdateDto,
   UserWithCountsResponseDto,
 } from './dto';
@@ -92,18 +92,18 @@ export class UserService {
     return safeUser;
   }
 
-  async findAll(): Promise<SafeUserDto[]> {
+  async findAll(): Promise<UserResponseDto[]> {
     const users = await this.userRepo.find({ order: { createdAt: 'ASC' } });
 
-    const resultSet = new Set<SafeUserDto>();
+    const resultSet = new Set<UserResponseDto>();
     for (const user of users) {
-      resultSet.add(convertToResponseDto(SafeUserDto, user));
+      resultSet.add(convertToResponseDto(UserResponseDto, user));
     }
 
     return Array.from(resultSet);
   }
 
-  async create(dto: UserCreateDto): Promise<SafeUserDto> {
+  async create(dto: UserCreateDto): Promise<UserResponseDto> {
     await this.assertUserFields({
       email: dto.email,
       userName: dto.userName,
@@ -124,7 +124,7 @@ export class UserService {
       );
     }
 
-    return convertToResponseDto(SafeUserDto, savedUser);
+    return convertToResponseDto(UserResponseDto, savedUser);
   }
 
   async createInternal(dto: UserCreateDto): Promise<User> {
@@ -151,7 +151,7 @@ export class UserService {
     return savedUser;
   }
 
-  async update(id: number, dto: UserUpdateDto): Promise<SafeUserDto> {
+  async update(id: number, dto: UserUpdateDto): Promise<UserResponseDto> {
     const existingUser = await this.findOneInternal(id);
     await this.assertUserFields({
       email: dto.email,
@@ -166,20 +166,20 @@ export class UserService {
       );
     }
 
-    return convertToResponseDto(SafeUserDto, savedUser);
+    return convertToResponseDto(UserResponseDto, savedUser);
   }
 
-  async delete(id: number): Promise<SafeUserDto> {
+  async delete(id: number): Promise<UserResponseDto> {
     const userToDelete = await this.findOneInternal(id);
     await this.userRepo.remove(userToDelete);
 
-    return convertToResponseDto(SafeUserDto, userToDelete);
+    return convertToResponseDto(UserResponseDto, userToDelete);
   }
 
   async resetPassword(
     userId: number,
     { oldPassword, newPassword }: PasswordResetDto,
-  ): Promise<SafeUserDto> {
+  ): Promise<UserResponseDto> {
     const existingUser = await this.findOneInternal(userId);
 
     const passwordMatching = await bcrypt.compare(
@@ -203,7 +203,7 @@ export class UserService {
       );
     }
 
-    return convertToResponseDto(SafeUserDto, savedUser);
+    return convertToResponseDto(UserResponseDto, savedUser);
   }
 
   async assertUserFields(fields: Partial<User>) {

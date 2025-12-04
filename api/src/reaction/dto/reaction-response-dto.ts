@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { SafeUserDto } from 'src/user/dto';
+import { UserResponseDto } from 'src/user/dto';
 
 export class ReactionResponseDto {
   @Expose()
@@ -9,7 +9,7 @@ export class ReactionResponseDto {
 
   @Expose()
   @ApiProperty()
-  user: SafeUserDto;
+  user: UserResponseDto;
 
   @Expose()
   @ApiProperty()

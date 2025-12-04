@@ -10,7 +10,7 @@ import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/entities/user.entity';
 import { LoginDto, TokenResponseDto } from './dto';
-import { SafeUserDto, UserCreateDto } from 'src/user/dto';
+import { UserResponseDto, UserCreateDto } from 'src/user/dto';
 import { convertToResponseDto } from 'src/common/utils';
 
 @Injectable()
@@ -54,7 +54,7 @@ export class AuthService {
     const hashed = await bcrypt.hash(refresh_token, 10);
     await this.userService.update(user.id, { hashedRefreshToken: hashed });
 
-    const safeUser = convertToResponseDto(SafeUserDto, user);
+    const safeUser = convertToResponseDto(UserResponseDto, user);
     return { access_token, refresh_token, user: safeUser };
   }
 

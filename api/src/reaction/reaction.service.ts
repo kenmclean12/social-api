@@ -17,7 +17,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationCreateDto } from 'src/notification/dto';
 import { convertToResponseDto } from 'src/common/utils';
-import { SafeUserDto } from 'src/user/dto';
+import { UserResponseDto } from 'src/user/dto';
 
 @Injectable()
 export class ReactionService {
@@ -45,7 +45,7 @@ export class ReactionService {
     return reactions.map((r) =>
       convertToResponseDto(ReactionResponseDto, {
         ...r,
-        user: convertToResponseDto(SafeUserDto, r.user),
+        user: convertToResponseDto(UserResponseDto, r.user),
         messageId: r.message?.id ?? undefined,
         postId: r.post?.id ?? undefined,
         commentId: r.comment?.id ?? undefined,
@@ -75,7 +75,7 @@ export class ReactionService {
 
     return convertToResponseDto(ReactionResponseDto, {
       ...saved,
-      user: convertToResponseDto(SafeUserDto, user),
+      user: convertToResponseDto(UserResponseDto, user),
       messageId: dto.messageId ?? undefined,
       postId: dto.postId ?? undefined,
       commentId: dto.commentId ?? undefined,
@@ -102,7 +102,7 @@ export class ReactionService {
     await this.reactionRepo.remove(reaction);
     return convertToResponseDto(ReactionResponseDto, {
       ...reaction,
-      user: convertToResponseDto(SafeUserDto, user),
+      user: convertToResponseDto(UserResponseDto, user),
       messageId: reaction.message?.id ?? undefined,
       postId: reaction.post?.id ?? undefined,
       commentId: reaction.comment?.id ?? undefined,
