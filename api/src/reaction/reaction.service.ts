@@ -14,6 +14,7 @@ import { ReactionCreateDto } from './dto';
 import { EntityType } from 'src/common/types';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
+import { NotificationCreateDto } from 'src/notification/dto';
 
 @Injectable()
 export class ReactionService {
@@ -91,12 +92,25 @@ export class ReactionService {
 
     const saved = await this.reactionRepo.save(reactionEntity);
 
-    await this.notificationService.create({
+    const notificationPayload: NotificationCreateDto = {
       recipientId,
       actorId: userId,
       type: notificationType,
-      [relationKey]: contentId,
-    });
+    };
+
+    switch (relationKey) {
+      case 'post':
+        notificationPayload.postId = contentId;
+        break;
+      case 'message':
+        notificationPayload.messageId = contentId;
+        break;
+      case 'comment':
+        notificationPayload.commentId = contentId;
+        break;
+    }
+
+    await this.notificationService.create(notificationPayload);
 
     return saved;
   }
@@ -104,7 +118,7 @@ export class ReactionService {
   async remove(id: number, userId: number): Promise<Reaction> {
     const reaction = await this.reactionRepo.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'message', 'post', 'comment'],
     });
 
     if (!reaction) {
