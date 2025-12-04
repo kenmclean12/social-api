@@ -59,7 +59,9 @@ export class FeedService {
       }
     }
 
-    return posts.map((p) => convertToResponseDto(PostResponseDto, p));
+    return posts.map((p) =>
+      convertToResponseDto(PostResponseDto, { ...p, creatorId: p.creator?.id }),
+    );
   }
 
   async getExploreFeed(
@@ -93,8 +95,11 @@ export class FeedService {
         break;
     }
 
-    return sortedPosts
-      .slice(0, limit)
-      .map((p) => convertToResponseDto(PostResponseDto, p));
+    return sortedPosts.slice(0, limit).map((p) =>
+      convertToResponseDto(PostResponseDto, {
+        ...p,
+        creatorId: p.creator?.id,
+      }),
+    );
   }
 }
