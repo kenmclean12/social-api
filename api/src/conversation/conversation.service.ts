@@ -55,7 +55,6 @@ export class ConversationService {
   async findByUserId(id: number): Promise<ConversationResponseDto[]> {
     const conversations = await this.conversationRepo
       .createQueryBuilder('conversation')
-      .leftJoinAndSelect('conversation.messages', 'messages')
       .leftJoinAndSelect('conversation.initiator', 'initiator')
       .leftJoinAndSelect('conversation.participants', 'participants')
       .where('initiator.id = :id', { id })

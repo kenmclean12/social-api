@@ -1,5 +1,4 @@
 import { Expose, Type } from 'class-transformer';
-import { Message } from 'src/message/entities';
 import { UserResponseDto } from 'src/user/dto';
 
 export class ConversationResponseDto {
@@ -19,8 +18,4 @@ export class ConversationResponseDto {
   @Expose()
   @Type(() => UserResponseDto)
   participants: UserResponseDto[];
-
-  @Expose()
-  @Type(() => Message)
-  messages: Message[];
 }
