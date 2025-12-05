@@ -12,6 +12,10 @@ export class MessageReadResponseDto {
   messageId: number;
 
   @Expose()
+  @ApiProperty({ type: 'number' })
+  conversationId: number;
+
+  @Expose()
   @ApiProperty({ type: () => UserResponseDto })
   user: UserResponseDto;
 

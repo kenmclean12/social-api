@@ -44,6 +44,7 @@ export class MessageService {
         'likes.user',
         'reactions',
         'reactions.user',
+        'conversation',
       ],
     });
 
@@ -148,6 +149,7 @@ export class MessageService {
     return convertToResponseDto(MessageReadResponseDto, {
       ...saved,
       messageId: message.id,
+      conversationId: message.conversation.id,
       user: convertToResponseDto(UserResponseDto, user),
     });
   }
