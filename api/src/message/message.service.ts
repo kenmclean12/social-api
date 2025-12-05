@@ -58,10 +58,7 @@ export class MessageService {
   }
 
   async findOne(id: number): Promise<MessageResponseDto> {
-    const message = await this.messageRepo.findOne({
-      where: { id },
-      relations: ['sender', 'reads', 'reads.user', 'conversation'],
-    });
+    const message = await this.findOneInternal(id);
 
     if (!message) {
       throw new NotFoundException(
@@ -74,7 +71,12 @@ export class MessageService {
       conversationId: message.conversation?.id ?? '',
       sender: convertToResponseDto(UserResponseDto, message.sender),
       reads: message.reads?.map((read) =>
-        convertToResponseDto(MessageReadResponseDto, read),
+        convertToResponseDto(MessageReadResponseDto, {
+          ...read,
+          messageId: read.message.id,
+          conversationId: message.conversation.id,
+          user: convertToResponseDto(UserResponseDto, read.user),
+        }),
       ),
     });
   }
@@ -101,6 +103,7 @@ export class MessageService {
           convertToResponseDto(MessageReadResponseDto, {
             ...r,
             messageId: message.id,
+            conversationId: message.conversation.id,
             user: convertToResponseDto(UserResponseDto, r.user),
           }),
         ),
