@@ -18,8 +18,6 @@ import {
 } from './dto';
 import { convertToResponseDto } from 'src/common/utils';
 import { UserResponseDto } from 'src/user/dto';
-import { LikeResponseDto } from 'src/like/dto';
-import { ReactionResponseDto } from 'src/reaction/dto';
 
 @Injectable()
 export class MessageService {
@@ -60,16 +58,7 @@ export class MessageService {
   async findOne(id: number): Promise<MessageResponseDto> {
     const message = await this.messageRepo.findOne({
       where: { id },
-      relations: [
-        'sender',
-        'reads',
-        'reads.user',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-        'conversation',
-      ],
+      relations: ['sender', 'reads', 'reads.user', 'conversation'],
     });
 
     if (!message) {
@@ -80,18 +69,10 @@ export class MessageService {
 
     return convertToResponseDto(MessageResponseDto, {
       ...message,
-      sender: convertToResponseDto(UserResponseDto, message.sender),
       conversationId: message.conversation?.id ?? '',
+      sender: convertToResponseDto(UserResponseDto, message.sender),
       reads: message.reads?.map((read) =>
         convertToResponseDto(MessageReadResponseDto, read),
-      ),
-
-      likes: message.likes?.map((like) =>
-        convertToResponseDto(LikeResponseDto, like),
-      ),
-
-      reactions: message.reactions?.map((reaction) =>
-        convertToResponseDto(ReactionResponseDto, reaction),
       ),
     });
   }
@@ -99,16 +80,7 @@ export class MessageService {
   async findByConversationId(id: number): Promise<MessageResponseDto[]> {
     const messages = await this.messageRepo.find({
       where: { conversation: { id } },
-      relations: [
-        'sender',
-        'reads',
-        'reads.user',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-        'conversation',
-      ],
+      relations: ['sender', 'reads', 'reads.user', 'conversation'],
       order: { createdAt: 'ASC' },
     });
 
@@ -124,13 +96,11 @@ export class MessageService {
         conversationId: message.conversation.id ?? '',
         sender: convertToResponseDto(UserResponseDto, message.sender),
         reads: message.reads?.map((r) =>
-          convertToResponseDto(MessageReadResponseDto, r),
-        ),
-        likes: message.likes?.map((l) =>
-          convertToResponseDto(LikeResponseDto, l),
-        ),
-        reactions: message.reactions?.map((r) =>
-          convertToResponseDto(ReactionResponseDto, r),
+          convertToResponseDto(MessageReadResponseDto, {
+            ...r,
+            messageId: message.id,
+            user: convertToResponseDto(UserResponseDto, r.user),
+          }),
         ),
       }),
     );
@@ -160,16 +130,15 @@ export class MessageService {
     id: number,
     userId: number,
   ): Promise<MessageReadResponseDto> {
-    const message = await this.messageRepo.findOneBy({ id });
-    if (!message) {
-      throw new NotFoundException(`Message ID ${id} not found`);
-    }
-
+    const message = await this.findOneInternal(id);
     const user = await this.userService.findOneInternal(userId);
-
     const saved = await this.messageReadRepo.save({ message, user });
 
-    return convertToResponseDto(MessageReadResponseDto, saved);
+    return convertToResponseDto(MessageReadResponseDto, {
+      ...saved,
+      messageId: message.id,
+      user: convertToResponseDto(UserResponseDto, user),
+    });
   }
 
   async update(
@@ -218,9 +187,6 @@ export class MessageService {
       ...message,
       conversationId: message.conversation.id ?? '',
       sender: convertToResponseDto(UserResponseDto, message.sender),
-      reads: [],
-      likes: [],
-      reactions: [],
     });
   }
 
