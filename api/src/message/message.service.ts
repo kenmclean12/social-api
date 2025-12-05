@@ -138,7 +138,7 @@ export class MessageService {
     const message = await this.findOneInternal(id);
     const user = await this.userService.findOneInternal(userId);
     const existingRead = await this.messageReadRepo.findOne({
-      where: { message: { id: message.id }, user: { id: user.id } },
+      where: { message: { id: message.id }, user: { id: userId } },
     });
 
     if (existingRead) {
