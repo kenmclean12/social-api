@@ -18,7 +18,7 @@ import {
   ConversationUpdateDto,
   InitiateConversationDto,
   InitiateConversationResponseDto,
-  SafeConversationDto,
+  ConversationResponseDto,
 } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
 
@@ -28,16 +28,16 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
-  @ApiOkResponse({ type: SafeConversationDto })
+  @ApiOkResponse({ type: ConversationResponseDto })
   @ApiOperation({ summary: 'Get a conversation by ID' })
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     return await this.conversationService.findOne(id);
   }
 
-  @ApiOkResponse({ type: SafeConversationDto, isArray: true })
+  @ApiOkResponse({ type: ConversationResponseDto, isArray: true })
   @ApiOperation({
     summary:
       'Get all conversations a particular user is involved in by User ID',
@@ -45,17 +45,17 @@ export class ConversationController {
   @Get('conversations/:id')
   async findByUserId(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<SafeConversationDto[]> {
+  ): Promise<ConversationResponseDto[]> {
     return await this.conversationService.findByUserId(id);
   }
 
-  @ApiOkResponse({ type: SafeConversationDto })
+  @ApiOkResponse({ type: ConversationResponseDto })
   @ApiBody({ type: ConversationCreateDto })
   @ApiOperation({ summary: 'Create a Conversation' })
   @Post()
   async create(
     @Body() dto: ConversationCreateDto,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     return await this.conversationService.create(dto);
   }
 
@@ -69,7 +69,7 @@ export class ConversationController {
     return await this.conversationService.initiateConversation(dto);
   }
 
-  @ApiOkResponse({ type: SafeConversationDto })
+  @ApiOkResponse({ type: ConversationResponseDto })
   @ApiBody({ type: AlterParticipantsDto })
   @ApiOperation({
     summary:
@@ -80,12 +80,12 @@ export class ConversationController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AlterParticipantsDto,
     @Req() req,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     const userId = req.user.id as number;
     return await this.conversationService.alterParticipants(id, userId, dto);
   }
 
-  @ApiOkResponse({ type: SafeConversationDto })
+  @ApiOkResponse({ type: ConversationResponseDto })
   @ApiBody({ type: ConversationUpdateDto })
   @ApiOperation({ summary: 'Update Conversation Info by Conversation ID' })
   @Patch(':id')
@@ -93,12 +93,12 @@ export class ConversationController {
     @Body() dto: ConversationUpdateDto,
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     const userId = req.user.id as number;
     return await this.conversationService.update(id, userId, dto);
   }
 
-  @ApiOkResponse({ type: SafeConversationDto })
+  @ApiOkResponse({ type: ConversationResponseDto })
   @ApiOperation({
     summary: 'Remove Conversation by Conversation ID',
   })
@@ -106,7 +106,7 @@ export class ConversationController {
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     const userId = req.user.id as number;
     return await this.conversationService.remove(id, userId);
   }

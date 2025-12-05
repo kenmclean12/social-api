@@ -1,10 +1,10 @@
 import { Message } from 'src/message/entities';
-import { SafeConversationDto } from './safe-conversation.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { ConversationResponseDto } from './conversation-response.dto';
 
 export class InitiateConversationResponseDto {
-  @ApiProperty({ type: SafeConversationDto })
-  conversation: SafeConversationDto;
+  @ApiProperty({ type: ConversationResponseDto })
+  conversation: ConversationResponseDto;
 
   @ApiProperty({ type: Message })
   firstMessage: Message;

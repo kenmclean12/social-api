@@ -6,7 +6,7 @@ import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { UserResponseDto } from 'src/user/dto';
 
-export class SafeNotificationDto {
+export class NotificationResponseDto {
   @Expose()
   @ApiProperty()
   id: number;

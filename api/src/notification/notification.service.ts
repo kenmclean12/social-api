@@ -11,13 +11,16 @@ import { UserService } from 'src/user/user.service';
 import { PostService } from 'src/post/post.service';
 import { CommentService } from 'src/comment/comment.service';
 import { MessageService } from 'src/message/message.service';
-import { NotificationCreateDto, NotificationUpdateDto } from './dto';
+import {
+  NotificationCreateDto,
+  NotificationResponseDto,
+  NotificationUpdateDto,
+} from './dto';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
-import { SafeNotificationDto } from './dto/safe-notification.dto';
-import { plainToInstance } from 'class-transformer';
 import { WebsocketGateway } from 'src/websocket/websocket.gateway';
+import { convertToResponseDto } from 'src/common/utils';
 
 @Injectable()
 export class NotificationService {
@@ -48,23 +51,19 @@ export class NotificationService {
     });
   }
 
-  async findAllForUser(userId: number): Promise<SafeNotificationDto[]> {
+  async findAllForUser(userId: number): Promise<NotificationResponseDto[]> {
     const notifications = await this.notificationRepo.find({
       where: { recipient: { id: userId } },
       relations: ['actionUser', 'post', 'comment', 'message'],
       order: { createdAt: 'DESC' },
     });
 
-    const responseArray: SafeNotificationDto[] = [];
-    for (const n of notifications) {
-      const safeNotification = this.toSafeNotification(n);
-      responseArray.push(safeNotification);
-    }
-
-    return responseArray;
+    return notifications.map((n) =>
+      convertToResponseDto(NotificationResponseDto, n),
+    );
   }
 
-  async create(dto: NotificationCreateDto): Promise<SafeNotificationDto> {
+  async create(dto: NotificationCreateDto): Promise<NotificationResponseDto> {
     const { recipientId, actorId, type, postId, commentId, messageId } = dto;
     if (recipientId === actorId) {
       throw new BadRequestException('Cannot notify yourself');
@@ -136,7 +135,11 @@ export class NotificationService {
       );
     }
 
-    const safeNotification = this.toSafeNotification(saved);
+    const safeNotification = convertToResponseDto(
+      NotificationResponseDto,
+      saved,
+    );
+
     this.websocketGateway.sendNotification(recipient.id, safeNotification);
     return safeNotification;
   }
@@ -144,7 +147,7 @@ export class NotificationService {
   async markRead(
     id: number,
     dto: NotificationUpdateDto,
-  ): Promise<SafeNotificationDto> {
+  ): Promise<NotificationResponseDto> {
     const notification = await this.notificationRepo.findOne({ where: { id } });
 
     if (!notification) {
@@ -160,12 +163,6 @@ export class NotificationService {
       );
     }
 
-    return this.toSafeNotification(saved);
-  }
-
-  private toSafeNotification(entity: any): SafeNotificationDto {
-    return plainToInstance(SafeNotificationDto, entity, {
-      excludeExtraneousValues: true,
-    });
+    return convertToResponseDto(NotificationResponseDto, saved);
   }
 }

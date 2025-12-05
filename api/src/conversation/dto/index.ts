@@ -4,4 +4,4 @@ export { ConversationUpdateDto } from './conversation-update.dto';
 export { ConversationCreateDto } from './conversation-create.dto';
 export { InitiateConversationResponseDto } from './initiate-conversation-response.dto';
 export { InitiateConversationDto } from './initiate-conversation.dto';
-export { SafeConversationDto } from './safe-conversation.dto';
+export { ConversationResponseDto } from './conversation-response.dto';

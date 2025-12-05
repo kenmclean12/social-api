@@ -2,7 +2,7 @@ import { Expose, Type } from 'class-transformer';
 import { Message } from 'src/message/entities';
 import { User } from 'src/user/entities/user.entity';
 
-export class SafeConversationDto {
+export class ConversationResponseDto {
   @Expose()
   id: number;
 

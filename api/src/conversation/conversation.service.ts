@@ -9,17 +9,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation } from './entities/conversation.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
-import { plainToInstance } from 'class-transformer';
 import { MessageService } from 'src/message/message.service';
 import {
   AlterParticipantsDto,
   AlterParticipantType,
   ConversationCreateDto,
+  ConversationResponseDto,
   ConversationUpdateDto,
   InitiateConversationDto,
   InitiateConversationResponseDto,
-  SafeConversationDto,
 } from './dto';
+import { convertToResponseDto } from 'src/common/utils';
 
 @Injectable()
 export class ConversationService {
@@ -47,12 +47,12 @@ export class ConversationService {
     return conversation;
   }
 
-  async findOne(id: number): Promise<SafeConversationDto> {
+  async findOne(id: number): Promise<ConversationResponseDto> {
     const conversation = await this.findOneInternal(id);
-    return this.toSafe(conversation);
+    return convertToResponseDto(ConversationResponseDto, conversation);
   }
 
-  async findByUserId(id: number): Promise<SafeConversationDto[]> {
+  async findByUserId(id: number): Promise<ConversationResponseDto[]> {
     const conversations = await this.conversationRepo
       .createQueryBuilder('conversation')
       .leftJoinAndSelect('conversation.messages', 'messages')
@@ -64,10 +64,12 @@ export class ConversationService {
       .distinct(true)
       .getMany();
 
-    return conversations.map((c) => this.toSafe(c));
+    return conversations.map((c) =>
+      convertToResponseDto(ConversationResponseDto, c),
+    );
   }
 
-  async create(dto: ConversationCreateDto): Promise<SafeConversationDto> {
+  async create(dto: ConversationCreateDto): Promise<ConversationResponseDto> {
     const initiator = await this.userService.findOneInternal(dto.initiatorId);
     const participants = await this.userService.findByIdsInternal(
       dto.recipientIds,
@@ -80,7 +82,10 @@ export class ConversationService {
     });
 
     const saved = await this.conversationRepo.save(conversation);
-    return this.toSafe(await this.findOneInternal(saved.id));
+    return convertToResponseDto(
+      ConversationResponseDto,
+      await this.findOneInternal(saved.id),
+    );
   }
 
   async initiateConversation(
@@ -99,7 +104,7 @@ export class ConversationService {
     id: number,
     userId: number,
     dto: AlterParticipantsDto,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     await this.userService.findOneInternal(userId);
     const conversation = await this.findOneInternal(id);
 
@@ -140,14 +145,17 @@ export class ConversationService {
     }
 
     const saved = await this.conversationRepo.save(conversation);
-    return this.toSafe(await this.findOneInternal(saved.id));
+    return convertToResponseDto(
+      ConversationResponseDto,
+      await this.findOneInternal(saved.id),
+    );
   }
 
   async update(
     id: number,
     userId: number,
     dto: ConversationUpdateDto,
-  ): Promise<SafeConversationDto> {
+  ): Promise<ConversationResponseDto> {
     const conversation = await this.findOneInternal(id);
     await this.userService.findOneInternal(userId);
 
@@ -159,10 +167,13 @@ export class ConversationService {
 
     const merged = this.conversationRepo.merge(conversation, dto);
     const saved = await this.conversationRepo.save(merged);
-    return this.toSafe(await this.findOneInternal(saved.id));
+    return convertToResponseDto(
+      ConversationResponseDto,
+      await this.findOneInternal(saved.id),
+    );
   }
 
-  async remove(id: number, userId: number): Promise<SafeConversationDto> {
+  async remove(id: number, userId: number): Promise<ConversationResponseDto> {
     const conversation = await this.findOneInternal(id);
 
     if (conversation.initiator.id !== userId)
@@ -171,12 +182,6 @@ export class ConversationService {
       );
 
     await this.conversationRepo.remove(conversation);
-    return this.toSafe(conversation);
-  }
-
-  private toSafe(conversation: Conversation): SafeConversationDto {
-    return plainToInstance(SafeConversationDto, conversation, {
-      excludeExtraneousValues: true,
-    });
+    return convertToResponseDto(ConversationResponseDto, conversation);
   }
 }
