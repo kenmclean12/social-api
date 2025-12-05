@@ -26,6 +26,10 @@ export class NotificationResponseDto {
   type: NotificationType;
 
   @Expose()
+  @ApiProperty()
+  notificationMessage: string;
+
+  @Expose()
   @Type(() => UserPost)
   @ApiProperty({ type: () => UserPost, required: false })
   post?: UserPost;

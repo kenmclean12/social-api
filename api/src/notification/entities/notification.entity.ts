@@ -9,6 +9,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Message } from 'src/message/entities/message.entity';
 import { UserPost } from 'src/post/entities/user-post.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum NotificationType {
   FOLLOW = 'FOLLOW',
@@ -27,15 +28,19 @@ export enum NotificationType {
 @Entity()
 export class Notification {
   @PrimaryGeneratedColumn()
+  @ApiProperty()
   id: number;
 
   @ManyToOne(() => User, { eager: true })
+  @ApiProperty()
   recipient: User;
 
   @ManyToOne(() => User, { eager: true })
+  @ApiProperty()
   actionUser: User;
 
   @Column({ type: 'enum', enum: NotificationType })
+  @ApiProperty()
   type: NotificationType;
 
   @ManyToOne(() => UserPost, { nullable: true, onDelete: 'CASCADE' })
@@ -47,9 +52,11 @@ export class Notification {
   @ManyToOne(() => Message, { nullable: true, onDelete: 'CASCADE' })
   message?: Message;
 
+  @ApiProperty()
   @Column({ default: false })
   read: boolean;
 
+  @ApiProperty()
   @CreateDateColumn()
   createdAt: Date;
 }

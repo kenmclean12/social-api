@@ -58,9 +58,16 @@ export class NotificationService {
       order: { createdAt: 'DESC' },
     });
 
-    return notifications.map((n) =>
-      convertToResponseDto(NotificationResponseDto, n),
-    );
+    return notifications.map((n) => {
+      const dto = convertToResponseDto(NotificationResponseDto, n);
+
+      dto.notificationMessage = this.buildNotificationMessage(
+        n.type,
+        n.actionUser,
+      );
+
+      return dto;
+    });
   }
 
   async create(dto: NotificationCreateDto): Promise<NotificationResponseDto> {
@@ -129,15 +136,15 @@ export class NotificationService {
     };
 
     const saved = await this.notificationRepo.save(notification);
-    if (!saved) {
-      throw new Error(
-        `Could not save updated notification with data: ${JSON.stringify(notification)}`,
-      );
-    }
 
     const safeNotification = convertToResponseDto(
       NotificationResponseDto,
       saved,
+    );
+
+    safeNotification.notificationMessage = this.buildNotificationMessage(
+      type,
+      actor,
     );
 
     this.websocketGateway.sendNotification(recipient.id, safeNotification);
@@ -164,5 +171,41 @@ export class NotificationService {
     }
 
     return convertToResponseDto(NotificationResponseDto, saved);
+  }
+
+  private buildNotificationMessage(
+    type: NotificationType,
+    actor: { firstName: string; lastName: string },
+  ): string {
+    const name = `${actor.firstName} ${actor.lastName}`;
+
+    switch (type) {
+      case NotificationType.FOLLOW:
+        return `${name} started following you`;
+
+      case NotificationType.POST_LIKE:
+        return `${name} liked your post`;
+
+      case NotificationType.POST_REACTION:
+        return `${name} reacted to your post`;
+
+      case NotificationType.POST_COMMENT:
+        return `${name} commented on your post`;
+
+      case NotificationType.COMMENT_LIKE:
+        return `${name} liked your comment`;
+
+      case NotificationType.COMMENT_REACTION:
+        return `${name} reacted to your comment`;
+
+      case NotificationType.MESSAGE_LIKE:
+        return `${name} liked your message`;
+
+      case NotificationType.MESSAGE_REACTION:
+        return `${name} reacted to your message`;
+
+      default:
+        return `${name} sent you a notification`;
+    }
   }
 }
