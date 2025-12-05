@@ -54,7 +54,7 @@ export class ConversationService {
       ...conversation,
       initiator: convertToResponseDto(UserResponseDto, conversation.initiator),
       participants: conversation.participants.map((p) => {
-        convertToResponseDto(UserResponseDto, p);
+        return convertToResponseDto(UserResponseDto, p);
       }),
     });
   }
@@ -76,7 +76,7 @@ export class ConversationService {
         ...c,
         initiator: convertToResponseDto(UserResponseDto, c.initiator),
         participants: c.participants.map((p) => {
-          convertToResponseDto(UserResponseDto, p);
+          return convertToResponseDto(UserResponseDto, p);
         }),
       }),
     );
@@ -199,7 +199,7 @@ export class ConversationService {
       ...conversation,
       initiator: convertToResponseDto(UserResponseDto, conversation.initiator),
       participants: conversation.participants.map((p) => {
-        convertToResponseDto(UserResponseDto, p);
+        return convertToResponseDto(UserResponseDto, p);
       }),
     });
   }
