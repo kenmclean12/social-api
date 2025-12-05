@@ -116,12 +116,12 @@ export class User {
   initiatedConversations: Conversation[];
 
   @Expose()
-  @ManyToMany(() => Conversation)
+  @ManyToMany(() => Conversation, (conversation) => conversation.participants)
   @JoinTable({
     name: 'user_conversations',
     joinColumn: { name: 'userId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'conversationId', referencedColumnName: 'id' },
   })
   @ApiProperty({ type: () => [Conversation] })
-  participatingConversations: User[];
+  participatingConversations: Conversation[];
 }
