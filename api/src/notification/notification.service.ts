@@ -44,6 +44,7 @@ export class NotificationService {
         actionUser: { id: actionUserId },
         type,
       },
+      relations: ['actionUser', 'post', 'comment', 'message'],
     });
   }
 
