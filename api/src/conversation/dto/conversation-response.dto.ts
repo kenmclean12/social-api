@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { Message } from 'src/message/entities';
-import { User } from 'src/user/entities/user.entity';
+import { UserResponseDto } from 'src/user/dto';
 
 export class ConversationResponseDto {
   @Expose()
@@ -13,12 +13,12 @@ export class ConversationResponseDto {
   closed: boolean;
 
   @Expose()
-  @Type(() => User)
-  initiator: User;
+  @Type(() => UserResponseDto)
+  initiator: UserResponseDto;
 
   @Expose()
-  @Type(() => User)
-  participants: User[];
+  @Type(() => UserResponseDto)
+  participants: UserResponseDto[];
 
   @Expose()
   @Type(() => Message)

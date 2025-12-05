@@ -110,7 +110,7 @@ export class NotificationService {
             'messageId is required for MESSAGE notifications',
           );
         }
-        message = await this.messageService.findOne(messageId);
+        message = await this.messageService.findOneInternal(messageId);
         break;
       }
 

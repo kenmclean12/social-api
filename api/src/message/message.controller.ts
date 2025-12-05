@@ -12,9 +12,10 @@ import {
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Message, MessageRead } from './entities';
 import { MessageCreateDto, MessageUpdateDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
+import { MessageResponseDto } from './dto/message-response.dto';
+import { MessageReadResponseDto } from './dto/message-read-response.dto';
 
 @Controller('message')
 @ApiTags('Message')
@@ -22,58 +23,60 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
-  @ApiOkResponse({ type: Message })
+  @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Get a message by message ID' })
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Message> {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<MessageResponseDto> {
     return await this.messageService.findOne(id);
   }
 
-  @ApiOkResponse({ type: Message })
+  @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Get a message by Conversation ID' })
   @Get('conversation/:id')
   async findByConversationId(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<Message[]> {
+  ): Promise<MessageResponseDto[]> {
     return await this.messageService.findByConversationId(id);
   }
 
-  @ApiOkResponse({ type: Message })
+  @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Create a message' })
   @Post()
-  async create(@Body() dto: MessageCreateDto): Promise<Message> {
+  async create(@Body() dto: MessageCreateDto): Promise<MessageResponseDto> {
     return await this.messageService.create(dto);
   }
 
-  @ApiOkResponse({ type: MessageRead })
+  @ApiOkResponse({ type: MessageReadResponseDto })
   @ApiOperation({ description: 'Mark a message as read' })
   @Post(':id/read/:userId')
   async markMessageRead(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-  ): Promise<MessageRead> {
+  ): Promise<MessageReadResponseDto> {
     return await this.messageService.markMessageRead(id, userId);
   }
 
-  @ApiOkResponse({ type: Message })
+  @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Update message content by message ID' })
   @Patch(':id')
   async update(
     @Req() req,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: MessageUpdateDto,
-  ): Promise<Message> {
+  ): Promise<MessageResponseDto> {
     const userId = req.user.id as number;
     return await this.messageService.update(id, userId, dto);
   }
 
-  @ApiOkResponse({ type: Message })
+  @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Remove a message by message ID' })
   @Delete(':id')
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
-  ): Promise<Message> {
+  ): Promise<MessageResponseDto> {
     const userId = req.user.id as number;
     return await this.messageService.remove(id, userId);
   }
