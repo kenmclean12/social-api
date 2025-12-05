@@ -20,6 +20,7 @@ import {
   InitiateConversationResponseDto,
 } from './dto';
 import { convertToResponseDto } from 'src/common/utils';
+import { UserResponseDto } from 'src/user/dto';
 
 @Injectable()
 export class ConversationService {
@@ -49,7 +50,13 @@ export class ConversationService {
 
   async findOne(id: number): Promise<ConversationResponseDto> {
     const conversation = await this.findOneInternal(id);
-    return convertToResponseDto(ConversationResponseDto, conversation);
+    return convertToResponseDto(ConversationResponseDto, {
+      ...conversation,
+      initiator: convertToResponseDto(UserResponseDto, conversation.initiator),
+      participants: conversation.participants.map((p) => {
+        convertToResponseDto(UserResponseDto, p);
+      }),
+    });
   }
 
   async findByUserId(id: number): Promise<ConversationResponseDto[]> {
@@ -65,7 +72,13 @@ export class ConversationService {
       .getMany();
 
     return conversations.map((c) =>
-      convertToResponseDto(ConversationResponseDto, c),
+      convertToResponseDto(ConversationResponseDto, {
+        ...c,
+        initiator: convertToResponseDto(UserResponseDto, c.initiator),
+        participants: c.participants.map((p) => {
+          convertToResponseDto(UserResponseDto, p);
+        }),
+      }),
     );
   }
 
@@ -182,6 +195,12 @@ export class ConversationService {
       );
 
     await this.conversationRepo.remove(conversation);
-    return convertToResponseDto(ConversationResponseDto, conversation);
+    return convertToResponseDto(ConversationResponseDto, {
+      ...conversation,
+      initiator: convertToResponseDto(UserResponseDto, conversation.initiator),
+      participants: conversation.participants.map((p) => {
+        convertToResponseDto(UserResponseDto, p);
+      }),
+    });
   }
 }
