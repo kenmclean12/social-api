@@ -1,5 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -132,6 +133,16 @@ export class MessageService {
   ): Promise<MessageReadResponseDto> {
     const message = await this.findOneInternal(id);
     const user = await this.userService.findOneInternal(userId);
+    const existingRead = await this.messageReadRepo.findOne({
+      where: { message: { id: message.id }, user: { id: user.id } },
+    });
+
+    if (existingRead) {
+      throw new ConflictException(
+        'A read entry already exists for this message/user id combination',
+      );
+    }
+
     const saved = await this.messageReadRepo.save({ message, user });
 
     return convertToResponseDto(MessageReadResponseDto, {
