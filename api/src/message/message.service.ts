@@ -68,6 +68,7 @@ export class MessageService {
         'likes.user',
         'reactions',
         'reactions.user',
+        'conversation',
       ],
     });
 
@@ -80,7 +81,7 @@ export class MessageService {
     return convertToResponseDto(MessageResponseDto, {
       ...message,
       sender: convertToResponseDto(UserResponseDto, message.sender),
-
+      conversationId: message.conversation?.id ?? '',
       reads: message.reads?.map((read) =>
         convertToResponseDto(MessageReadResponseDto, read),
       ),
@@ -106,6 +107,7 @@ export class MessageService {
         'likes.user',
         'reactions',
         'reactions.user',
+        'conversation',
       ],
       order: { createdAt: 'ASC' },
     });
@@ -119,6 +121,7 @@ export class MessageService {
     return messages.map((message) =>
       convertToResponseDto(MessageResponseDto, {
         ...message,
+        conversationId: message.conversation.id ?? '',
         sender: convertToResponseDto(UserResponseDto, message.sender),
         reads: message.reads?.map((r) =>
           convertToResponseDto(MessageReadResponseDto, r),
@@ -213,6 +216,7 @@ export class MessageService {
 
     return convertToResponseDto(MessageResponseDto, {
       ...message,
+      conversationId: message.conversation.id ?? '',
       sender: convertToResponseDto(UserResponseDto, message.sender),
       reads: [],
       likes: [],
