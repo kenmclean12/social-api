@@ -39,7 +39,7 @@ export class PostService {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },
       relations: ['creator', 'likes', 'reactions', 'comments'],
-      order: { createdAt: 'ASC' },
+      order: { createdAt: 'DESC' },
     });
 
     return posts.map((p) =>
