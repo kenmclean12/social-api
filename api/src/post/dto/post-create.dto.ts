@@ -23,7 +23,6 @@ export class PostCreateDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
   @ApiProperty({ required: false })
   contentUrl?: string;
 }

@@ -27,7 +27,7 @@ export class UserPost {
   @ApiProperty()
   textContent?: string;
 
-  @Column({ type: 'varchar', length: 250, nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   @ApiProperty()
   contentUrl?: string;
 
