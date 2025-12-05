@@ -12,10 +12,13 @@ import {
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { MessageCreateDto, MessageUpdateDto } from './dto';
+import {
+  MessageCreateDto,
+  MessageReadResponseDto,
+  MessageResponseDto,
+  MessageUpdateDto,
+} from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
-import { MessageResponseDto } from './dto/message-response.dto';
-import { MessageReadResponseDto } from './dto/message-read-response.dto';
 
 @Controller('message')
 @ApiTags('Message')

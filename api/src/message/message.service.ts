@@ -10,13 +10,16 @@ import { Repository } from 'typeorm';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { UserService } from 'src/user/user.service';
 import { Message, MessageRead } from './entities';
-import { MessageCreateDto, MessageUpdateDto } from './dto';
+import {
+  MessageCreateDto,
+  MessageReadResponseDto,
+  MessageResponseDto,
+  MessageUpdateDto,
+} from './dto';
 import { convertToResponseDto } from 'src/common/utils';
 import { UserResponseDto } from 'src/user/dto';
 import { LikeResponseDto } from 'src/like/dto';
 import { ReactionResponseDto } from 'src/reaction/dto';
-import { MessageResponseDto } from './dto/message-response.dto';
-import { MessageReadResponseDto } from './dto/message-read-response.dto';
 
 @Injectable()
 export class MessageService {

@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { UserResponseDto } from 'src/user/dto';
-import { MessageReadResponseDto } from './message-read-response.dto';
 import { LikeResponseDto } from 'src/like/dto';
 import { ReactionResponseDto } from 'src/reaction/dto';
+import { MessageReadResponseDto } from './message-read-response.dto';
 
 export class MessageResponseDto {
   @Expose()
