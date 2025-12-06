@@ -27,15 +27,6 @@ export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @ApiOkResponse({ type: MessageResponseDto })
-  @ApiOperation({ description: 'Get a message by message ID' })
-  @Get(':id')
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<MessageResponseDto> {
-    return await this.messageService.findOne(id);
-  }
-
-  @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Get a message by Conversation ID' })
   @Get('conversation/:id')
   async findByConversationId(
@@ -69,6 +60,15 @@ export class MessageController {
       userId,
       conversationId,
     );
+  }
+
+  @ApiOkResponse({ type: MessageResponseDto })
+  @ApiOperation({ description: 'Get a message by message ID' })
+  @Get(':id')
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<MessageResponseDto> {
+    return await this.messageService.findOne(id);
   }
 
   @ApiOkResponse({ type: MessageResponseDto })
