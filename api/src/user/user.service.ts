@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
@@ -32,7 +31,7 @@ export class UserService {
 
   async findOneInternal(id: number): Promise<User> {
     const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
@@ -53,7 +52,9 @@ export class UserService {
   async findOneByEmailInternal(email: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
-      throw new NotFoundException(`User with Email: ${email} not found`);
+      throw new NotFoundException(
+        `No user found with provided email address: ${email}`,
+      );
     }
 
     return user;
@@ -66,7 +67,7 @@ export class UserService {
       if (!userId) return null;
 
       return this.findOneInternal(userId as number);
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -88,13 +89,11 @@ export class UserService {
     const safeUser = convertToResponseDto(UserWithCountsResponseDto, user);
     safeUser.followingCount = followingCount;
     safeUser.followerCount = followerCount;
-
     return safeUser;
   }
 
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.userRepo.find({ order: { createdAt: 'ASC' } });
-
     const resultSet = new Set<UserResponseDto>();
     for (const user of users) {
       resultSet.add(convertToResponseDto(UserResponseDto, user));
@@ -110,20 +109,14 @@ export class UserService {
       phoneNumber: dto.phoneNumber,
     });
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
     const { password, ...rest } = dto;
+    const hashedPassword = await bcrypt.hash(password, 10);
     const userToSave = {
       ...rest,
       hashedPassword,
     };
 
     const savedUser = await this.userRepo.save(userToSave);
-    if (!savedUser) {
-      throw new Error(
-        `Could not save User with provided data: ${JSON.stringify(userToSave)}`,
-      );
-    }
-
     return convertToResponseDto(UserResponseDto, savedUser);
   }
 
@@ -133,22 +126,14 @@ export class UserService {
       userName: dto.userName,
       phoneNumber: dto.phoneNumber,
     });
-
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
     const { password, ...rest } = dto;
+    const hashedPassword = await bcrypt.hash(password, 10);
     const userToSave = {
       ...rest,
       hashedPassword,
     };
 
-    const savedUser = await this.userRepo.save(userToSave);
-    if (!savedUser) {
-      throw new Error(
-        `Could not save User with provided data: ${JSON.stringify(userToSave)}`,
-      );
-    }
-
-    return savedUser;
+    return await this.userRepo.save(userToSave);
   }
 
   async update(id: number, dto: UserUpdateDto): Promise<UserResponseDto> {
@@ -160,19 +145,12 @@ export class UserService {
 
     const mergedUser = this.userRepo.merge(existingUser, dto);
     const savedUser = await this.userRepo.save(mergedUser);
-    if (!savedUser) {
-      throw new Error(
-        `Could not Update User with provided merged data: ${JSON.stringify(mergedUser)}`,
-      );
-    }
-
     return convertToResponseDto(UserResponseDto, savedUser);
   }
 
   async delete(id: number): Promise<UserResponseDto> {
     const userToDelete = await this.findOneInternal(id);
     await this.userRepo.remove(userToDelete);
-
     return convertToResponseDto(UserResponseDto, userToDelete);
   }
 
@@ -181,7 +159,6 @@ export class UserService {
     { oldPassword, newPassword }: PasswordResetDto,
   ): Promise<UserResponseDto> {
     const existingUser = await this.findOneInternal(userId);
-
     const passwordMatching = await bcrypt.compare(
       oldPassword,
       existingUser.hashedPassword,
@@ -197,12 +174,6 @@ export class UserService {
     existingUser.hashedPassword = hashedNewPassword;
 
     const savedUser = await this.userRepo.save(existingUser);
-    if (!savedUser) {
-      throw new Error(
-        `Could not Save User when updating password with provided data: ${JSON.stringify(existingUser)}`,
-      );
-    }
-
     return convertToResponseDto(UserResponseDto, savedUser);
   }
 

@@ -27,7 +27,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOkResponse({ type: UserWithCountsResponseDto })
-  @ApiOperation({ summary: 'Find a User by User ID' })
+  @ApiOperation({ summary: 'Find a user by user ID' })
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -36,7 +36,7 @@ export class UserController {
   }
 
   @ApiOkResponse({ type: UserResponseDto, isArray: true })
-  @ApiOperation({ summary: 'Find all Users' })
+  @ApiOperation({ summary: 'Find all users' })
   @Get()
   async findAll(): Promise<UserResponseDto[]> {
     return await this.userService.findAll();
@@ -64,7 +64,7 @@ export class UserController {
 
   @ApiOkResponse({ type: UserResponseDto })
   @ApiBody({ type: PasswordResetDto })
-  @ApiOperation({ summary: 'Reset a user password' })
+  @ApiOperation({ summary: 'Reset user password' })
   @Post('reset-password')
   async resetPassword(
     @Req() req,
