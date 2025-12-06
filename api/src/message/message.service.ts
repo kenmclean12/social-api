@@ -70,16 +70,14 @@ export class MessageService {
       ...message,
       conversationId: message.conversation?.id ?? '',
       sender: convertToResponseDto(UserResponseDto, message.sender),
-      reads: message.reads
-        ?.filter((r) => r.message)
-        .map((read) => {
-          return convertToResponseDto(MessageReadResponseDto, {
-            ...read,
-            messageId: read.message.id,
-            conversationId: message.conversation.id,
-            user: convertToResponseDto(UserResponseDto, read.user),
-          });
-        }),
+      reads: message.reads.map((read) => {
+        return convertToResponseDto(MessageReadResponseDto, {
+          ...read,
+          messageId: message.id,
+          conversationId: message.conversation.id,
+          user: convertToResponseDto(UserResponseDto, read.user),
+        });
+      }),
     });
   }
 
@@ -101,16 +99,14 @@ export class MessageService {
         ...message,
         conversationId: message.conversation.id ?? '',
         sender: convertToResponseDto(UserResponseDto, message.sender),
-        reads: message.reads
-          ?.filter((r) => r.message)
-          .map((r) =>
-            convertToResponseDto(MessageReadResponseDto, {
-              ...r,
-              messageId: message.id,
-              conversationId: message.conversation.id,
-              user: convertToResponseDto(UserResponseDto, r.user),
-            }),
-          ),
+        reads: message.reads.map((r) =>
+          convertToResponseDto(MessageReadResponseDto, {
+            ...r,
+            messageId: message.id,
+            conversationId: message.conversation.id,
+            user: convertToResponseDto(UserResponseDto, r.user),
+          }),
+        ),
       }),
     );
   }
