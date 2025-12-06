@@ -37,7 +37,9 @@ export class Message {
   sender: User;
 
   @Expose()
-  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => Conversation })
   conversation: Conversation;
 

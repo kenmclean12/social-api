@@ -152,6 +152,10 @@ export class MessageService {
     const conversation =
       await this.conversationService.findOneInternal(conversationId);
 
+    if (conversation.closed) {
+      throw new Error('This conversation has been closed');
+    }
+
     const saved = await this.messageRepo.save({
       sender: user,
       conversation,
@@ -194,11 +198,15 @@ export class MessageService {
   ): Promise<MessageResponseDto> {
     const message = await this.messageRepo.findOne({
       where: { id },
-      relations: ['sender'],
+      relations: ['sender', 'conversation'],
     });
 
     if (!message) {
       throw new NotFoundException(`No Message found with ID: ${id}`);
+    }
+
+    if (message.conversation.closed) {
+      throw new Error('This conversation has been closed');
     }
 
     if (message.sender.id !== userId) {
