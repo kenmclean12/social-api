@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { NotificationType } from '../entities/notification.entity';
-import { UserPost } from 'src/post/entities/user-post.entity';
-import { Message } from 'src/message/entities';
-import { Comment } from 'src/comment/entities/comment.entity';
 import { UserResponseDto } from 'src/user/dto';
+import { PostResponseDto } from 'src/post/dto';
+import { CommentResponseDto } from 'src/comment/dto';
+import { MessageResponseDto } from 'src/message/dto';
 
 export class NotificationResponseDto {
   @Expose()
@@ -30,19 +30,19 @@ export class NotificationResponseDto {
   notificationMessage: string;
 
   @Expose()
-  @Type(() => UserPost)
-  @ApiProperty({ type: () => UserPost, required: false })
-  post?: UserPost;
+  @Type(() => PostResponseDto)
+  @ApiProperty({ type: () => PostResponseDto, required: false })
+  post?: PostResponseDto;
 
   @Expose()
-  @Type(() => Comment)
-  @ApiProperty({ type: () => Comment, required: false })
-  comment?: Comment;
+  @Type(() => CommentResponseDto)
+  @ApiProperty({ type: () => CommentResponseDto, required: false })
+  comment?: CommentResponseDto;
 
   @Expose()
-  @Type(() => Message)
-  @ApiProperty({ type: () => Message, required: false })
-  message?: Message;
+  @Type(() => MessageResponseDto)
+  @ApiProperty({ type: () => MessageResponseDto, required: false })
+  message?: MessageResponseDto;
 
   @Expose()
   @ApiProperty()

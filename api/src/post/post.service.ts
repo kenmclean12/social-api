@@ -35,6 +35,18 @@ export class PostService {
     return post;
   }
 
+  async findOne(id: number): Promise<PostResponseDto> {
+    const post = await this.findOneInternal(id);
+    if (!post) {
+      throw new NotFoundException(`No post found with the provided ID: ${id}`);
+    }
+
+    return convertToResponseDto(PostResponseDto, {
+      ...post,
+      creatorId: post.creator.id,
+    });
+  }
+
   async findByUserId(userId: number): Promise<PostResponseDto[]> {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },

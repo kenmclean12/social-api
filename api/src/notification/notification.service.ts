@@ -21,6 +21,10 @@ import { Message } from 'src/message/entities';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { WebsocketGateway } from 'src/websocket/websocket.gateway';
 import { convertToResponseDto } from 'src/common/utils';
+import { UserResponseDto } from 'src/user/dto';
+import { PostResponseDto } from 'src/post/dto';
+import { CommentResponseDto } from 'src/comment/dto';
+import { MessageResponseDto } from 'src/message/dto';
 
 @Injectable()
 export class NotificationService {
@@ -35,6 +39,54 @@ export class NotificationService {
     @Inject(forwardRef(() => WebsocketGateway))
     private readonly websocketGateway: WebsocketGateway,
   ) {}
+
+  private mapNotificationToDto(n: Notification): NotificationResponseDto {
+    const dto = convertToResponseDto(NotificationResponseDto, {
+      ...n,
+
+      recipient: n.recipient
+        ? convertToResponseDto(UserResponseDto, n.recipient)
+        : undefined,
+
+      actionUser: n.actionUser
+        ? convertToResponseDto(UserResponseDto, n.actionUser)
+        : undefined,
+
+      post: n.post
+        ? convertToResponseDto(PostResponseDto, {
+            ...n.post,
+            creatorId: n.post.creator?.id,
+          })
+        : undefined,
+
+      comment: n.comment
+        ? convertToResponseDto(CommentResponseDto, {
+            ...n.comment,
+            user: n.comment.user
+              ? convertToResponseDto(UserResponseDto, n.comment.user)
+              : undefined,
+            postId: n.comment.post?.id,
+          })
+        : undefined,
+
+      message: n.message
+        ? convertToResponseDto(MessageResponseDto, {
+            ...n.message,
+            sender: n.message.sender
+              ? convertToResponseDto(UserResponseDto, n.message.sender)
+              : undefined,
+            conversationId: n.message.conversation?.id,
+          })
+        : undefined,
+    });
+
+    dto.notificationMessage = this.buildNotificationMessage(
+      n.type,
+      n.actionUser,
+    );
+
+    return dto;
+  }
 
   async findOneInternal(
     recipientId: number,
@@ -54,20 +106,22 @@ export class NotificationService {
   async findAllForUser(userId: number): Promise<NotificationResponseDto[]> {
     const notifications = await this.notificationRepo.find({
       where: { recipient: { id: userId } },
-      relations: ['actionUser', 'post', 'comment', 'message'],
+      relations: [
+        'actionUser',
+        'recipient',
+        'post',
+        'post.creator',
+        'comment',
+        'comment.user',
+        'message',
+        'message.sender',
+        'message.reads',
+        'message.conversation',
+      ],
       order: { createdAt: 'DESC' },
     });
 
-    return notifications.map((n) => {
-      const dto = convertToResponseDto(NotificationResponseDto, n);
-
-      dto.notificationMessage = this.buildNotificationMessage(
-        n.type,
-        n.actionUser,
-      );
-
-      return dto;
-    });
+    return notifications.map((n) => this.mapNotificationToDto(n));
   }
 
   async create(dto: NotificationCreateDto): Promise<NotificationResponseDto> {
@@ -89,37 +143,22 @@ export class NotificationService {
 
       case NotificationType.POST_LIKE:
       case NotificationType.POST_REACTION:
-      case NotificationType.POST_COMMENT: {
-        if (!postId) {
-          throw new BadRequestException(
-            'postId is required for POST notifications',
-          );
-        }
+      case NotificationType.POST_COMMENT:
+        if (!postId) throw new BadRequestException('postId is required');
         post = await this.postService.findOneInternal(postId);
         break;
-      }
 
       case NotificationType.COMMENT_LIKE:
-      case NotificationType.COMMENT_REACTION: {
-        if (!commentId) {
-          throw new BadRequestException(
-            'commentId is required for COMMENT notifications',
-          );
-        }
+      case NotificationType.COMMENT_REACTION:
+        if (!commentId) throw new BadRequestException('commentId is required');
         comment = await this.commentService.findOneInternal(commentId);
         break;
-      }
 
       case NotificationType.MESSAGE_LIKE:
-      case NotificationType.MESSAGE_REACTION: {
-        if (!messageId) {
-          throw new BadRequestException(
-            'messageId is required for MESSAGE notifications',
-          );
-        }
+      case NotificationType.MESSAGE_REACTION:
+        if (!messageId) throw new BadRequestException('messageId is required');
         message = await this.messageService.findOneInternal(messageId);
         break;
-      }
 
       default:
         throw new BadRequestException('Invalid notification type');
@@ -136,19 +175,10 @@ export class NotificationService {
     };
 
     const saved = await this.notificationRepo.save(notification);
+    const dtoOut = this.mapNotificationToDto(saved);
 
-    const safeNotification = convertToResponseDto(
-      NotificationResponseDto,
-      saved,
-    );
-
-    safeNotification.notificationMessage = this.buildNotificationMessage(
-      type,
-      actor,
-    );
-
-    this.websocketGateway.sendNotification(recipient.id, safeNotification);
-    return safeNotification;
+    this.websocketGateway.sendNotification(recipient.id, dtoOut);
+    return dtoOut;
   }
 
   async markRead(
@@ -164,13 +194,7 @@ export class NotificationService {
     notification.read = dto.read;
 
     const saved = await this.notificationRepo.save(notification);
-    if (!saved) {
-      throw new Error(
-        `Could not save updated notification with data: ${JSON.stringify(notification)}`,
-      );
-    }
-
-    return convertToResponseDto(NotificationResponseDto, saved);
+    return this.mapNotificationToDto(saved);
   }
 
   private buildNotificationMessage(
@@ -182,28 +206,20 @@ export class NotificationService {
     switch (type) {
       case NotificationType.FOLLOW:
         return `${name} started following you`;
-
       case NotificationType.POST_LIKE:
         return `${name} liked your post`;
-
       case NotificationType.POST_REACTION:
         return `${name} reacted to your post`;
-
       case NotificationType.POST_COMMENT:
         return `${name} commented on your post`;
-
       case NotificationType.COMMENT_LIKE:
         return `${name} liked your comment`;
-
       case NotificationType.COMMENT_REACTION:
         return `${name} reacted to your comment`;
-
       case NotificationType.MESSAGE_LIKE:
         return `${name} liked your message`;
-
       case NotificationType.MESSAGE_REACTION:
         return `${name} reacted to your message`;
-
       default:
         return `${name} sent you a notification`;
     }

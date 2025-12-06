@@ -67,7 +67,7 @@ export class ReactionService {
 
     await this.sendNotification({
       actorId: user.id,
-      recipientId,
+      recipientId: Number(recipientId),
       relationKey,
       notificationType,
       contentId,
@@ -115,7 +115,7 @@ export class ReactionService {
       return {
         entity: message,
         relationKey: 'message' as EntityType,
-        recipientId: message.sender.id,
+        recipientId: message.sender?.id,
         notificationType: NotificationType.MESSAGE_REACTION,
         contentId: dto.messageId,
       };

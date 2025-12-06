@@ -70,7 +70,7 @@ export class LikeService {
 
     await this.createNotification({
       actorId: dto.userId,
-      recipientId,
+      recipientId: Number(recipientId),
       notificationType,
       relationKey,
       contentId,
@@ -112,7 +112,7 @@ export class LikeService {
       return {
         entity: message,
         relationKey: 'message' as EntityType,
-        recipientId: message.sender.id,
+        recipientId: message.sender?.id,
         notificationType: NotificationType.MESSAGE_LIKE,
         contentId: messageId,
       };

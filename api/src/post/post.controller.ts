@@ -21,6 +21,17 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+  @ApiOkResponse({ type: PostResponseDto })
+  @ApiOperation({
+    description: 'Find a post by Post ID',
+  })
+  @Get(':id')
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<PostResponseDto> {
+    return await this.postService.findOne(id);
+  }
+
   @ApiOkResponse({ type: PostResponseDto, isArray: true })
   @ApiOperation({
     description: 'Find all Posts for a particular user by User ID',

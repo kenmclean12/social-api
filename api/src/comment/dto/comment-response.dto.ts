@@ -17,7 +17,7 @@ export class CommentResponseDto {
 
   @Expose()
   @ApiProperty()
-  user: UserResponseDto;
+  user?: UserResponseDto;
 
   @Expose()
   @ApiProperty()

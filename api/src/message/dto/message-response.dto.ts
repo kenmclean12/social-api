@@ -18,7 +18,7 @@ export class MessageResponseDto {
 
   @Expose()
   @ApiProperty({ type: UserResponseDto })
-  sender: UserResponseDto;
+  sender?: UserResponseDto;
 
   @Expose()
   @ApiProperty({ type: 'number' })
