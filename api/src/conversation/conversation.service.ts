@@ -59,6 +59,19 @@ export class ConversationService {
     });
   }
 
+  async findByUserIdInternal(id: number): Promise<Conversation[]> {
+    return await this.conversationRepo
+      .createQueryBuilder('conversation')
+      .leftJoinAndSelect('conversation.messages', 'messages')
+      .leftJoinAndSelect('conversation.initiator', 'initiator')
+      .leftJoinAndSelect('conversation.participants', 'participants')
+      .where('initiator.id = :id', { id })
+      .orWhere('participants.id = :id', { id })
+      .orderBy('messages.createdAt', 'DESC')
+      .distinct(true)
+      .getMany();
+  }
+
   async findByUserId(id: number): Promise<ConversationResponseDto[]> {
     const conversations = await this.conversationRepo
       .createQueryBuilder('conversation')

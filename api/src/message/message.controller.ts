@@ -44,6 +44,33 @@ export class MessageController {
     return await this.messageService.findByConversationId(id);
   }
 
+  @ApiOkResponse({ type: 'number' })
+  @ApiOperation({
+    description: 'Get unread message count for a particular user by user ID',
+  })
+  @Get('unread-count')
+  async findUnreadMessageCount(@Req() req): Promise<number> {
+    const userId = req.user?.id as number;
+    return await this.messageService.findUnreadMessageCountByUserId(userId);
+  }
+
+  @ApiOkResponse({ type: 'number' })
+  @ApiOperation({
+    description:
+      'Get unread message count for a particular user in a conversation by conversation ID',
+  })
+  @Get('unread-count/:conversationId')
+  async findUnreadMessageCountByConversationId(
+    @Req() req,
+    @Param('conversationId', ParseIntPipe) conversationId: number,
+  ): Promise<number> {
+    const userId = req.user?.id as number;
+    return await this.messageService.findUnreadMessageCountByConversationId(
+      userId,
+      conversationId,
+    );
+  }
+
   @ApiOkResponse({ type: MessageResponseDto })
   @ApiOperation({ description: 'Create a message' })
   @Post()

@@ -111,6 +111,36 @@ export class MessageService {
     );
   }
 
+  async findUnreadMessageCountByConversationId(
+    userId: number,
+    conversationId: number,
+  ): Promise<number> {
+    return await this.messageRepo
+      .createQueryBuilder('message')
+      .leftJoin('message.reads', 'read', 'read.userId = :userId', { userId })
+      .where('message.conversationId = :conversationId', { conversationId })
+      .andWhere('message.senderId != :userId', { userId })
+      .andWhere('read.id IS NULL')
+      .getCount();
+  }
+
+  async findUnreadMessageCountByUserId(userId: number): Promise<number> {
+    const conversations =
+      await this.conversationService.findByUserIdInternal(userId);
+
+    let count = 0;
+    for (const c of conversations) {
+      const unreadCount = await this.findUnreadMessageCountByConversationId(
+        userId,
+        c.id,
+      );
+
+      count = count + unreadCount;
+    }
+
+    return count;
+  }
+
   async create({
     senderId,
     conversationId,
