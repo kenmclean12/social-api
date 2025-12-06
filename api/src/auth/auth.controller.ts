@@ -52,7 +52,7 @@ export class AuthController {
       },
     },
   })
-  logout(@Req() req: any) {
+  logout(@Req() req: any): Promise<{ message: string }> {
     return this.authService.logout(req.user.sub as number);
   }
 }

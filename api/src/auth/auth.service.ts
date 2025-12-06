@@ -23,11 +23,11 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<TokenResponseDto> {
     const user = await this.userService.findOneByEmailInternal(dto.email);
-
     const passwordMatching = bcrypt.compareSync(
       dto.password,
       user.hashedPassword,
     );
+
     if (!passwordMatching) {
       throw new BadRequestException(
         'Login failed, invalid credentials provided',
@@ -46,6 +46,7 @@ export class AuthService {
       { sub: user.id },
       { expiresIn: '15m' },
     );
+
     const refresh_token = await this.jwtService.signAsync(
       { sub: user.id },
       { secret: process.env.REFRESH_TOKEN_SECRET, expiresIn: '7d' },
@@ -80,7 +81,7 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
-  async logout(userId: number) {
+  async logout(userId: number): Promise<{ message: string }> {
     await this.userService.update(userId, { hashedRefreshToken: undefined });
     return { message: 'Logged out successfully' };
   }
