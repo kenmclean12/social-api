@@ -36,7 +36,7 @@ export class UserCreateDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(11)
+  @MaxLength(12)
   @ApiProperty({ example: '16042223333' })
   phoneNumber?: string;
 

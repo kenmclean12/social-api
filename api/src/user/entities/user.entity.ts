@@ -47,7 +47,7 @@ export class User {
   age: number;
 
   @Expose()
-  @Column({ type: 'varchar', unique: true, nullable: true })
+  @Column({ type: 'varchar', length: 12, unique: true, nullable: true })
   @ApiProperty()
   phoneNumber?: string;
 
