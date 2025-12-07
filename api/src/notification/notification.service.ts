@@ -124,10 +124,12 @@ export class NotificationService {
     return notifications.map((n) => this.mapNotificationToDto(n));
   }
 
-  async create(dto: NotificationCreateDto): Promise<NotificationResponseDto> {
+  async create(
+    dto: NotificationCreateDto,
+  ): Promise<NotificationResponseDto | void> {
     const { recipientId, actorId, type, postId, commentId, messageId } = dto;
     if (recipientId === actorId) {
-      throw new BadRequestException('Cannot notify yourself');
+      return;
     }
 
     const recipient = await this.userService.findOneInternal(recipientId);
