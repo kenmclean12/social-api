@@ -95,6 +95,42 @@ export class ConversationService {
     );
   }
 
+  async leaveConversation(
+    conversationId: number,
+    userId: number,
+  ): Promise<ConversationResponseDto> {
+    const conversation = await this.findOneInternal(conversationId);
+
+    const isParticipant =
+      conversation.participants.some((p) => p.id === userId) ||
+      conversation.initiator.id === userId;
+
+    if (!isParticipant) {
+      throw new UnauthorizedException(
+        'You are not a participant of this conversation.',
+      );
+    }
+
+    if (conversation.initiator.id === userId) {
+      throw new UnauthorizedException(
+        'The initiator cannot leave the conversation. Consider deleting/closing it instead.',
+      );
+    }
+
+    conversation.participants = conversation.participants.filter(
+      (p) => p.id !== userId,
+    );
+
+    const saved = await this.conversationRepo.save(conversation);
+    return convertToResponseDto(ConversationResponseDto, {
+      ...saved,
+      initiator: convertToResponseDto(UserResponseDto, saved.initiator),
+      participants: saved.participants.map((p) =>
+        convertToResponseDto(UserResponseDto, p),
+      ),
+    });
+  }
+
   async create(dto: ConversationCreateDto): Promise<ConversationResponseDto> {
     const initiator = await this.userService.findOneInternal(dto.initiatorId);
     const participants = await this.userService.findByIdsInternal(

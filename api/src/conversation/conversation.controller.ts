@@ -50,6 +50,19 @@ export class ConversationController {
   }
 
   @ApiOkResponse({ type: ConversationResponseDto })
+  @ApiOperation({
+    summary: 'Leave a conversation by Conversation ID (removes current user)',
+  })
+  @Post('leave/:id')
+  async leaveConversation(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
+  ): Promise<ConversationResponseDto> {
+    const userId = req.user.id as number;
+    return await this.conversationService.leaveConversation(id, userId);
+  }
+
+  @ApiOkResponse({ type: ConversationResponseDto })
   @ApiBody({ type: ConversationCreateDto })
   @ApiOperation({ summary: 'Create a Conversation' })
   @Post()
