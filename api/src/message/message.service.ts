@@ -19,6 +19,8 @@ import {
 } from './dto';
 import { convertToResponseDto } from 'src/common/utils';
 import { UserResponseDto } from 'src/user/dto';
+import { LikeResponseDto } from 'src/like/dto';
+import { ReactionResponseDto } from 'src/reaction/dto';
 
 @Injectable()
 export class MessageService {
@@ -78,13 +80,36 @@ export class MessageService {
           user: convertToResponseDto(UserResponseDto, read.user),
         });
       }),
+      likes: message.likes?.map((l) => {
+        return convertToResponseDto(LikeResponseDto, {
+          ...l,
+          userId: l.user.id,
+          messageId: message.id,
+        });
+      }),
+      reactions: message.reactions?.map((r) => {
+        return convertToResponseDto(ReactionResponseDto, {
+          ...r,
+          user: convertToResponseDto(UserResponseDto, r.user),
+          messageId: message.id,
+        });
+      }),
     });
   }
 
   async findByConversationId(id: number): Promise<MessageResponseDto[]> {
     const messages = await this.messageRepo.find({
       where: { conversation: { id } },
-      relations: ['sender', 'reads', 'reads.user', 'conversation'],
+      relations: [
+        'sender',
+        'reads',
+        'reads.user',
+        'likes',
+        'likes.user',
+        'reactions',
+        'reactions.user',
+        'conversation',
+      ],
       order: { createdAt: 'ASC' },
     });
 
@@ -99,14 +124,28 @@ export class MessageService {
         ...message,
         conversationId: message.conversation.id ?? '',
         sender: convertToResponseDto(UserResponseDto, message.sender),
-        reads: message.reads.map((r) =>
-          convertToResponseDto(MessageReadResponseDto, {
+        reads: message.reads.map((r) => {
+          return convertToResponseDto(MessageReadResponseDto, {
             ...r,
             messageId: message.id,
             conversationId: message.conversation.id,
             user: convertToResponseDto(UserResponseDto, r.user),
-          }),
-        ),
+          });
+        }),
+        likes: message.likes?.map((l) => {
+          return convertToResponseDto(LikeResponseDto, {
+            ...l,
+            userId: l.user.id,
+            messageId: message.id,
+          });
+        }),
+        reactions: message.reactions?.map((r) => {
+          return convertToResponseDto(ReactionResponseDto, {
+            ...r,
+            user: convertToResponseDto(UserResponseDto, r.user),
+            messageId: message.id,
+          });
+        }),
       }),
     );
   }
@@ -241,6 +280,20 @@ export class MessageService {
       ...message,
       conversationId: message.conversation.id ?? '',
       sender: convertToResponseDto(UserResponseDto, message.sender),
+      likes: message.likes?.map((l) => {
+        return convertToResponseDto(LikeResponseDto, {
+          ...l,
+          userId: l.user.id,
+          messageId: message.id,
+        });
+      }),
+      reactions: message.reactions?.map((r) => {
+        return convertToResponseDto(ReactionResponseDto, {
+          ...r,
+          user: convertToResponseDto(UserResponseDto, r.user),
+          messageId: message.id,
+        });
+      }),
     });
   }
 

@@ -2,6 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { UserResponseDto } from 'src/user/dto';
 import { MessageReadResponseDto } from './message-read-response.dto';
+import { LikeResponseDto } from 'src/like/dto';
+import { ReactionResponseDto } from 'src/reaction/dto';
 
 export class MessageResponseDto {
   @Expose()
@@ -27,6 +29,14 @@ export class MessageResponseDto {
   @Expose()
   @ApiProperty({ type: MessageReadResponseDto })
   reads?: MessageReadResponseDto[];
+
+  @Expose()
+  @ApiProperty({ type: LikeResponseDto })
+  likes?: LikeResponseDto[];
+
+  @Expose()
+  @ApiProperty({ type: ReactionResponseDto })
+  reactions?: ReactionResponseDto[];
 
   @Expose()
   @ApiProperty({ type: () => Date })
