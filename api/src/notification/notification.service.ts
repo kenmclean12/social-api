@@ -199,6 +199,18 @@ export class NotificationService {
     return this.mapNotificationToDto(saved);
   }
 
+  async markAllRead(userId: number): Promise<void> {
+    const notifications = await this.notificationRepo.find({
+      where: { recipient: { id: userId } },
+    });
+
+    for (const n of notifications) {
+      if (n.read === false) {
+        await this.notificationRepo.save({ ...n, read: true });
+      }
+    }
+  }
+
   private buildNotificationMessage(
     type: NotificationType,
     actor: { firstName: string; lastName: string },

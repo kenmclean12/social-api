@@ -29,12 +29,19 @@ export class NotificationController {
 
   @ApiOkResponse({ type: NotificationResponseDto })
   @ApiBody({ type: NotificationUpdateDto })
-  @ApiOperation({ summary: 'Mark a notification read/unread' })
+  @ApiOperation({ summary: 'Mark a notification read' })
   @Patch(':id')
   async markRead(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: NotificationUpdateDto,
   ): Promise<NotificationResponseDto> {
     return await this.notificationService.markRead(id, dto);
+  }
+
+  @ApiOperation({ summary: 'Mark all notifications read for a user' })
+  @Patch('/mark-read/all')
+  async markAllRead(@Req() req): Promise<void> {
+    const userId = req.user?.id as number;
+    return await this.notificationService.markAllRead(userId);
   }
 }
