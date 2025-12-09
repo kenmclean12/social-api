@@ -35,6 +35,7 @@ export class CommentService {
       where: { id },
       relations: [
         'user',
+        'post',
         'replies',
         'parentComment',
         'replies.user',

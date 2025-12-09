@@ -53,7 +53,7 @@ export class CommentController {
     @Req() req,
     @Query('content') content: string,
   ): Promise<CommentResponseDto> {
-    const userId = req.user.id as number;
+    const userId = req.user?.id as number;
     return await this.commentService.update(id, userId, content);
   }
 
@@ -66,7 +66,7 @@ export class CommentController {
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
   ): Promise<CommentResponseDto> {
-    const userId = req.user.id as number;
+    const userId = req.user?.id as number;
     return await this.commentService.remove(id, userId);
   }
 }
