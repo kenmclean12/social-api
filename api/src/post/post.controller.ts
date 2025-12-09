@@ -9,11 +9,13 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
+import { PaginatedResponseDto } from 'src/utils';
 
 @Controller('post')
 @ApiTags('Post')
@@ -32,15 +34,28 @@ export class PostController {
     return await this.postService.findOne(id);
   }
 
-  @ApiOkResponse({ type: PostResponseDto, isArray: true })
+  @ApiOkResponse({ type: PaginatedResponseDto<PostResponseDto> })
   @ApiOperation({
-    description: 'Find all Posts for a particular user by User ID',
+    description: 'Find paginated Posts for a particular user by User ID',
   })
   @Get('posts/:userId')
   async findByUserId(
-    @Param('userId', ParseIntPipe) id: number,
-  ): Promise<PostResponseDto[]> {
-    return await this.postService.findByUserId(id);
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PaginatedResponseDto<PostResponseDto>> {
+    const { data, total } = await this.postService.findByUserId(
+      userId,
+      page,
+      limit,
+    );
+
+    return {
+      total,
+      page,
+      limit,
+      data,
+    };
   }
 
   @ApiOkResponse({ type: PostResponseDto })

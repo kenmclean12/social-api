@@ -128,8 +128,103 @@ export class PostService {
     });
   }
 
-  async findByUserId(userId: number): Promise<PostResponseDto[]> {
-    const posts = await this.postRepo.find({
+  // async findByUserId(userId: number): Promise<PostResponseDto[]> {
+  //   const posts = await this.postRepo.find({
+  //     where: { creator: { id: userId } },
+  //     relations: [
+  //       'creator',
+  //       'likes',
+  //       'likes.user',
+  //       'reactions',
+  //       'reactions.user',
+  //       'comments',
+  //       'comments.user',
+  //       'comments.likes',
+  //       'comments.likes.user',
+  //       'comments.reactions',
+  //       'comments.reactions.user',
+  //       'comments.parentComment',
+  //       'comments.replies',
+  //       'comments.replies.user',
+  //       'comments.replies.likes',
+  //       'comments.replies.reactions',
+  //     ],
+  //     order: { createdAt: 'DESC' },
+  //   });
+
+  //   return posts.map((p) =>
+  //     convertToResponseDto(PostResponseDto, {
+  //       ...p,
+  //       likes: p.likes?.map((l) => {
+  //         return convertToResponseDto(LikeResponseDto, {
+  //           ...l,
+  //           userId: l.user.id,
+  //         });
+  //       }),
+  //       comments: p.comments
+  //         ?.filter((c) => !c.parentComment)
+  //         .map((c) => {
+  //           return convertToResponseDto(CommentResponseDto, {
+  //             ...c,
+  //             user: convertToResponseDto(UserResponseDto, c.user),
+  //             postId: p.id,
+  //             parentCommentId: c.parentComment?.id ?? undefined,
+  //             likes: c.likes?.map((l) => {
+  //               return convertToResponseDto(LikeResponseDto, {
+  //                 ...l,
+  //                 userId: l.user.id,
+  //                 commentId: c.id,
+  //               });
+  //             }),
+  //             reactions: c.reactions?.map((r) => {
+  //               return convertToResponseDto(ReactionResponseDto, {
+  //                 ...r,
+  //                 user: convertToResponseDto(UserResponseDto, r.user),
+  //                 commentId: c.id,
+  //               });
+  //             }),
+  //             replies: c.replies?.map((r) => {
+  //               return convertToResponseDto(CommentResponseDto, {
+  //                 ...r,
+  //                 user: convertToResponseDto(UserResponseDto, r.user),
+  //                 postId: p.id,
+  //                 parentCommentId: c.id,
+  //                 commentId: c.id,
+  //                 likes: r.likes?.map((l) => {
+  //                   return convertToResponseDto(LikeResponseDto, {
+  //                     ...l,
+  //                     userId: l.user.id,
+  //                     commentId: c.id,
+  //                   });
+  //                 }),
+  //                 reactions: r.reactions?.map((r) => {
+  //                   return convertToResponseDto(ReactionResponseDto, {
+  //                     ...r,
+  //                     user: convertToResponseDto(UserResponseDto, r.user),
+  //                     commentId: c.id,
+  //                   });
+  //                 }),
+  //               });
+  //             }),
+  //           });
+  //         }),
+  //       reactions: p.reactions?.map((r) => {
+  //         return convertToResponseDto(ReactionResponseDto, {
+  //           ...r,
+  //           user: convertToResponseDto(UserResponseDto, r.user),
+  //           postId: p.id,
+  //         });
+  //       }),
+  //     }),
+  //   );
+  // }
+
+  async findByUserId(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<{ data: PostResponseDto[]; total: number }> {
+    const [posts, total] = await this.postRepo.findAndCount({
       where: { creator: { id: userId } },
       relations: [
         'creator',
@@ -150,73 +245,77 @@ export class PostService {
         'comments.replies.reactions',
       ],
       order: { createdAt: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
     });
 
-    return posts.map((p) =>
+    const data = posts.map((p) =>
       convertToResponseDto(PostResponseDto, {
         ...p,
-        likes: p.likes?.map((l) => {
-          return convertToResponseDto(LikeResponseDto, {
+        likes: p.likes?.map((l) =>
+          convertToResponseDto(LikeResponseDto, {
             ...l,
             userId: l.user.id,
-          });
-        }),
+          }),
+        ),
         comments: p.comments
           ?.filter((c) => !c.parentComment)
-          .map((c) => {
-            return convertToResponseDto(CommentResponseDto, {
+          .map((c) =>
+            convertToResponseDto(CommentResponseDto, {
               ...c,
               user: convertToResponseDto(UserResponseDto, c.user),
               postId: p.id,
               parentCommentId: c.parentComment?.id ?? undefined,
-              likes: c.likes?.map((l) => {
-                return convertToResponseDto(LikeResponseDto, {
+              likes: c.likes?.map((l) =>
+                convertToResponseDto(LikeResponseDto, {
                   ...l,
                   userId: l.user.id,
                   commentId: c.id,
-                });
-              }),
-              reactions: c.reactions?.map((r) => {
-                return convertToResponseDto(ReactionResponseDto, {
+                }),
+              ),
+              reactions: c.reactions?.map((r) =>
+                convertToResponseDto(ReactionResponseDto, {
                   ...r,
                   user: convertToResponseDto(UserResponseDto, r.user),
                   commentId: c.id,
-                });
-              }),
-              replies: c.replies?.map((r) => {
-                return convertToResponseDto(CommentResponseDto, {
+                }),
+              ),
+              replies: c.replies?.map((r) =>
+                convertToResponseDto(CommentResponseDto, {
                   ...r,
                   user: convertToResponseDto(UserResponseDto, r.user),
                   postId: p.id,
                   parentCommentId: c.id,
                   commentId: c.id,
-                  likes: r.likes?.map((l) => {
-                    return convertToResponseDto(LikeResponseDto, {
+                  likes: r.likes?.map((l) =>
+                    convertToResponseDto(LikeResponseDto, {
                       ...l,
                       userId: l.user.id,
                       commentId: c.id,
-                    });
-                  }),
-                  reactions: r.reactions?.map((r) => {
-                    return convertToResponseDto(ReactionResponseDto, {
+                    }),
+                  ),
+                  reactions: r.reactions?.map((r) =>
+                    convertToResponseDto(ReactionResponseDto, {
                       ...r,
                       user: convertToResponseDto(UserResponseDto, r.user),
                       commentId: c.id,
-                    });
-                  }),
-                });
-              }),
-            });
-          }),
-        reactions: p.reactions?.map((r) => {
-          return convertToResponseDto(ReactionResponseDto, {
+                    }),
+                  ),
+                }),
+              ),
+            }),
+          ),
+        reactions: p.reactions?.map((r) =>
+          convertToResponseDto(ReactionResponseDto, {
             ...r,
             user: convertToResponseDto(UserResponseDto, r.user),
             postId: p.id,
-          });
-        }),
+          }),
+        ),
       }),
     );
+
+    return { data, total };
   }
 
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
