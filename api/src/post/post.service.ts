@@ -40,6 +40,10 @@ export class PostService {
         'comments.reactions',
         'comments.reactions.user',
         'comments.parentComment',
+        'comments.replies',
+        'comments.replies.user',
+        'comments.replies.likes',
+        'comments.replies.reactions',
       ],
     });
 
@@ -87,6 +91,29 @@ export class PostService {
               commentId: c.id,
             });
           }),
+          replies: c.replies?.map((r) => {
+            return convertToResponseDto(CommentResponseDto, {
+              ...r,
+              user: convertToResponseDto(UserResponseDto, r.user),
+              postId: post.id,
+              parentCommentId: c.id,
+              commentId: c.id,
+              likes: r.likes?.map((l) => {
+                return convertToResponseDto(LikeResponseDto, {
+                  ...l,
+                  userId: l.user.id,
+                  commentId: c.id,
+                });
+              }),
+              reactions: r.reactions?.map((r) => {
+                return convertToResponseDto(ReactionResponseDto, {
+                  ...r,
+                  user: convertToResponseDto(UserResponseDto, r.user),
+                  commentId: c.id,
+                });
+              }),
+            });
+          }),
         });
       }),
       reactions: post.reactions?.map((r) => {
@@ -115,6 +142,10 @@ export class PostService {
         'comments.reactions',
         'comments.reactions.user',
         'comments.parentComment',
+        'comments.replies',
+        'comments.replies.user',
+        'comments.replies.likes',
+        'comments.replies.reactions',
       ],
       order: { createdAt: 'DESC' },
     });
@@ -146,6 +177,29 @@ export class PostService {
                 ...r,
                 user: convertToResponseDto(UserResponseDto, r.user),
                 commentId: c.id,
+              });
+            }),
+            replies: c.replies?.map((r) => {
+              return convertToResponseDto(CommentResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                postId: p.id,
+                parentCommentId: c.id,
+                commentId: c.id,
+                likes: r.likes?.map((l) => {
+                  return convertToResponseDto(LikeResponseDto, {
+                    ...l,
+                    userId: l.user.id,
+                    commentId: c.id,
+                  });
+                }),
+                reactions: r.reactions?.map((r) => {
+                  return convertToResponseDto(ReactionResponseDto, {
+                    ...r,
+                    user: convertToResponseDto(UserResponseDto, r.user),
+                    commentId: c.id,
+                  });
+                }),
               });
             }),
           });

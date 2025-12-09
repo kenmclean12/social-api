@@ -43,7 +43,15 @@ export class FeedService {
           'reactions.user',
           'comments',
           'comments.user',
+          'comments.likes',
+          'comments.likes.user',
+          'comments.reactions',
+          'comments.reactions.user',
           'comments.parentComment',
+          'comments.replies',
+          'comments.replies.user',
+          'comments.replies.likes',
+          'comments.replies.reactions',
         ],
       });
     }
@@ -75,8 +83,14 @@ export class FeedService {
             'comments',
             'comments.user',
             'comments.likes',
+            'comments.likes.user',
             'comments.reactions',
+            'comments.reactions.user',
             'comments.parentComment',
+            'comments.replies',
+            'comments.replies.user',
+            'comments.replies.likes',
+            'comments.replies.reactions',
           ],
         });
         posts = [...posts, ...randomPosts];
@@ -113,6 +127,29 @@ export class FeedService {
                 commentId: c.id,
               });
             }),
+            replies: c.replies?.map((r) => {
+              return convertToResponseDto(CommentResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                postId: p.id,
+                parentCommentId: c.id,
+                commentId: c.id,
+                likes: r.likes?.map((l) => {
+                  return convertToResponseDto(LikeResponseDto, {
+                    ...l,
+                    userId: l.user.id,
+                    commentId: c.id,
+                  });
+                }),
+                reactions: r.reactions?.map((r) => {
+                  return convertToResponseDto(ReactionResponseDto, {
+                    ...r,
+                    user: convertToResponseDto(UserResponseDto, r.user),
+                    commentId: c.id,
+                  });
+                }),
+              });
+            }),
           });
         }),
         reactions: p.reactions?.map((r) => {
@@ -144,6 +181,10 @@ export class FeedService {
         'comments.reactions',
         'comments.reactions.user',
         'comments.parentComment',
+        'comments.replies',
+        'comments.replies.user',
+        'comments.replies.likes',
+        'comments.replies.reactions',
       ],
     });
 
@@ -198,6 +239,29 @@ export class FeedService {
                 ...r,
                 user: convertToResponseDto(UserResponseDto, r.user),
                 commentId: c.id,
+              });
+            }),
+            replies: c.replies?.map((r) => {
+              return convertToResponseDto(CommentResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                postId: p.id,
+                parentCommentId: c.id,
+                commentId: c.id,
+                likes: r.likes?.map((l) => {
+                  return convertToResponseDto(LikeResponseDto, {
+                    ...l,
+                    userId: l.user.id,
+                    commentId: c.id,
+                  });
+                }),
+                reactions: r.reactions?.map((r) => {
+                  return convertToResponseDto(ReactionResponseDto, {
+                    ...r,
+                    user: convertToResponseDto(UserResponseDto, r.user),
+                    commentId: c.id,
+                  });
+                }),
               });
             }),
           });
