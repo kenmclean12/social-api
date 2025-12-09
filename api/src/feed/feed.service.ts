@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CommentResponseDto } from 'src/comment/dto';
 import { convertToResponseDto } from 'src/common/utils';
 import { FollowService } from 'src/follow/follow.service';
+import { LikeResponseDto } from 'src/like/dto';
 import { PostResponseDto } from 'src/post/dto';
 import { UserPost } from 'src/post/entities/user-post.entity';
 import { PostService } from 'src/post/post.service';
+import { ReactionResponseDto } from 'src/reaction/dto';
+import { UserResponseDto } from 'src/user/dto';
 import { In, Repository } from 'typeorm';
 
 @Injectable()
@@ -31,7 +35,16 @@ export class FeedService {
         where: { creator: In(followingIds) },
         order: { createdAt: 'DESC' },
         take: limit,
-        relations: ['creator', 'likes', 'reactions', 'comments'],
+        relations: [
+          'creator',
+          'likes',
+          'likes.user',
+          'reactions',
+          'reactions.user',
+          'comments',
+          'comments.user',
+          'comments.parentComment',
+        ],
       });
     }
 
@@ -53,14 +66,47 @@ export class FeedService {
       if (ids.length > 0) {
         const randomPosts = await this.postRepo.find({
           where: { id: In(ids) },
-          relations: ['creator', 'likes', 'reactions', 'comments'],
+          relations: [
+            'creator',
+            'likes',
+            'likes.user',
+            'reactions',
+            'reactions.user',
+            'comments',
+            'comments.user',
+            'comments.parentComment',
+          ],
         });
         posts = [...posts, ...randomPosts];
       }
     }
 
     return posts.map((p) =>
-      convertToResponseDto(PostResponseDto, { ...p, creatorId: p.creator?.id }),
+      convertToResponseDto(PostResponseDto, {
+        ...p,
+        creator: convertToResponseDto(UserResponseDto, p.creator),
+        likes: p.likes?.map((l) => {
+          return convertToResponseDto(LikeResponseDto, {
+            ...l,
+            userId: l.user.id,
+          });
+        }),
+        comments: p.comments?.map((c) => {
+          return convertToResponseDto(CommentResponseDto, {
+            ...c,
+            user: convertToResponseDto(UserResponseDto, c.user),
+            postId: p.id,
+            parentCommentId: c.parentComment?.id ?? undefined,
+          });
+        }),
+        reactions: p.reactions?.map((r) => {
+          return convertToResponseDto(ReactionResponseDto, {
+            ...r,
+            user: convertToResponseDto(UserResponseDto, r.user),
+            postId: p.id,
+          });
+        }),
+      }),
     );
   }
 
@@ -69,7 +115,16 @@ export class FeedService {
     limit = 20,
   ): Promise<PostResponseDto[]> {
     const posts = await this.postRepo.find({
-      relations: ['creator', 'likes', 'reactions', 'comments'],
+      relations: [
+        'creator',
+        'likes',
+        'likes.user',
+        'reactions',
+        'reactions.user',
+        'comments',
+        'comments.user',
+        'comments.parentComment',
+      ],
     });
 
     let sortedPosts: UserPost[] = [];
@@ -98,7 +153,28 @@ export class FeedService {
     return sortedPosts.slice(0, limit).map((p) =>
       convertToResponseDto(PostResponseDto, {
         ...p,
-        creatorId: p.creator?.id,
+        creator: convertToResponseDto(UserResponseDto, p.creator),
+        likes: p.likes?.map((l) => {
+          return convertToResponseDto(LikeResponseDto, {
+            ...l,
+            userId: l.user.id,
+          });
+        }),
+        comments: p.comments?.map((c) => {
+          return convertToResponseDto(CommentResponseDto, {
+            ...c,
+            user: convertToResponseDto(UserResponseDto, c.user),
+            postId: p.id,
+            parentCommentId: c.parentComment?.id ?? undefined,
+          });
+        }),
+        reactions: p.reactions?.map((r) => {
+          return convertToResponseDto(ReactionResponseDto, {
+            ...r,
+            user: convertToResponseDto(UserResponseDto, r.user),
+            postId: p.id,
+          });
+        }),
       }),
     );
   }

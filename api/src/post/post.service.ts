@@ -11,6 +11,10 @@ import { UserPost } from './entities/user-post.entity';
 import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { UserService } from 'src/user/user.service';
 import { convertToResponseDto } from 'src/common/utils';
+import { UserResponseDto } from 'src/user/dto';
+import { LikeResponseDto } from 'src/like/dto';
+import { CommentResponseDto } from 'src/comment/dto';
+import { ReactionResponseDto } from 'src/reaction/dto';
 @Injectable()
 export class PostService {
   constructor(
@@ -23,7 +27,16 @@ export class PostService {
   async findOneInternal(id: number): Promise<UserPost> {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['creator', 'likes', 'reactions', 'comments'],
+      relations: [
+        'creator',
+        'likes',
+        'likes.user',
+        'reactions',
+        'reactions.user',
+        'comments',
+        'comments.user',
+        'comments.parentComment',
+      ],
     });
 
     if (!post) {
@@ -43,7 +56,28 @@ export class PostService {
 
     return convertToResponseDto(PostResponseDto, {
       ...post,
-      creatorId: post.creator.id,
+      creator: convertToResponseDto(UserResponseDto, post.creator),
+      likes: post.likes?.map((l) => {
+        return convertToResponseDto(LikeResponseDto, {
+          ...l,
+          userId: l.user.id,
+        });
+      }),
+      comments: post.comments?.map((c) => {
+        return convertToResponseDto(CommentResponseDto, {
+          ...c,
+          user: convertToResponseDto(UserResponseDto, c.user),
+          postId: post.id,
+          parentCommentId: c.parentComment?.id ?? undefined,
+        });
+      }),
+      reactions: post.reactions?.map((r) => {
+        return convertToResponseDto(ReactionResponseDto, {
+          ...r,
+          user: convertToResponseDto(UserResponseDto, r.user),
+          postId: post.id,
+        });
+      }),
     });
   }
 
@@ -57,7 +91,27 @@ export class PostService {
     return posts.map((p) =>
       convertToResponseDto(PostResponseDto, {
         ...p,
-        creatorId: p.creator.id,
+        likes: p.likes?.map((l) => {
+          return convertToResponseDto(LikeResponseDto, {
+            ...l,
+            userId: l.user.id,
+          });
+        }),
+        comments: p.comments?.map((c) => {
+          return convertToResponseDto(CommentResponseDto, {
+            ...c,
+            user: convertToResponseDto(UserResponseDto, c.user),
+            postId: p.id,
+            parentCommentId: c.parentComment?.id ?? undefined,
+          });
+        }),
+        reactions: p.reactions?.map((r) => {
+          return convertToResponseDto(ReactionResponseDto, {
+            ...r,
+            user: convertToResponseDto(UserResponseDto, r.user),
+            postId: p.id,
+          });
+        }),
       }),
     );
   }
@@ -67,7 +121,7 @@ export class PostService {
     const savedPost = await this.postRepo.save({ ...dto, creator: user });
     return convertToResponseDto(PostResponseDto, {
       ...savedPost,
-      creatorId: dto.userId,
+      creator: user,
     });
   }
 
@@ -76,7 +130,7 @@ export class PostService {
     userId: number,
     dto: PostUpdateDto,
   ): Promise<PostResponseDto> {
-    await this.userService.findOneInternal(userId);
+    const user = await this.userService.findOneInternal(userId);
     const existingPost = await this.findOneInternal(id);
     if (existingPost.creator.id !== userId) {
       throw new UnauthorizedException('Only the creator can update the post');
@@ -92,22 +146,23 @@ export class PostService {
     const saved = await this.postRepo.save(mergedPost);
     return convertToResponseDto(PostResponseDto, {
       ...saved,
-      creatorId: userId,
+      creator: user,
     });
   }
 
   async remove(id: number, userId: number): Promise<PostResponseDto> {
+    const user = await this.userService.findOneInternal(userId);
     const existingPost = await this.findOneInternal(id);
     await this.userService.findOneInternal(userId);
 
-    if (existingPost.creator.id !== userId) {
+    if (existingPost.creator.id !== user.id) {
       throw new UnauthorizedException(`Only creator user can remove the post`);
     }
 
     await this.postRepo.remove(existingPost);
     return convertToResponseDto(PostResponseDto, {
       ...existingPost,
-      creatorId: existingPost.creator.id,
+      creator: user,
     });
   }
 }

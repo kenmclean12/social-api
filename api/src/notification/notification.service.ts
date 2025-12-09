@@ -55,7 +55,7 @@ export class NotificationService {
       post: n.post
         ? convertToResponseDto(PostResponseDto, {
             ...n.post,
-            creatorId: n.post.creator?.id,
+            creator: convertToResponseDto(UserResponseDto, n.post.creator),
           })
         : undefined,
 
