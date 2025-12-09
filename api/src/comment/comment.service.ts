@@ -76,43 +76,48 @@ export class CommentService {
 
     return comments
       ?.filter((c) => !c.parentComment)
-      .map((c) =>
-        convertToResponseDto(CommentResponseDto, {
+      .map((c) => {
+        return convertToResponseDto(CommentResponseDto, {
           ...c,
           user: convertToResponseDto(UserResponseDto, c.user),
           postId,
           parentCommentId: c.parentComment?.id,
-          likes: c.likes?.map((l) => {
-            return convertToResponseDto(LikeResponseDto, {
+
+          likes: c.likes?.map((l) =>
+            convertToResponseDto(LikeResponseDto, {
               ...l,
               userId: l.user.id,
               commentId: c.id,
-            });
-          }),
-          reactions: c.reactions?.map((r) => {
-            return convertToResponseDto(ReactionResponseDto, {
-              ...r,
-              user: convertToResponseDto(UserResponseDto, r.user),
-              commentId: c.id,
-            });
-          }),
-          replies: c.replies?.map((r) =>
-            convertToResponseDto(CommentResponseDto, {
-              ...r,
-              user: convertToResponseDto(UserResponseDto, r.user),
-              commentId: c.id,
-              parentCommentId: r.parentComment?.id,
-              likes: r.likes?.map((l) => {
-                return convertToResponseDto(LikeResponseDto, {
-                  ...l,
-                  userId: l.user.id,
-                });
-              }),
-              replies: [],
             }),
           ),
-        }),
-      );
+
+          reactions: c.reactions?.map((r) =>
+            convertToResponseDto(ReactionResponseDto, {
+              ...r,
+              user: convertToResponseDto(UserResponseDto, r.user),
+              commentId: c.id,
+            }),
+          ),
+
+          replies: c.replies
+            ?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+            .map((r) =>
+              convertToResponseDto(CommentResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                commentId: c.id,
+                parentCommentId: r.parentComment?.id,
+                likes: r.likes?.map((l) =>
+                  convertToResponseDto(LikeResponseDto, {
+                    ...l,
+                    userId: l.user.id,
+                  }),
+                ),
+                replies: [],
+              }),
+            ),
+        });
+      });
   }
 
   async create(dto: CommentCreateDto): Promise<CommentResponseDto> {
