@@ -129,8 +129,9 @@ export class CommentService {
 
     const result: Partial<Comment> = { content: dto.content, user, post };
 
+    let parentComment: Comment | undefined = undefined;
     if (dto.parentCommentId) {
-      const parentComment = await this.findOneInternal(dto.parentCommentId);
+      parentComment = await this.findOneInternal(dto.parentCommentId);
       result.parentComment = parentComment;
     }
 
@@ -142,6 +143,18 @@ export class CommentService {
         actorId: dto.userId,
         type: NotificationType.POST_COMMENT,
         postId: post.id,
+        commentId: saved.id,
+      });
+    }
+
+    if (parentComment && parentComment.user.id !== user.id) {
+      await this.notificationService.create({
+        recipientId: parentComment.user.id,
+        actorId: dto.userId,
+        type: NotificationType.COMMENT_REPLY,
+        postId: post.id,
+        commentId: saved.id,
+        parentCommentId: parentComment.id,
       });
     }
 

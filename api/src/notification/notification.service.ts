@@ -68,6 +68,17 @@ export class NotificationService {
             postId: n.comment.post.id,
           })
         : undefined,
+
+      parentComment: n.parentComment
+        ? convertToResponseDto(CommentResponseDto, {
+            ...n.parentComment,
+            user: n.parentComment.user
+              ? convertToResponseDto(UserResponseDto, n.parentComment.user)
+              : undefined,
+            postId: n.parentComment.post.id,
+          })
+        : undefined,
+
       message: n.message
         ? convertToResponseDto(MessageResponseDto, {
             ...n.message,
@@ -98,7 +109,15 @@ export class NotificationService {
         actionUser: { id: actionUserId },
         type,
       },
-      relations: ['actionUser', 'post', 'comment', 'message'],
+      relations: [
+        'actionUser',
+        'post',
+        'comment',
+        'message',
+        'parentComment',
+        'parentComment.user',
+        'parentComment.post',
+      ],
     });
   }
 
@@ -110,6 +129,9 @@ export class NotificationService {
         'recipient',
         'post',
         'post.creator',
+        'parentComment',
+        'parentComment.user',
+        'parentComment.post',
         'comment',
         'comment.user',
         'comment.post',
@@ -127,7 +149,15 @@ export class NotificationService {
   async create(
     dto: NotificationCreateDto,
   ): Promise<NotificationResponseDto | void> {
-    const { recipientId, actorId, type, postId, commentId, messageId } = dto;
+    const {
+      recipientId,
+      actorId,
+      type,
+      postId,
+      commentId,
+      parentCommentId,
+      messageId,
+    } = dto;
     if (recipientId === actorId) {
       return;
     }
@@ -137,6 +167,7 @@ export class NotificationService {
 
     let post: UserPost | undefined = undefined;
     let comment: Comment | undefined = undefined;
+    let parentComment: Comment | undefined = undefined;
     let message: Message | undefined = undefined;
 
     switch (type) {
@@ -145,9 +176,14 @@ export class NotificationService {
 
       case NotificationType.POST_LIKE:
       case NotificationType.POST_REACTION:
-      case NotificationType.POST_COMMENT:
         if (!postId) throw new BadRequestException('postId is required');
         post = await this.postService.findOneInternal(postId);
+        break;
+      case NotificationType.POST_COMMENT:
+        if (!postId) throw new BadRequestException('postId is required');
+        if (!commentId) throw new BadRequestException('commentId is required');
+        post = await this.postService.findOneInternal(postId);
+        comment = await this.commentService.findOneInternal(commentId);
         break;
 
       case NotificationType.COMMENT_LIKE:
@@ -155,6 +191,16 @@ export class NotificationService {
         if (!commentId) throw new BadRequestException('commentId is required');
         comment = await this.commentService.findOneInternal(commentId);
         post = comment.post;
+        break;
+      case NotificationType.COMMENT_REPLY:
+        if (!commentId) throw new BadRequestException('commentId is required');
+        if (!postId) throw new BadRequestException('postId is required');
+        if (!parentCommentId)
+          throw new BadRequestException('parentCommentId is required');
+        comment = await this.commentService.findOneInternal(commentId);
+        post = await this.postService.findOneInternal(postId);
+        parentComment =
+          await this.commentService.findOneInternal(parentCommentId);
         break;
 
       case NotificationType.MESSAGE_LIKE:
@@ -173,6 +219,7 @@ export class NotificationService {
       type,
       post,
       comment,
+      parentComment,
       message,
       read: false,
     };
@@ -231,6 +278,8 @@ export class NotificationService {
         return `${name} liked your comment`;
       case NotificationType.COMMENT_REACTION:
         return `${name} reacted to your comment`;
+      case NotificationType.COMMENT_REPLY:
+        return `${name} replied to your comment`;
       case NotificationType.MESSAGE_LIKE:
         return `${name} liked your message`;
       case NotificationType.MESSAGE_REACTION:

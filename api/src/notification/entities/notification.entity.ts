@@ -20,6 +20,7 @@ export enum NotificationType {
 
   COMMENT_LIKE = 'COMMENT_LIKE',
   COMMENT_REACTION = 'COMMENT_REACTION',
+  COMMENT_REPLY = 'COMMENT_REPLY',
 
   MESSAGE_LIKE = 'MESSAGE_LIKE',
   MESSAGE_REACTION = 'MESSAGE_REACTION',
@@ -48,6 +49,9 @@ export class Notification {
 
   @ManyToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
   comment?: Comment;
+
+  @ManyToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
+  parentComment?: Comment;
 
   @ManyToOne(() => Message, { nullable: true, onDelete: 'CASCADE' })
   message?: Message;

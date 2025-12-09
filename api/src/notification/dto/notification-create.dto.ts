@@ -37,5 +37,11 @@ export class NotificationCreateDto {
   @IsNumber()
   @Type(() => Number)
   @ApiProperty({ required: false })
+  parentCommentId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @ApiProperty({ required: false })
   messageId?: number;
 }
