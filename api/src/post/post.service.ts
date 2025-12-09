@@ -35,6 +35,10 @@ export class PostService {
         'reactions.user',
         'comments',
         'comments.user',
+        'comments.likes',
+        'comments.likes.user',
+        'comments.reactions',
+        'comments.reactions.user',
         'comments.parentComment',
       ],
     });
@@ -69,6 +73,20 @@ export class PostService {
           user: convertToResponseDto(UserResponseDto, c.user),
           postId: post.id,
           parentCommentId: c.parentComment?.id ?? undefined,
+          likes: c.likes?.map((l) => {
+            return convertToResponseDto(LikeResponseDto, {
+              ...l,
+              userId: l.user.id,
+              commentId: c.id,
+            });
+          }),
+          reactions: c.reactions?.map((r) => {
+            return convertToResponseDto(ReactionResponseDto, {
+              ...r,
+              user: convertToResponseDto(UserResponseDto, r.user),
+              commentId: c.id,
+            });
+          }),
         });
       }),
       reactions: post.reactions?.map((r) => {
@@ -84,7 +102,20 @@ export class PostService {
   async findByUserId(userId: number): Promise<PostResponseDto[]> {
     const posts = await this.postRepo.find({
       where: { creator: { id: userId } },
-      relations: ['creator', 'likes', 'reactions', 'comments'],
+      relations: [
+        'creator',
+        'likes',
+        'likes.user',
+        'reactions',
+        'reactions.user',
+        'comments',
+        'comments.user',
+        'comments.likes',
+        'comments.likes.user',
+        'comments.reactions',
+        'comments.reactions.user',
+        'comments.parentComment',
+      ],
       order: { createdAt: 'DESC' },
     });
 
@@ -103,6 +134,20 @@ export class PostService {
             user: convertToResponseDto(UserResponseDto, c.user),
             postId: p.id,
             parentCommentId: c.parentComment?.id ?? undefined,
+            likes: c.likes?.map((l) => {
+              return convertToResponseDto(LikeResponseDto, {
+                ...l,
+                userId: l.user.id,
+                commentId: c.id,
+              });
+            }),
+            reactions: c.reactions?.map((r) => {
+              return convertToResponseDto(ReactionResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                commentId: c.id,
+              });
+            }),
           });
         }),
         reactions: p.reactions?.map((r) => {

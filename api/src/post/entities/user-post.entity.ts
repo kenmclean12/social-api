@@ -23,7 +23,7 @@ export class UserPost {
   @ApiProperty()
   createdAt: Date;
 
-  @Column({ type: 'varchar', length: 1000, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   @ApiProperty()
   textContent?: string;
 

@@ -74,6 +74,8 @@ export class FeedService {
             'reactions.user',
             'comments',
             'comments.user',
+            'comments.likes',
+            'comments.reactions',
             'comments.parentComment',
           ],
         });
@@ -97,6 +99,20 @@ export class FeedService {
             user: convertToResponseDto(UserResponseDto, c.user),
             postId: p.id,
             parentCommentId: c.parentComment?.id ?? undefined,
+            likes: c.likes?.map((l) => {
+              return convertToResponseDto(LikeResponseDto, {
+                ...l,
+                userId: l.user.id,
+                commentId: c.id,
+              });
+            }),
+            reactions: c.reactions?.map((r) => {
+              return convertToResponseDto(ReactionResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                commentId: c.id,
+              });
+            }),
           });
         }),
         reactions: p.reactions?.map((r) => {
@@ -123,6 +139,10 @@ export class FeedService {
         'reactions.user',
         'comments',
         'comments.user',
+        'comments.likes',
+        'comments.likes.user',
+        'comments.reactions',
+        'comments.reactions.user',
         'comments.parentComment',
       ],
     });
@@ -166,6 +186,20 @@ export class FeedService {
             user: convertToResponseDto(UserResponseDto, c.user),
             postId: p.id,
             parentCommentId: c.parentComment?.id ?? undefined,
+            likes: c.likes?.map((l) => {
+              return convertToResponseDto(LikeResponseDto, {
+                ...l,
+                userId: l.user.id,
+                commentId: c.id,
+              });
+            }),
+            reactions: c.reactions?.map((r) => {
+              return convertToResponseDto(ReactionResponseDto, {
+                ...r,
+                user: convertToResponseDto(UserResponseDto, r.user),
+                commentId: c.id,
+              });
+            }),
           });
         }),
         reactions: p.reactions?.map((r) => {

@@ -17,7 +17,7 @@ export class PostCreateDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
+  @MaxLength(500)
   @ApiProperty({ required: false })
   textContent?: string;
 

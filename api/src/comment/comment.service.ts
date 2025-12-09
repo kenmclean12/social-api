@@ -35,13 +35,13 @@ export class CommentService {
       where: { id },
       relations: [
         'user',
-        'post',
-        'parentComment',
         'replies',
+        'parentComment',
         'replies.user',
         'replies.likes',
         'likes',
         'reactions',
+        'reactions.user',
       ],
     });
 
@@ -66,7 +66,9 @@ export class CommentService {
         'replies.user',
         'replies.likes',
         'likes',
+        'likes.user',
         'reactions',
+        'reactions.user',
       ],
       order: { createdAt: 'ASC' },
     });
@@ -77,12 +79,32 @@ export class CommentService {
         user: convertToResponseDto(UserResponseDto, c.user),
         postId,
         parentCommentId: c.parentComment?.id,
+        likes: c.likes?.map((l) => {
+          return convertToResponseDto(LikeResponseDto, {
+            ...l,
+            userId: l.user.id,
+            commentId: c.id,
+          });
+        }),
+        reactions: c.reactions?.map((r) => {
+          return convertToResponseDto(ReactionResponseDto, {
+            ...r,
+            user: convertToResponseDto(UserResponseDto, r.user),
+            commentId: c.id,
+          });
+        }),
         replies: c.replies?.map((r) =>
           convertToResponseDto(CommentResponseDto, {
             ...r,
             user: convertToResponseDto(UserResponseDto, r.user),
-            postId,
+            commentId: c.id,
             parentCommentId: r.parentComment?.id,
+            likes: r.likes?.map((l) => {
+              return convertToResponseDto(LikeResponseDto, {
+                ...l,
+                userId: l.user.id,
+              });
+            }),
             replies: [],
           }),
         ),
@@ -112,11 +134,13 @@ export class CommentService {
       });
     }
 
+    const fullComment = await this.findOneInternal(saved.id);
+
     return convertToResponseDto(CommentResponseDto, {
-      ...saved,
-      user: convertToResponseDto(UserResponseDto, saved.user),
+      ...fullComment,
+      user: convertToResponseDto(UserResponseDto, fullComment.user),
       postId: post.id,
-      parentCommentId: saved.parentComment?.id,
+      parentCommentId: fullComment.parentComment?.id,
       replies: [],
     });
   }
@@ -137,21 +161,13 @@ export class CommentService {
 
     comment.content = content;
     const saved = await this.commentRepo.save(comment);
+    const fullComment = await this.findOneInternal(saved.id);
 
     return convertToResponseDto(CommentResponseDto, {
-      ...saved,
-      user: convertToResponseDto(UserResponseDto, saved.user),
+      ...fullComment,
+      user: convertToResponseDto(UserResponseDto, fullComment.user),
       postId: comment.post.id,
       parentCommentId: comment.parentComment?.id,
-      replies: saved.replies?.map((r) =>
-        convertToResponseDto(CommentResponseDto, {
-          ...r,
-          user: convertToResponseDto(UserResponseDto, r.user),
-          postId: comment.post.id,
-          parentCommentId: r.parentComment?.id,
-          replies: [],
-        }),
-      ),
     });
   }
 
@@ -172,19 +188,6 @@ export class CommentService {
       user: convertToResponseDto(UserResponseDto, comment.user),
       postId: comment.post.id,
       parentCommentId: comment.parentComment?.id,
-      replies: comment.replies?.map((r) =>
-        convertToResponseDto(CommentResponseDto, {
-          ...r,
-          user: convertToResponseDto(UserResponseDto, r.user),
-          postId: comment.post.id,
-          parentCommentId: r.parentComment?.id,
-          replies: [],
-          likes: r.likes?.map((l) => convertToResponseDto(LikeResponseDto, l)),
-          reactions: r.reactions?.map((re) =>
-            convertToResponseDto(ReactionResponseDto, re),
-          ),
-        }),
-      ),
     });
   }
 }
