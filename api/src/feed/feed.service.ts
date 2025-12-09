@@ -107,51 +107,53 @@ export class FeedService {
             userId: l.user.id,
           });
         }),
-        comments: p.comments?.map((c) => {
-          return convertToResponseDto(CommentResponseDto, {
-            ...c,
-            user: convertToResponseDto(UserResponseDto, c.user),
-            postId: p.id,
-            parentCommentId: c.parentComment?.id ?? undefined,
-            likes: c.likes?.map((l) => {
-              return convertToResponseDto(LikeResponseDto, {
-                ...l,
-                userId: l.user.id,
-                commentId: c.id,
-              });
-            }),
-            reactions: c.reactions?.map((r) => {
-              return convertToResponseDto(ReactionResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                commentId: c.id,
-              });
-            }),
-            replies: c.replies?.map((r) => {
-              return convertToResponseDto(CommentResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                postId: p.id,
-                parentCommentId: c.id,
-                commentId: c.id,
-                likes: r.likes?.map((l) => {
-                  return convertToResponseDto(LikeResponseDto, {
-                    ...l,
-                    userId: l.user.id,
-                    commentId: c.id,
-                  });
-                }),
-                reactions: r.reactions?.map((r) => {
-                  return convertToResponseDto(ReactionResponseDto, {
-                    ...r,
-                    user: convertToResponseDto(UserResponseDto, r.user),
-                    commentId: c.id,
-                  });
-                }),
-              });
-            }),
-          });
-        }),
+        comments: p.comments
+          ?.filter((c) => !c.parentComment)
+          .map((c) => {
+            return convertToResponseDto(CommentResponseDto, {
+              ...c,
+              user: convertToResponseDto(UserResponseDto, c.user),
+              postId: p.id,
+              parentCommentId: c.parentComment?.id ?? undefined,
+              likes: c.likes?.map((l) => {
+                return convertToResponseDto(LikeResponseDto, {
+                  ...l,
+                  userId: l.user.id,
+                  commentId: c.id,
+                });
+              }),
+              reactions: c.reactions?.map((r) => {
+                return convertToResponseDto(ReactionResponseDto, {
+                  ...r,
+                  user: convertToResponseDto(UserResponseDto, r.user),
+                  commentId: c.id,
+                });
+              }),
+              replies: c.replies?.map((r) => {
+                return convertToResponseDto(CommentResponseDto, {
+                  ...r,
+                  user: convertToResponseDto(UserResponseDto, r.user),
+                  postId: p.id,
+                  parentCommentId: c.id,
+                  commentId: c.id,
+                  likes: r.likes?.map((l) => {
+                    return convertToResponseDto(LikeResponseDto, {
+                      ...l,
+                      userId: l.user.id,
+                      commentId: c.id,
+                    });
+                  }),
+                  reactions: r.reactions?.map((r) => {
+                    return convertToResponseDto(ReactionResponseDto, {
+                      ...r,
+                      user: convertToResponseDto(UserResponseDto, r.user),
+                      commentId: c.id,
+                    });
+                  }),
+                });
+              }),
+            });
+          }),
         reactions: p.reactions?.map((r) => {
           return convertToResponseDto(ReactionResponseDto, {
             ...r,
@@ -221,51 +223,53 @@ export class FeedService {
             userId: l.user.id,
           });
         }),
-        comments: p.comments?.map((c) => {
-          return convertToResponseDto(CommentResponseDto, {
-            ...c,
-            user: convertToResponseDto(UserResponseDto, c.user),
-            postId: p.id,
-            parentCommentId: c.parentComment?.id ?? undefined,
-            likes: c.likes?.map((l) => {
-              return convertToResponseDto(LikeResponseDto, {
-                ...l,
-                userId: l.user.id,
-                commentId: c.id,
-              });
-            }),
-            reactions: c.reactions?.map((r) => {
-              return convertToResponseDto(ReactionResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                commentId: c.id,
-              });
-            }),
-            replies: c.replies?.map((r) => {
-              return convertToResponseDto(CommentResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                postId: p.id,
-                parentCommentId: c.id,
-                commentId: c.id,
-                likes: r.likes?.map((l) => {
-                  return convertToResponseDto(LikeResponseDto, {
-                    ...l,
-                    userId: l.user.id,
-                    commentId: c.id,
-                  });
-                }),
-                reactions: r.reactions?.map((r) => {
-                  return convertToResponseDto(ReactionResponseDto, {
-                    ...r,
-                    user: convertToResponseDto(UserResponseDto, r.user),
-                    commentId: c.id,
-                  });
-                }),
-              });
-            }),
-          });
-        }),
+        comments: p.comments
+          ?.filter((c) => !c.parentComment)
+          .map((c) => {
+            return convertToResponseDto(CommentResponseDto, {
+              ...c,
+              user: convertToResponseDto(UserResponseDto, c.user),
+              postId: p.id,
+              parentCommentId: c.parentComment?.id ?? undefined,
+              likes: c.likes?.map((l) => {
+                return convertToResponseDto(LikeResponseDto, {
+                  ...l,
+                  userId: l.user.id,
+                  commentId: c.id,
+                });
+              }),
+              reactions: c.reactions?.map((r) => {
+                return convertToResponseDto(ReactionResponseDto, {
+                  ...r,
+                  user: convertToResponseDto(UserResponseDto, r.user),
+                  commentId: c.id,
+                });
+              }),
+              replies: c.replies?.map((r) => {
+                return convertToResponseDto(CommentResponseDto, {
+                  ...r,
+                  user: convertToResponseDto(UserResponseDto, r.user),
+                  postId: p.id,
+                  parentCommentId: c.id,
+                  commentId: c.id,
+                  likes: r.likes?.map((l) => {
+                    return convertToResponseDto(LikeResponseDto, {
+                      ...l,
+                      userId: l.user.id,
+                      commentId: c.id,
+                    });
+                  }),
+                  reactions: r.reactions?.map((r) => {
+                    return convertToResponseDto(ReactionResponseDto, {
+                      ...r,
+                      user: convertToResponseDto(UserResponseDto, r.user),
+                      commentId: c.id,
+                    });
+                  }),
+                });
+              }),
+            });
+          }),
         reactions: p.reactions?.map((r) => {
           return convertToResponseDto(ReactionResponseDto, {
             ...r,
