@@ -36,6 +36,7 @@ export class CommentService {
       relations: [
         'user',
         'post',
+        'post.creator',
         'replies',
         'parentComment',
         'replies.user',
@@ -63,6 +64,8 @@ export class CommentService {
       relations: [
         'user',
         'replies',
+        'post',
+        'post.creator',
         'parentComment',
         'replies.user',
         'replies.likes',

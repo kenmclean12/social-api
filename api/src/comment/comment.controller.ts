@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
-import { Comment } from './entities/comment.entity';
 import { CommentCreateDto, CommentResponseDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards';
 

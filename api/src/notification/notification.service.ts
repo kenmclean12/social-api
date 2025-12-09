@@ -65,10 +65,9 @@ export class NotificationService {
             user: n.comment.user
               ? convertToResponseDto(UserResponseDto, n.comment.user)
               : undefined,
-            postId: n.comment.post?.id,
+            postId: n.comment.post.id,
           })
         : undefined,
-
       message: n.message
         ? convertToResponseDto(MessageResponseDto, {
             ...n.message,
@@ -113,6 +112,7 @@ export class NotificationService {
         'post.creator',
         'comment',
         'comment.user',
+        'comment.post',
         'message',
         'message.sender',
         'message.reads',
@@ -154,6 +154,7 @@ export class NotificationService {
       case NotificationType.COMMENT_REACTION:
         if (!commentId) throw new BadRequestException('commentId is required');
         comment = await this.commentService.findOneInternal(commentId);
+        post = comment.post;
         break;
 
       case NotificationType.MESSAGE_LIKE:
