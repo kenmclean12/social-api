@@ -42,12 +42,12 @@ export class UserPost {
   likes: Like[];
 
   @Expose()
-  @OneToMany(() => Reaction, (r) => r.post)
+  @OneToMany(() => Reaction, (reaction) => reaction.post)
   @ApiProperty({ type: () => [Reaction] })
   reactions: Reaction[];
 
   @Expose()
-  @OneToMany(() => Comment, (c) => c.post)
+  @OneToMany(() => Comment, (comment) => comment.post)
   @ApiProperty({ type: () => [Comment] })
   comments: Comment[];
 

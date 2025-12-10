@@ -7,8 +7,8 @@ export function reactionMapper(reaction: Reaction): ReactionResponseDto {
   return convertToResponseDto(ReactionResponseDto, {
     ...reaction,
     user: convertToResponseDto(UserResponseDto, reaction.user),
-    messageId: reaction.message?.id ?? undefined,
-    postId: reaction.post?.id ?? undefined,
-    commentId: reaction.comment?.id ?? undefined,
+    messageId: reaction.message?.id,
+    postId: reaction.post?.id,
+    commentId: reaction.comment?.id,
   });
 }

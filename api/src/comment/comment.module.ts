@@ -15,9 +15,9 @@ import { NotificationModule } from 'src/notification/notification.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Comment, UserPost, User, Reaction, Like]),
-    forwardRef(() => UserModule),
     AuthModule,
     PostModule,
+    forwardRef(() => UserModule),
     forwardRef(() => NotificationModule),
   ],
   controllers: [CommentController],

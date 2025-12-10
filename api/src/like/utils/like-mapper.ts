@@ -7,8 +7,8 @@ export function likeMapper(like: Like): LikeResponseDto {
   return convertToResponseDto(LikeResponseDto, {
     ...like,
     userId: convertToResponseDto(UserResponseDto, like.user.id),
-    messageId: like.message?.id ?? undefined,
-    postId: like.post?.id ?? undefined,
-    commentId: like.comment?.id ?? undefined,
+    messageId: like.message?.id,
+    postId: like.post?.id,
+    commentId: like.comment?.id,
   });
 }

@@ -13,10 +13,7 @@ import { CommentCreateDto, CommentResponseDto } from './dto';
 import { UserService } from 'src/user/user.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
-import { convertToResponseDto } from 'src/common/utils';
-import { UserResponseDto } from 'src/user/dto';
-import { ReactionResponseDto } from 'src/reaction/dto';
-import { LikeResponseDto } from 'src/like/dto';
+import { commentMapper } from './utils/comment-mapper';
 
 @Injectable()
 export class CommentService {
@@ -33,18 +30,7 @@ export class CommentService {
   async findOneInternal(id: number): Promise<Comment> {
     const comment = await this.commentRepo.findOne({
       where: { id },
-      relations: [
-        'user',
-        'post',
-        'post.creator',
-        'replies',
-        'parentComment',
-        'replies.user',
-        'replies.likes',
-        'likes',
-        'reactions',
-        'reactions.user',
-      ],
+      relations: this.getRelations(),
     });
 
     if (!comment) {
@@ -56,71 +42,28 @@ export class CommentService {
     return comment;
   }
 
+  async findOne(id: number): Promise<CommentResponseDto> {
+    const comment = await this.findOneInternal(id);
+
+    if (!comment) {
+      throw new NotFoundException(
+        `No comment found with the provided Comment ID: ${id}`,
+      );
+    }
+
+    return commentMapper(comment);
+  }
+
   async findByPostId(postId: number): Promise<CommentResponseDto[]> {
     await this.postService.findOneInternal(postId);
 
     const comments = await this.commentRepo.find({
       where: { post: { id: postId } },
-      relations: [
-        'user',
-        'replies',
-        'post',
-        'post.creator',
-        'parentComment',
-        'replies.user',
-        'replies.likes',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-      ],
+      relations: this.getRelations(),
       order: { createdAt: 'DESC' },
     });
 
-    return comments
-      ?.filter((c) => !c.parentComment)
-      .map((c) => {
-        return convertToResponseDto(CommentResponseDto, {
-          ...c,
-          user: convertToResponseDto(UserResponseDto, c.user),
-          postId,
-          parentCommentId: c.parentComment?.id,
-
-          likes: c.likes?.map((l) =>
-            convertToResponseDto(LikeResponseDto, {
-              ...l,
-              userId: l.user.id,
-              commentId: c.id,
-            }),
-          ),
-
-          reactions: c.reactions?.map((r) =>
-            convertToResponseDto(ReactionResponseDto, {
-              ...r,
-              user: convertToResponseDto(UserResponseDto, r.user),
-              commentId: c.id,
-            }),
-          ),
-
-          replies: c.replies
-            ?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-            .map((r) =>
-              convertToResponseDto(CommentResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                commentId: c.id,
-                parentCommentId: r.parentComment?.id,
-                likes: r.likes?.map((l) =>
-                  convertToResponseDto(LikeResponseDto, {
-                    ...l,
-                    userId: l.user.id,
-                  }),
-                ),
-                replies: [],
-              }),
-            ),
-        });
-      });
+    return comments.map((c) => commentMapper(c));
   }
 
   async create(dto: CommentCreateDto): Promise<CommentResponseDto> {
@@ -158,15 +101,7 @@ export class CommentService {
       });
     }
 
-    const fullComment = await this.findOneInternal(saved.id);
-
-    return convertToResponseDto(CommentResponseDto, {
-      ...fullComment,
-      user: convertToResponseDto(UserResponseDto, fullComment.user),
-      postId: post.id,
-      parentCommentId: fullComment.parentComment?.id,
-      replies: [],
-    });
+    return await this.findOne(saved.id);
   }
 
   async update(
@@ -185,14 +120,7 @@ export class CommentService {
 
     comment.content = content;
     const saved = await this.commentRepo.save(comment);
-    const fullComment = await this.findOneInternal(saved.id);
-
-    return convertToResponseDto(CommentResponseDto, {
-      ...fullComment,
-      user: convertToResponseDto(UserResponseDto, fullComment.user),
-      postId: comment.post.id,
-      parentCommentId: comment.parentComment?.id,
-    });
+    return this.findOne(saved.id);
   }
 
   async remove(id: number, userId: number): Promise<CommentResponseDto> {
@@ -206,12 +134,29 @@ export class CommentService {
     }
 
     await this.commentRepo.remove(comment);
+    return commentMapper(comment);
+  }
 
-    return convertToResponseDto(CommentResponseDto, {
-      ...comment,
-      user: convertToResponseDto(UserResponseDto, comment.user),
-      postId: comment.post.id,
-      parentCommentId: comment.parentComment?.id,
-    });
+  private getRelations() {
+    return [
+      'user',
+      'post',
+      'parentComment',
+      'post.creator',
+      'replies',
+      'replies.user',
+      'replies.likes',
+      'replies.user',
+      'replies.post',
+      'likes',
+      'likes.message',
+      'likes.post',
+      'likes.comment',
+      'reactions',
+      'reactions.user',
+      'reactions.message',
+      'reactions.post',
+      'reactions.comment',
+    ];
   }
 }

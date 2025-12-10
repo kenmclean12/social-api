@@ -12,6 +12,11 @@ export class NotificationResponseDto {
   id: number;
 
   @Expose()
+  @Type(() => Date)
+  @ApiProperty({ type: () => Date })
+  createdAt: Date;
+
+  @Expose()
   @Type(() => UserResponseDto)
   @ApiProperty({ type: () => UserResponseDto })
   recipient: UserResponseDto;
@@ -47,8 +52,4 @@ export class NotificationResponseDto {
   @Expose()
   @ApiProperty()
   read: boolean;
-
-  @Expose()
-  @ApiProperty()
-  createdAt: Date;
 }

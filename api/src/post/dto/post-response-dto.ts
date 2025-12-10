@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { CommentResponseDto } from 'src/comment/dto';
 import { LikeResponseDto } from 'src/like/dto';
 import { ReactionResponseDto } from 'src/reaction/dto';
@@ -19,26 +19,27 @@ export class PostResponseDto {
   contentUrl?: string;
 
   @Expose()
-  @ApiProperty()
+  @Type(() => Date)
+  @ApiProperty({ type: () => Date })
   createdAt: Date;
 
   @Expose()
+  @Type(() => UserResponseDto)
   @ApiProperty({ type: () => [UserResponseDto] })
   creator: UserResponseDto[];
 
   @Expose()
+  @Type(() => LikeResponseDto)
   @ApiProperty({ type: () => [LikeResponseDto] })
   likes?: LikeResponseDto[];
 
   @Expose()
+  @Type(() => CommentResponseDto)
   @ApiProperty({ type: () => [CommentResponseDto] })
   comments?: CommentResponseDto[];
 
   @Expose()
+  @Type(() => ReactionResponseDto)
   @ApiProperty({ type: () => [ReactionResponseDto] })
   reactions?: ReactionResponseDto[];
-
-  constructor(partial: Partial<PostResponseDto>) {
-    Object.assign(this, partial);
-  }
 }

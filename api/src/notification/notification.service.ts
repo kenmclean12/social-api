@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,15 +17,8 @@ import {
   NotificationResponseDto,
   NotificationUpdateDto,
 } from './dto';
-import { UserPost } from 'src/post/entities/user-post.entity';
-import { Message } from 'src/message/entities';
-import { Comment } from 'src/comment/entities/comment.entity';
 import { WebsocketGateway } from 'src/websocket/websocket.gateway';
-import { convertToResponseDto } from 'src/common/utils';
-import { UserResponseDto } from 'src/user/dto';
-import { PostResponseDto } from 'src/post/dto';
-import { CommentResponseDto } from 'src/comment/dto';
-import { MessageResponseDto } from 'src/message/dto';
+import { notificationMapper } from './utils';
 
 @Injectable()
 export class NotificationService {
@@ -40,195 +34,70 @@ export class NotificationService {
     private readonly websocketGateway: WebsocketGateway,
   ) {}
 
-  private mapNotificationToDto(n: Notification): NotificationResponseDto {
-    const dto = convertToResponseDto(NotificationResponseDto, {
-      ...n,
-
-      recipient: n.recipient
-        ? convertToResponseDto(UserResponseDto, n.recipient)
-        : undefined,
-
-      actionUser: n.actionUser
-        ? convertToResponseDto(UserResponseDto, n.actionUser)
-        : undefined,
-
-      post: n.post
-        ? convertToResponseDto(PostResponseDto, {
-            ...n.post,
-            creator: convertToResponseDto(UserResponseDto, n.post.creator),
-          })
-        : undefined,
-
-      comment: n.comment
-        ? convertToResponseDto(CommentResponseDto, {
-            ...n.comment,
-            user: n.comment.user
-              ? convertToResponseDto(UserResponseDto, n.comment.user)
-              : undefined,
-            postId: n.comment.post.id,
-          })
-        : undefined,
-
-      parentComment: n.parentComment
-        ? convertToResponseDto(CommentResponseDto, {
-            ...n.parentComment,
-            user: n.parentComment.user
-              ? convertToResponseDto(UserResponseDto, n.parentComment.user)
-              : undefined,
-            postId: n.parentComment.post.id,
-          })
-        : undefined,
-
-      message: n.message
-        ? convertToResponseDto(MessageResponseDto, {
-            ...n.message,
-            sender: n.message.sender
-              ? convertToResponseDto(UserResponseDto, n.message.sender)
-              : undefined,
-            conversationId: n.message.conversation?.id,
-          })
-        : undefined,
-    });
-
-    dto.notificationMessage = this.buildNotificationMessage(
-      n.type,
-      n.actionUser,
-    );
-
-    return dto;
-  }
-
-  async findOneInternal(
+  async findOneByIdMatch(
     recipientId: number,
     actionUserId: number,
     type: NotificationType,
-  ): Promise<Notification | null> {
-    return await this.notificationRepo.findOne({
+  ): Promise<Notification> {
+    const notification = await this.notificationRepo.findOne({
       where: {
         recipient: { id: recipientId },
         actionUser: { id: actionUserId },
         type,
       },
-      relations: [
-        'actionUser',
-        'post',
-        'comment',
-        'message',
-        'parentComment',
-        'parentComment.user',
-        'parentComment.post',
-      ],
     });
+
+    if (!notification) {
+      throw new NotFoundException(
+        `No notification found with the provided fields - Recipient ID: ${recipientId}, Action User ID: ${actionUserId}, Notification Type: ${type}`,
+      );
+    }
+
+    return notification;
+  }
+
+  async findOneInternal(id: number): Promise<Notification> {
+    const notification = await this.notificationRepo.findOne({ where: { id } });
+    if (!notification) {
+      throw new NotFoundException(
+        `No notification found with the provided ID: ${id}`,
+      );
+    }
+
+    return notification;
   }
 
   async findAllForUser(userId: number): Promise<NotificationResponseDto[]> {
     const notifications = await this.notificationRepo.find({
       where: { recipient: { id: userId } },
-      relations: [
-        'actionUser',
-        'recipient',
-        'post',
-        'post.creator',
-        'parentComment',
-        'parentComment.user',
-        'parentComment.post',
-        'comment',
-        'comment.user',
-        'comment.post',
-        'message',
-        'message.sender',
-        'message.reads',
-        'message.conversation',
-      ],
+      relations: this.getRelations(),
       order: { createdAt: 'DESC' },
     });
 
-    return notifications.map((n) => this.mapNotificationToDto(n));
+    return notifications.map((n) => notificationMapper(n));
   }
 
   async create(
     dto: NotificationCreateDto,
   ): Promise<NotificationResponseDto | void> {
-    const {
-      recipientId,
-      actorId,
-      type,
-      postId,
-      commentId,
-      parentCommentId,
-      messageId,
-    } = dto;
-    if (recipientId === actorId) {
-      return;
-    }
+    const { recipientId, actorId, type } = dto;
+    if (recipientId === actorId) return;
 
     const recipient = await this.userService.findOneInternal(recipientId);
     const actor = await this.userService.findOneInternal(actorId);
 
-    let post: UserPost | undefined = undefined;
-    let comment: Comment | undefined = undefined;
-    let parentComment: Comment | undefined = undefined;
-    let message: Message | undefined = undefined;
-
-    switch (type) {
-      case NotificationType.FOLLOW:
-        break;
-
-      case NotificationType.POST_LIKE:
-      case NotificationType.POST_REACTION:
-        if (!postId) throw new BadRequestException('postId is required');
-        post = await this.postService.findOneInternal(postId);
-        break;
-      case NotificationType.POST_COMMENT:
-        if (!postId) throw new BadRequestException('postId is required');
-        if (!commentId) throw new BadRequestException('commentId is required');
-        post = await this.postService.findOneInternal(postId);
-        comment = await this.commentService.findOneInternal(commentId);
-        break;
-
-      case NotificationType.COMMENT_LIKE:
-      case NotificationType.COMMENT_REACTION:
-        if (!commentId) throw new BadRequestException('commentId is required');
-        comment = await this.commentService.findOneInternal(commentId);
-        post = comment.post;
-        break;
-      case NotificationType.COMMENT_REPLY:
-        if (!commentId) throw new BadRequestException('commentId is required');
-        if (!postId) throw new BadRequestException('postId is required');
-        if (!parentCommentId)
-          throw new BadRequestException('parentCommentId is required');
-        comment = await this.commentService.findOneInternal(commentId);
-        post = await this.postService.findOneInternal(postId);
-        parentComment =
-          await this.commentService.findOneInternal(parentCommentId);
-        break;
-
-      case NotificationType.MESSAGE_LIKE:
-      case NotificationType.MESSAGE_REACTION:
-        if (!messageId) throw new BadRequestException('messageId is required');
-        message = await this.messageService.findOneInternal(messageId);
-        break;
-
-      default:
-        throw new BadRequestException('Invalid notification type');
-    }
-
-    const notification: Partial<Notification> = {
+    const payload = await this.resolveNotificationContext(dto);
+    const notification: Notification = await this.notificationRepo.save({
       recipient,
       actionUser: actor,
       type,
-      post,
-      comment,
-      parentComment,
-      message,
       read: false,
-    };
+      ...payload,
+    });
 
-    const saved = await this.notificationRepo.save(notification);
-    const dtoOut = this.mapNotificationToDto(saved);
-
-    this.websocketGateway.sendNotification(recipient.id, dtoOut);
-    return dtoOut;
+    const out = notificationMapper(await this.findOneInternal(notification.id));
+    this.websocketGateway.sendNotification(recipient.id, out);
+    return out;
   }
 
   async markRead(
@@ -236,7 +105,6 @@ export class NotificationService {
     dto: NotificationUpdateDto,
   ): Promise<NotificationResponseDto> {
     const notification = await this.notificationRepo.findOne({ where: { id } });
-
     if (!notification) {
       throw new BadRequestException(`Notification with ID ${id} not found`);
     }
@@ -244,7 +112,7 @@ export class NotificationService {
     notification.read = dto.read;
 
     const saved = await this.notificationRepo.save(notification);
-    return this.mapNotificationToDto(saved);
+    return notificationMapper(saved);
   }
 
   async markAllRead(userId: number): Promise<void> {
@@ -259,33 +127,100 @@ export class NotificationService {
     }
   }
 
-  private buildNotificationMessage(
-    type: NotificationType,
-    actor: { firstName: string; lastName: string },
-  ): string {
-    const name = `${actor.firstName} ${actor.lastName}`;
-
-    switch (type) {
+  private async resolveNotificationContext(dto: NotificationCreateDto) {
+    switch (dto.type) {
       case NotificationType.FOLLOW:
-        return `${name} started following you`;
+        return {};
+
       case NotificationType.POST_LIKE:
-        return `${name} liked your post`;
       case NotificationType.POST_REACTION:
-        return `${name} reacted to your post`;
+        return this.loadPost(dto);
+
       case NotificationType.POST_COMMENT:
-        return `${name} commented on your post`;
+        return this.loadPostAndComment(dto);
+
       case NotificationType.COMMENT_LIKE:
-        return `${name} liked your comment`;
       case NotificationType.COMMENT_REACTION:
-        return `${name} reacted to your comment`;
+        return this.loadCommentWithPost(dto);
+
       case NotificationType.COMMENT_REPLY:
-        return `${name} replied to your comment`;
+        return this.loadReplyContext(dto);
+
       case NotificationType.MESSAGE_LIKE:
-        return `${name} liked your message`;
       case NotificationType.MESSAGE_REACTION:
-        return `${name} reacted to your message`;
+        return this.loadMessage(dto);
+
       default:
-        return `${name} sent you a notification`;
+        throw new BadRequestException('Invalid notification type');
     }
+  }
+
+  private async loadPost(dto: NotificationCreateDto) {
+    if (!dto.postId) throw new BadRequestException('postId is required');
+    const post = await this.postService.findOneInternal(dto.postId);
+    return { post };
+  }
+
+  private async loadPostAndComment(dto: NotificationCreateDto) {
+    if (!dto.postId || !dto.commentId) {
+      throw new BadRequestException('postId and commentId are required');
+    }
+
+    const post = await this.postService.findOneInternal(dto.postId);
+    const comment = await this.commentService.findOneInternal(dto.commentId);
+    return { post, comment };
+  }
+
+  private async loadCommentWithPost(dto: NotificationCreateDto) {
+    if (!dto.commentId) throw new BadRequestException('commentId is required');
+    const comment = await this.commentService.findOneInternal(dto.commentId);
+    return { comment, post: comment.post };
+  }
+
+  private async loadReplyContext(dto: NotificationCreateDto) {
+    if (!dto.commentId || !dto.postId || !dto.parentCommentId) {
+      throw new BadRequestException(
+        'commentId, postId, parentCommentId required',
+      );
+    }
+
+    const comment = await this.commentService.findOneInternal(dto.commentId);
+    const post = await this.postService.findOneInternal(dto.postId);
+    const parentComment = await this.commentService.findOneInternal(
+      dto.parentCommentId,
+    );
+
+    return { comment, post, parentComment };
+  }
+
+  private async loadMessage(dto: NotificationCreateDto) {
+    if (!dto.messageId) throw new BadRequestException('messageId is required');
+    const message = await this.messageService.findOneInternal(dto.messageId);
+    return { message };
+  }
+
+  private getRelations() {
+    return [
+      'actionUser',
+      'recipient',
+      'post',
+      'post.creator',
+      'parentComment',
+      'parentComment.user',
+      'parentComment.post',
+      'comment',
+      'comment.user',
+      'comment.parentComment',
+      'comment.post',
+      'parentComment',
+      'parentComment.user',
+      'parentComment.post',
+      'message',
+      'message.sender',
+      'message.reads',
+      'message.reads.user',
+      'message.reads.message',
+      'message.conversation',
+    ];
   }
 }

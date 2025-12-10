@@ -85,11 +85,12 @@ export class FollowService {
     const saved = await this.followRepo.save({ follower, following });
     const full = await this.findOneInternal(saved.id);
 
-    const existingNotification = await this.notificationService.findOneInternal(
-      followingId,
-      followerId,
-      NotificationType.FOLLOW,
-    );
+    const existingNotification =
+      await this.notificationService.findOneByIdMatch(
+        followingId,
+        followerId,
+        NotificationType.FOLLOW,
+      );
 
     if (!existingNotification) {
       await this.notificationService.create({

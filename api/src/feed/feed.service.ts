@@ -30,7 +30,7 @@ export class FeedService {
     if (followingIds.length > 0) {
       posts = await this.postRepo.find({
         where: { creator: { id: In(followingIds) } },
-        relations: this.getRelations(),
+        relations: this.getPostRelations(),
         order: { createdAt: 'DESC' },
       });
     }
@@ -54,7 +54,7 @@ export class FeedService {
       if (randomIds.length > 0) {
         const randomPosts = await this.postRepo.find({
           where: { id: In(randomIds) },
-          relations: this.getRelations(),
+          relations: this.getPostRelations(),
         });
         posts = [...posts, ...randomPosts];
       }
@@ -79,7 +79,7 @@ export class FeedService {
     const skip = (page - 1) * limit;
 
     const posts = await this.postRepo.find({
-      relations: this.getRelations(),
+      relations: this.getPostRelations(),
     });
 
     const sorted = this.sortPosts(posts, filter);
@@ -93,7 +93,7 @@ export class FeedService {
     };
   }
 
-  private getRelations() {
+  private getPostRelations() {
     return [
       'creator',
       'likes',
@@ -102,15 +102,12 @@ export class FeedService {
       'reactions.user',
       'comments',
       'comments.user',
+      'comments.post',
+      'comments.parentComment',
       'comments.likes',
       'comments.likes.user',
       'comments.reactions',
       'comments.reactions.user',
-      'comments.parentComment',
-      'comments.replies',
-      'comments.replies.user',
-      'comments.replies.likes',
-      'comments.replies.reactions',
     ];
   }
 

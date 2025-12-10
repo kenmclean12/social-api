@@ -10,11 +10,7 @@ import { Repository } from 'typeorm';
 import { UserPost } from './entities/user-post.entity';
 import { PostCreateDto, PostResponseDto, PostUpdateDto } from './dto';
 import { UserService } from 'src/user/user.service';
-import { convertToResponseDto } from 'src/common/utils';
-import { UserResponseDto } from 'src/user/dto';
-import { LikeResponseDto } from 'src/like/dto';
-import { CommentResponseDto } from 'src/comment/dto';
-import { ReactionResponseDto } from 'src/reaction/dto';
+import { postMapper } from './utils/post-mapper';
 @Injectable()
 export class PostService {
   constructor(
@@ -27,24 +23,7 @@ export class PostService {
   async findOneInternal(id: number): Promise<UserPost> {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: [
-        'creator',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-        'comments',
-        'comments.user',
-        'comments.likes',
-        'comments.likes.user',
-        'comments.reactions',
-        'comments.reactions.user',
-        'comments.parentComment',
-        'comments.replies',
-        'comments.replies.user',
-        'comments.replies.likes',
-        'comments.replies.reactions',
-      ],
+      relations: this.getRelations(),
     });
 
     if (!post) {
@@ -62,70 +41,7 @@ export class PostService {
       throw new NotFoundException(`No post found with the provided ID: ${id}`);
     }
 
-    return convertToResponseDto(PostResponseDto, {
-      ...post,
-      creator: convertToResponseDto(UserResponseDto, post.creator),
-      likes: post.likes?.map((l) => {
-        return convertToResponseDto(LikeResponseDto, {
-          ...l,
-          userId: l.user.id,
-        });
-      }),
-      comments: post.comments
-        ?.filter((c) => !c.parentComment)
-        .map((c) => {
-          return convertToResponseDto(CommentResponseDto, {
-            ...c,
-            user: convertToResponseDto(UserResponseDto, c.user),
-            postId: post.id,
-            parentCommentId: c.parentComment?.id ?? undefined,
-            likes: c.likes?.map((l) => {
-              return convertToResponseDto(LikeResponseDto, {
-                ...l,
-                userId: l.user.id,
-                commentId: c.id,
-              });
-            }),
-            reactions: c.reactions?.map((r) => {
-              return convertToResponseDto(ReactionResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                commentId: c.id,
-              });
-            }),
-            replies: c.replies?.map((r) => {
-              return convertToResponseDto(CommentResponseDto, {
-                ...r,
-                user: convertToResponseDto(UserResponseDto, r.user),
-                postId: post.id,
-                parentCommentId: c.id,
-                commentId: c.id,
-                likes: r.likes?.map((l) => {
-                  return convertToResponseDto(LikeResponseDto, {
-                    ...l,
-                    userId: l.user.id,
-                    commentId: c.id,
-                  });
-                }),
-                reactions: r.reactions?.map((r) => {
-                  return convertToResponseDto(ReactionResponseDto, {
-                    ...r,
-                    user: convertToResponseDto(UserResponseDto, r.user),
-                    commentId: c.id,
-                  });
-                }),
-              });
-            }),
-          });
-        }),
-      reactions: post.reactions?.map((r) => {
-        return convertToResponseDto(ReactionResponseDto, {
-          ...r,
-          user: convertToResponseDto(UserResponseDto, r.user),
-          postId: post.id,
-        });
-      }),
-    });
+    return postMapper(post);
   }
 
   async findByUserId(
@@ -135,105 +51,20 @@ export class PostService {
   ): Promise<{ data: PostResponseDto[]; total: number }> {
     const [posts, total] = await this.postRepo.findAndCount({
       where: { creator: { id: userId } },
-      relations: [
-        'creator',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-        'comments',
-        'comments.user',
-        'comments.likes',
-        'comments.likes.user',
-        'comments.reactions',
-        'comments.reactions.user',
-        'comments.parentComment',
-        'comments.replies',
-        'comments.replies.user',
-        'comments.replies.likes',
-        'comments.replies.reactions',
-      ],
+      relations: this.getRelations(),
       order: { createdAt: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,
     });
 
-    const data = posts.map((p) =>
-      convertToResponseDto(PostResponseDto, {
-        ...p,
-        likes: p.likes?.map((l) =>
-          convertToResponseDto(LikeResponseDto, {
-            ...l,
-            userId: l.user.id,
-          }),
-        ),
-        comments: p.comments
-          ?.filter((c) => !c.parentComment)
-          .map((c) =>
-            convertToResponseDto(CommentResponseDto, {
-              ...c,
-              user: convertToResponseDto(UserResponseDto, c.user),
-              postId: p.id,
-              parentCommentId: c.parentComment?.id ?? undefined,
-              likes: c.likes?.map((l) =>
-                convertToResponseDto(LikeResponseDto, {
-                  ...l,
-                  userId: l.user.id,
-                  commentId: c.id,
-                }),
-              ),
-              reactions: c.reactions?.map((r) =>
-                convertToResponseDto(ReactionResponseDto, {
-                  ...r,
-                  user: convertToResponseDto(UserResponseDto, r.user),
-                  commentId: c.id,
-                }),
-              ),
-              replies: c.replies?.map((r) =>
-                convertToResponseDto(CommentResponseDto, {
-                  ...r,
-                  user: convertToResponseDto(UserResponseDto, r.user),
-                  postId: p.id,
-                  parentCommentId: c.id,
-                  commentId: c.id,
-                  likes: r.likes?.map((l) =>
-                    convertToResponseDto(LikeResponseDto, {
-                      ...l,
-                      userId: l.user.id,
-                      commentId: c.id,
-                    }),
-                  ),
-                  reactions: r.reactions?.map((r) =>
-                    convertToResponseDto(ReactionResponseDto, {
-                      ...r,
-                      user: convertToResponseDto(UserResponseDto, r.user),
-                      commentId: c.id,
-                    }),
-                  ),
-                }),
-              ),
-            }),
-          ),
-        reactions: p.reactions?.map((r) =>
-          convertToResponseDto(ReactionResponseDto, {
-            ...r,
-            user: convertToResponseDto(UserResponseDto, r.user),
-            postId: p.id,
-          }),
-        ),
-      }),
-    );
-
+    const data = posts.map((p) => postMapper(p));
     return { data, total };
   }
 
   async create(dto: PostCreateDto): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(dto.userId);
     const savedPost = await this.postRepo.save({ ...dto, creator: user });
-    return convertToResponseDto(PostResponseDto, {
-      ...savedPost,
-      creator: user,
-    });
+    return await this.findOne(savedPost.id);
   }
 
   async update(
@@ -243,7 +74,7 @@ export class PostService {
   ): Promise<PostResponseDto> {
     const user = await this.userService.findOneInternal(userId);
     const existingPost = await this.findOneInternal(id);
-    if (existingPost.creator.id !== userId) {
+    if (existingPost.creator.id !== user.id) {
       throw new UnauthorizedException('Only the creator can update the post');
     }
 
@@ -255,10 +86,7 @@ export class PostService {
     }
 
     const saved = await this.postRepo.save(mergedPost);
-    return convertToResponseDto(PostResponseDto, {
-      ...saved,
-      creator: user,
-    });
+    return await this.findOne(saved.id);
   }
 
   async remove(id: number, userId: number): Promise<PostResponseDto> {
@@ -271,9 +99,24 @@ export class PostService {
     }
 
     await this.postRepo.remove(existingPost);
-    return convertToResponseDto(PostResponseDto, {
-      ...existingPost,
-      creator: user,
-    });
+    return postMapper(existingPost);
+  }
+
+  private getRelations() {
+    return [
+      'creator',
+      'likes',
+      'likes.user',
+      'reactions',
+      'reactions.user',
+      'comments',
+      'comments.user',
+      'comments.post',
+      'comments.parentComment',
+      'comments.likes',
+      'comments.likes.user',
+      'comments.reactions',
+      'comments.reactions.user',
+    ];
   }
 }

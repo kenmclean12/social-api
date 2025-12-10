@@ -29,38 +29,42 @@ export enum NotificationType {
 @Entity()
 export class Notification {
   @PrimaryGeneratedColumn()
-  @ApiProperty()
+  @ApiProperty({ example: 123 })
   id: number;
 
-  @ManyToOne(() => User, { eager: true })
+  @CreateDateColumn()
   @ApiProperty()
+  createdAt: Date;
+
+  @ManyToOne(() => User, { eager: true })
+  @ApiProperty({ type: () => User })
   recipient: User;
 
   @ManyToOne(() => User, { eager: true })
-  @ApiProperty()
+  @ApiProperty({ type: () => User })
   actionUser: User;
 
   @Column({ type: 'enum', enum: NotificationType })
-  @ApiProperty()
+  @ApiProperty({ enum: NotificationType })
   type: NotificationType;
 
   @ManyToOne(() => UserPost, { nullable: true, onDelete: 'CASCADE' })
+  @ApiProperty({ type: () => UserPost, nullable: true })
   post?: UserPost;
 
   @ManyToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
+  @ApiProperty({ type: () => Comment, nullable: true })
   comment?: Comment;
 
   @ManyToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
+  @ApiProperty({ type: () => Comment, nullable: true })
   parentComment?: Comment;
 
   @ManyToOne(() => Message, { nullable: true, onDelete: 'CASCADE' })
+  @ApiProperty({ type: () => Message, nullable: true })
   message?: Message;
 
-  @ApiProperty()
   @Column({ default: false })
+  @ApiProperty({ example: false })
   read: boolean;
-
-  @ApiProperty()
-  @CreateDateColumn()
-  createdAt: Date;
 }

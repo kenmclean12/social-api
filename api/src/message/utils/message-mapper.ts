@@ -11,7 +11,7 @@ export function messageMapper(message: Message): MessageResponseDto {
     ...message,
     sender: convertToResponseDto(UserResponseDto, message.sender),
     conversationId: message.conversation.id,
-    reads: message.reads.map((r) => messageReadMapper(r)),
+    reads: message.reads?.map((r) => messageReadMapper(r)),
     likes: message.likes?.map((l) => likeMapper(l)),
     reactions: message.reactions?.map((r) => reactionMapper(r)),
   });

@@ -17,11 +17,11 @@ import { WebsocketModule } from 'src/websocket/websocket.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Notification, User, UserPost, Comment, Message]),
-    forwardRef(() => UserModule),
-    forwardRef(() => PostModule),
     CommentModule,
     MessageModule,
     AuthModule,
+    forwardRef(() => UserModule),
+    forwardRef(() => PostModule),
     forwardRef(() => WebsocketModule),
   ],
   controllers: [NotificationController],
