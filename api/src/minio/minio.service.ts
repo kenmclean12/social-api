@@ -15,7 +15,9 @@ export class MinioService {
 
     this.client = new MinioClient({
       endPoint: endpointUrl.hostname,
-      port: Number(endpointUrl.port) || 9000,
+      port:
+        Number(endpointUrl.port) ||
+        (endpointUrl.protocol === 'https:' ? 443 : 80),
       useSSL: endpointUrl.protocol === 'https:',
       accessKey: process.env.MINIO_ACCESS_KEY!,
       secretKey: process.env.MINIO_SECRET_KEY!,
