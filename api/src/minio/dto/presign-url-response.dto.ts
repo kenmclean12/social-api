@@ -4,7 +4,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class PresignUrlResponseDto {
   @ApiProperty({
     description:
-      'The presigned URL used by the client to upload directly to S3.',
+      'The presigned URL used by the client to upload directly to minio.',
   })
   @IsString()
   @IsNotEmpty()
