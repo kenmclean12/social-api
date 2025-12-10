@@ -4,9 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FollowService } from 'src/follow/follow.service';
 import { PostResponseDto } from 'src/post/dto';
 import { UserPost } from 'src/post/entities/user-post.entity';
-import { mapPostToDto } from 'src/post/utils/post-mapper';
 import { In, Repository } from 'typeorm';
 import { PaginatedResponseDto } from 'src/utils';
+import { postMapper } from 'src/post/utils/post-mapper';
 
 @Injectable()
 export class FeedService {
@@ -64,7 +64,7 @@ export class FeedService {
     const paginatedPosts = posts.slice(skip, skip + limit);
 
     return {
-      data: paginatedPosts.map(mapPostToDto),
+      data: paginatedPosts.map(postMapper),
       total,
       page,
       limit,
@@ -86,7 +86,7 @@ export class FeedService {
     const total = sorted.length;
 
     return {
-      data: sorted.slice(skip, skip + limit).map(mapPostToDto),
+      data: sorted.slice(skip, skip + limit).map(postMapper),
       total,
       page,
       limit,

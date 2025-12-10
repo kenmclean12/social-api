@@ -4,9 +4,9 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/user/entities/user.entity';
 import { Message } from './message.entity';
-import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class MessageRead {

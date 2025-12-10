@@ -17,10 +17,8 @@ import {
   MessageResponseDto,
   MessageUpdateDto,
 } from './dto';
-import { convertToResponseDto } from 'src/common/utils';
-import { UserResponseDto } from 'src/user/dto';
-import { LikeResponseDto } from 'src/like/dto';
-import { ReactionResponseDto } from 'src/reaction/dto';
+import { messageMapper } from './utils/message-mapper';
+import { messageReadMapper } from './utils/message-read-mapper';
 
 @Injectable()
 export class MessageService {
@@ -38,16 +36,7 @@ export class MessageService {
   async findOneInternal(id: number): Promise<Message> {
     const message = await this.messageRepo.findOne({
       where: { id },
-      relations: [
-        'sender',
-        'reads',
-        'reads.user',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-        'conversation',
-      ],
+      relations: this.getRelations(),
     });
 
     if (!message) {
@@ -59,57 +48,36 @@ export class MessageService {
     return message;
   }
 
+  async findMessageReadInternal(id: number): Promise<MessageRead> {
+    const messageRead = await this.messageReadRepo.findOne({
+      where: { id },
+      relations: ['message', 'user'],
+    });
+
+    if (!messageRead) {
+      throw new NotFoundException(
+        `No message read entry found with the provided ID: ${id}`,
+      );
+    }
+
+    return messageRead;
+  }
+
   async findOne(id: number): Promise<MessageResponseDto> {
     const message = await this.findOneInternal(id);
-
     if (!message) {
       throw new NotFoundException(
         `No message found with the provided ID: ${id}`,
       );
     }
 
-    return convertToResponseDto(MessageResponseDto, {
-      ...message,
-      conversationId: message.conversation?.id ?? '',
-      sender: convertToResponseDto(UserResponseDto, message.sender),
-      reads: message.reads.map((read) => {
-        return convertToResponseDto(MessageReadResponseDto, {
-          ...read,
-          messageId: message.id,
-          conversationId: message.conversation.id,
-          user: convertToResponseDto(UserResponseDto, read.user),
-        });
-      }),
-      likes: message.likes?.map((l) => {
-        return convertToResponseDto(LikeResponseDto, {
-          ...l,
-          userId: l.user.id,
-          messageId: message.id,
-        });
-      }),
-      reactions: message.reactions?.map((r) => {
-        return convertToResponseDto(ReactionResponseDto, {
-          ...r,
-          user: convertToResponseDto(UserResponseDto, r.user),
-          messageId: message.id,
-        });
-      }),
-    });
+    return messageMapper(message);
   }
 
   async findByConversationId(id: number): Promise<MessageResponseDto[]> {
     const messages = await this.messageRepo.find({
       where: { conversation: { id } },
-      relations: [
-        'sender',
-        'reads',
-        'reads.user',
-        'likes',
-        'likes.user',
-        'reactions',
-        'reactions.user',
-        'conversation',
-      ],
+      relations: this.getRelations(),
       order: { createdAt: 'ASC' },
     });
 
@@ -119,35 +87,7 @@ export class MessageService {
       );
     }
 
-    return messages.map((message) =>
-      convertToResponseDto(MessageResponseDto, {
-        ...message,
-        conversationId: message.conversation.id ?? '',
-        sender: convertToResponseDto(UserResponseDto, message.sender),
-        reads: message.reads.map((r) => {
-          return convertToResponseDto(MessageReadResponseDto, {
-            ...r,
-            messageId: message.id,
-            conversationId: message.conversation.id,
-            user: convertToResponseDto(UserResponseDto, r.user),
-          });
-        }),
-        likes: message.likes?.map((l) => {
-          return convertToResponseDto(LikeResponseDto, {
-            ...l,
-            userId: l.user.id,
-            messageId: message.id,
-          });
-        }),
-        reactions: message.reactions?.map((r) => {
-          return convertToResponseDto(ReactionResponseDto, {
-            ...r,
-            user: convertToResponseDto(UserResponseDto, r.user),
-            messageId: message.id,
-          });
-        }),
-      }),
-    );
+    return messages.map((m) => messageMapper(m));
   }
 
   async findUnreadMessageCountByConversationId(
@@ -221,13 +161,8 @@ export class MessageService {
     }
 
     const saved = await this.messageReadRepo.save({ message, user });
-
-    return convertToResponseDto(MessageReadResponseDto, {
-      ...saved,
-      messageId: message.id,
-      conversationId: message.conversation.id,
-      user: convertToResponseDto(UserResponseDto, user),
-    });
+    const full = await this.findMessageReadInternal(saved.id);
+    return messageReadMapper(full);
   }
 
   async update(
@@ -235,14 +170,7 @@ export class MessageService {
     userId: number,
     { content }: MessageUpdateDto,
   ): Promise<MessageResponseDto> {
-    const message = await this.messageRepo.findOne({
-      where: { id },
-      relations: ['sender', 'conversation'],
-    });
-
-    if (!message) {
-      throw new NotFoundException(`No Message found with ID: ${id}`);
-    }
+    const message = await this.findOneInternal(id);
 
     if (message.conversation.closed) {
       throw new Error('This conversation has been closed');
@@ -258,43 +186,14 @@ export class MessageService {
     message.editedAt = new Date();
 
     await this.messageRepo.save(message);
-
     return await this.findOne(id);
   }
 
   async remove(id: number, userId: number): Promise<MessageResponseDto> {
-    const message = await this.messageRepo.findOne({
-      where: { id },
-      relations: ['conversation', 'sender'],
-    });
-
-    if (!message) {
-      throw new NotFoundException(`Message ID ${id} not found`);
-    }
-
+    const message = await this.findOneInternal(id);
     await this.assertUserIsInitiator(userId, message.conversation.id);
-
     await this.messageRepo.remove(message);
-
-    return convertToResponseDto(MessageResponseDto, {
-      ...message,
-      conversationId: message.conversation.id ?? '',
-      sender: convertToResponseDto(UserResponseDto, message.sender),
-      likes: message.likes?.map((l) => {
-        return convertToResponseDto(LikeResponseDto, {
-          ...l,
-          userId: l.user.id,
-          messageId: message.id,
-        });
-      }),
-      reactions: message.reactions?.map((r) => {
-        return convertToResponseDto(ReactionResponseDto, {
-          ...r,
-          user: convertToResponseDto(UserResponseDto, r.user),
-          messageId: message.id,
-        });
-      }),
-    });
+    return messageMapper(message);
   }
 
   private async assertUserInConversation(
@@ -329,5 +228,25 @@ export class MessageService {
     }
 
     return conversation;
+  }
+
+  private getRelations() {
+    return [
+      'sender',
+      'conversation',
+      'reads',
+      'reads.user',
+      'reads.message',
+      'likes',
+      'likes.user',
+      'likes.message',
+      'likes.post',
+      'likes.comment',
+      'reactions',
+      'reactions.user',
+      'reactions.message',
+      'reactions.post',
+      'reactions.comment',
+    ];
   }
 }

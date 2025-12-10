@@ -18,7 +18,6 @@ import { EntityType } from 'src/common/types';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationCreateDto } from 'src/notification/dto';
-import { convertToResponseDto } from 'src/common/utils';
 import { likeMapper } from './utils/like-mapper';
 
 @Injectable()
@@ -82,8 +81,7 @@ export class LikeService {
       contentId,
     });
 
-    const like = await this.findOneInternal(saved.id);
-    return likeMapper(like);
+    return likeMapper(await this.findOneInternal(saved.id));
   }
 
   async delete(id: number, userId: number): Promise<LikeResponseDto> {
@@ -95,13 +93,7 @@ export class LikeService {
     }
 
     await this.likeRepo.remove(like);
-    return convertToResponseDto(LikeResponseDto, {
-      ...like,
-      userId: like.user.id,
-      postId: like.post?.id ?? undefined,
-      commentId: like.comment?.id ?? undefined,
-      messageId: like.message?.id ?? undefined,
-    });
+    return likeMapper(like);
   }
 
   private async resolveTarget(dto: LikeCreateDto) {

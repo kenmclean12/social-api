@@ -19,8 +19,6 @@ import {
   InitiateConversationDto,
   InitiateConversationResponseDto,
 } from './dto';
-import { convertToResponseDto } from 'src/common/utils';
-import { UserResponseDto } from 'src/user/dto';
 import { conversationMapper } from './utils/conversation-mapper';
 
 @Injectable()
@@ -110,7 +108,7 @@ export class ConversationService {
     );
 
     const saved = await this.conversationRepo.save(conversation);
-    return conversationMapper(saved);
+    return this.findOne(saved.id);
   }
 
   async create(dto: ConversationCreateDto): Promise<ConversationResponseDto> {
@@ -126,10 +124,7 @@ export class ConversationService {
     });
 
     const saved = await this.conversationRepo.save(conversation);
-    return convertToResponseDto(
-      ConversationResponseDto,
-      await this.findOneInternal(saved.id),
-    );
+    return this.findOne(saved.id);
   }
 
   async initiateConversation(
@@ -189,10 +184,7 @@ export class ConversationService {
     }
 
     const saved = await this.conversationRepo.save(conversation);
-    return convertToResponseDto(
-      ConversationResponseDto,
-      await this.findOneInternal(saved.id),
-    );
+    return this.findOne(saved.id);
   }
 
   async update(
@@ -211,25 +203,19 @@ export class ConversationService {
 
     const merged = this.conversationRepo.merge(conversation, dto);
     const saved = await this.conversationRepo.save(merged);
-    const full = await this.findOneInternal(saved.id);
-    return conversationMapper(full);
+    return this.findOne(saved.id);
   }
 
   async remove(id: number, userId: number): Promise<ConversationResponseDto> {
     const conversation = await this.findOneInternal(id);
 
-    if (conversation.initiator.id !== userId)
+    if (conversation.initiator.id !== userId) {
       throw new UnauthorizedException(
         'Only the initiating user can remove the conversation.',
       );
+    }
 
     await this.conversationRepo.remove(conversation);
-    return convertToResponseDto(ConversationResponseDto, {
-      ...conversation,
-      initiator: convertToResponseDto(UserResponseDto, conversation.initiator),
-      participants: conversation.participants.map((p) => {
-        return convertToResponseDto(UserResponseDto, p);
-      }),
-    });
+    return conversationMapper(conversation);
   }
 }

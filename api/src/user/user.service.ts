@@ -139,8 +139,8 @@ export class UserService {
     });
 
     const mergedUser = this.userRepo.merge(existingUser, dto);
-    const savedUser = await this.userRepo.save(mergedUser);
-    return convertToResponseDto(UserResponseDto, savedUser);
+    const saved = await this.userRepo.save(mergedUser);
+    return convertToResponseDto(UserResponseDto, saved);
   }
 
   async delete(id: number): Promise<UserResponseDto> {

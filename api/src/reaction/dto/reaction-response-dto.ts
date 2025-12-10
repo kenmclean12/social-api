@@ -1,11 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { UserResponseDto } from 'src/user/dto';
 
 export class ReactionResponseDto {
   @Expose()
   @ApiProperty()
   id: number;
+
+  @Expose()
+  @Type(() => Date)
+  @ApiProperty({ type: () => Date })
+  createdAt: Date;
 
   @Expose()
   @ApiProperty()
@@ -26,8 +31,4 @@ export class ReactionResponseDto {
   @Expose()
   @ApiProperty()
   commentId?: number;
-
-  @Expose()
-  @ApiProperty()
-  createdAt: Date;
 }

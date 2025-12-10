@@ -16,12 +16,12 @@ import { NotificationModule } from 'src/notification/notification.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Like, UserPost, User, Message]),
-    forwardRef(() => UserModule),
     MessageModule,
     PostModule,
     CommentModule,
     AuthModule,
     NotificationModule,
+    forwardRef(() => UserModule),
   ],
   controllers: [LikeController],
   providers: [LikeService],

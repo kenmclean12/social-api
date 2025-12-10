@@ -13,9 +13,9 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Message, MessageRead, User, Like, Reaction]),
+    AuthModule,
     forwardRef(() => ConversationModule),
     forwardRef(() => UserModule),
-    AuthModule,
   ],
   controllers: [MessageController],
   providers: [MessageService],

@@ -10,8 +10,8 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Conversation]),
-    forwardRef(() => UserModule),
     AuthModule,
+    forwardRef(() => UserModule),
     forwardRef(() => MessageModule),
   ],
   controllers: [ConversationController],

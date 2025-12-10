@@ -14,15 +14,19 @@ import {
 @Entity()
 export class Reaction {
   @PrimaryGeneratedColumn()
-  @ApiProperty()
+  @ApiProperty({ example: 1 })
   id: number;
+
+  @CreateDateColumn()
+  @ApiProperty({ type: () => Date })
+  createdAt: Date;
 
   @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @ApiProperty({ type: () => User })
   user: User;
 
   @Column({ type: 'varchar', length: 200 })
-  @ApiProperty({ type: 'string' })
+  @ApiProperty({ example: 'like' })
   reaction: string;
 
   @ManyToOne(() => Message, (m) => m.reactions, {
@@ -45,8 +49,4 @@ export class Reaction {
   })
   @ApiProperty({ type: () => Comment, required: false })
   comment?: Comment;
-
-  @CreateDateColumn()
-  @ApiProperty()
-  createdAt: Date;
 }

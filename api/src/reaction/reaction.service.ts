@@ -16,8 +16,7 @@ import { EntityType } from 'src/common/types';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationCreateDto } from 'src/notification/dto';
-import { convertToResponseDto } from 'src/common/utils';
-import { UserResponseDto } from 'src/user/dto';
+import { reactionMapper } from './utils/reaction-mapper';
 
 @Injectable()
 export class ReactionService {
@@ -31,6 +30,22 @@ export class ReactionService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  async findOneInternal(id: number): Promise<Reaction> {
+    const reaction = await this.reactionRepo.findOne({
+      where: { id },
+      relations: ['user', 'message', 'post', 'comment'],
+      order: { createdAt: 'ASC' },
+    });
+
+    if (!reaction) {
+      throw new NotFoundException(
+        `No reaction found with the provided ID: ${id}`,
+      );
+    }
+
+    return reaction;
+  }
+
   async findReactionsForEntity(
     type: EntityType,
     id: number,
@@ -42,15 +57,7 @@ export class ReactionService {
       order: { createdAt: 'ASC' },
     });
 
-    return reactions.map((r) =>
-      convertToResponseDto(ReactionResponseDto, {
-        ...r,
-        user: convertToResponseDto(UserResponseDto, r.user),
-        messageId: r.message?.id ?? undefined,
-        postId: r.post?.id ?? undefined,
-        commentId: r.comment?.id ?? undefined,
-      }),
-    );
+    return reactions.map((r) => reactionMapper(r));
   }
 
   async create(dto: ReactionCreateDto): Promise<ReactionResponseDto> {
@@ -73,40 +80,19 @@ export class ReactionService {
       contentId,
     });
 
-    return convertToResponseDto(ReactionResponseDto, {
-      ...saved,
-      user: convertToResponseDto(UserResponseDto, user),
-      messageId: dto.messageId ?? undefined,
-      postId: dto.postId ?? undefined,
-      commentId: dto.commentId ?? undefined,
-    });
+    return reactionMapper(await this.findOneInternal(saved.id));
   }
 
   async remove(id: number, userId: number): Promise<ReactionResponseDto> {
     const user = await this.userService.findOneInternal(userId);
-    const reaction = await this.reactionRepo.findOne({
-      where: { id },
-      relations: ['user', 'message', 'comment', 'post'],
-    });
-
-    if (!reaction) {
-      throw new NotFoundException(
-        `No reaction was found to remove with the provided ID: ${id}`,
-      );
-    }
+    const reaction = await this.findOneInternal(id);
 
     if (reaction.user.id !== user.id) {
       throw new UnauthorizedException('You can only remove your own reactions');
     }
 
     await this.reactionRepo.remove(reaction);
-    return convertToResponseDto(ReactionResponseDto, {
-      ...reaction,
-      user: convertToResponseDto(UserResponseDto, user),
-      messageId: reaction.message?.id ?? undefined,
-      postId: reaction.post?.id ?? undefined,
-      commentId: reaction.comment?.id ?? undefined,
-    });
+    return reactionMapper(reaction);
   }
 
   private async resolveEntityAndNotification(dto: ReactionCreateDto) {
