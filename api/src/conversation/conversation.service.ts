@@ -21,6 +21,7 @@ import {
 } from './dto';
 import { convertToResponseDto } from 'src/common/utils';
 import { UserResponseDto } from 'src/user/dto';
+import { conversationMapper } from './utils/conversation-mapper';
 
 @Injectable()
 export class ConversationService {
@@ -42,21 +43,16 @@ export class ConversationService {
       .where('conversation.id = :id', { id })
       .getOne();
 
-    if (!conversation)
+    if (!conversation) {
       throw new NotFoundException(`No Conversation Found with ID: ${id}`);
+    }
 
     return conversation;
   }
 
   async findOne(id: number): Promise<ConversationResponseDto> {
     const conversation = await this.findOneInternal(id);
-    return convertToResponseDto(ConversationResponseDto, {
-      ...conversation,
-      initiator: convertToResponseDto(UserResponseDto, conversation.initiator),
-      participants: conversation.participants.map((p) => {
-        return convertToResponseDto(UserResponseDto, p);
-      }),
-    });
+    return conversationMapper(conversation);
   }
 
   async findByUserIdInternal(id: number): Promise<Conversation[]> {
@@ -84,15 +80,7 @@ export class ConversationService {
       .distinct(true)
       .getMany();
 
-    return conversations.map((c) =>
-      convertToResponseDto(ConversationResponseDto, {
-        ...c,
-        initiator: convertToResponseDto(UserResponseDto, c.initiator),
-        participants: c.participants.map((p) => {
-          return convertToResponseDto(UserResponseDto, p);
-        }),
-      }),
-    );
+    return conversations.map((c) => conversationMapper(c));
   }
 
   async leaveConversation(
@@ -122,13 +110,7 @@ export class ConversationService {
     );
 
     const saved = await this.conversationRepo.save(conversation);
-    return convertToResponseDto(ConversationResponseDto, {
-      ...saved,
-      initiator: convertToResponseDto(UserResponseDto, saved.initiator),
-      participants: saved.participants.map((p) =>
-        convertToResponseDto(UserResponseDto, p),
-      ),
-    });
+    return conversationMapper(saved);
   }
 
   async create(dto: ConversationCreateDto): Promise<ConversationResponseDto> {
@@ -229,10 +211,8 @@ export class ConversationService {
 
     const merged = this.conversationRepo.merge(conversation, dto);
     const saved = await this.conversationRepo.save(merged);
-    return convertToResponseDto(
-      ConversationResponseDto,
-      await this.findOneInternal(saved.id),
-    );
+    const full = await this.findOneInternal(saved.id);
+    return conversationMapper(full);
   }
 
   async remove(id: number, userId: number): Promise<ConversationResponseDto> {

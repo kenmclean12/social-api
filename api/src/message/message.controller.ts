@@ -80,11 +80,12 @@ export class MessageController {
 
   @ApiOkResponse({ type: MessageReadResponseDto })
   @ApiOperation({ description: 'Mark a message as read' })
-  @Post(':id/read/:userId')
+  @Post(':id/read')
   async markMessageRead(
     @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req,
   ): Promise<MessageReadResponseDto> {
+    const userId = req.user?.id as number;
     return await this.messageService.markMessageRead(id, userId);
   }
 

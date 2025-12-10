@@ -8,7 +8,8 @@ export class FollowResponseDto {
   id: number;
 
   @Expose()
-  @ApiProperty()
+  @Type(() => Date)
+  @ApiProperty({ type: () => Date })
   createdAt: Date;
 
   @Expose()

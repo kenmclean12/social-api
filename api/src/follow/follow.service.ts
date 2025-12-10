@@ -13,7 +13,7 @@ import {
 import { FollowDto, FollowResponseDto } from './dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
-import { convertToResponseDto } from 'src/common/utils';
+import { followMapper } from './utils/follow-mapper';
 
 @Injectable()
 export class FollowService {
@@ -45,7 +45,7 @@ export class FollowService {
       order: { createdAt: 'ASC' },
     });
 
-    return following.map((f) => convertToResponseDto(FollowResponseDto, f));
+    return following.map((f) => followMapper(f));
   }
 
   async findFollowersByUserId(id: number): Promise<FollowResponseDto[]> {
@@ -61,7 +61,7 @@ export class FollowService {
       );
     }
 
-    return followers.map((f) => convertToResponseDto(FollowResponseDto, f));
+    return followers.map((f) => followMapper(f));
   }
 
   async create({
@@ -99,7 +99,7 @@ export class FollowService {
       });
     }
 
-    return convertToResponseDto(FollowResponseDto, full);
+    return followMapper(full);
   }
 
   async remove(id: number, userId: number): Promise<FollowResponseDto> {
@@ -112,6 +112,6 @@ export class FollowService {
     }
 
     await this.followRepo.remove(follow);
-    return convertToResponseDto(FollowResponseDto, follow);
+    return followMapper(follow);
   }
 }

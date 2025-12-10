@@ -10,8 +10,8 @@ import { NotificationModule } from 'src/notification/notification.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Follow]),
-    forwardRef(() => UserModule),
     AuthModule,
+    forwardRef(() => UserModule),
     forwardRef(() => NotificationModule),
   ],
   controllers: [FollowController],

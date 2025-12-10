@@ -6,24 +6,24 @@ export class LikeCreateDto {
   @IsNotEmpty()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty()
+  @ApiProperty({ example: 1 })
   userId: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty({ required: false })
+  @ApiProperty({ example: 10, required: false })
   messageId?: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty({ required: false })
+  @ApiProperty({ example: 5, required: false })
   postId?: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty({ required: false })
+  @ApiProperty({ example: 3, required: false })
   commentId?: number;
 }

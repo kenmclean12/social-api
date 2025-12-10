@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { UserResponseDto } from 'src/user/dto';
 import { MessageReadResponseDto } from './message-read-response.dto';
 import { LikeResponseDto } from 'src/like/dto';
@@ -7,42 +7,48 @@ import { ReactionResponseDto } from 'src/reaction/dto';
 
 export class MessageResponseDto {
   @Expose()
-  @ApiProperty({ type: 'number' })
+  @ApiProperty()
   id: number;
 
   @Expose()
+  @Type(() => Date)
   @ApiProperty({ type: () => Date })
   createdAt: Date;
 
   @Expose()
-  @ApiProperty({ type: 'string' })
+  @ApiProperty()
   content: string;
 
   @Expose()
-  @ApiProperty({ type: UserResponseDto })
-  sender?: UserResponseDto;
+  @Type(() => UserResponseDto)
+  @ApiProperty({ type: () => UserResponseDto })
+  sender: UserResponseDto;
 
   @Expose()
-  @ApiProperty({ type: 'number' })
+  @ApiProperty()
   conversationId: number;
 
   @Expose()
-  @ApiProperty({ type: MessageReadResponseDto })
+  @Type(() => MessageReadResponseDto)
+  @ApiProperty({ type: () => MessageReadResponseDto, isArray: true })
   reads?: MessageReadResponseDto[];
 
   @Expose()
-  @ApiProperty({ type: LikeResponseDto })
+  @Type(() => LikeResponseDto)
+  @ApiProperty({ type: () => LikeResponseDto, isArray: true })
   likes?: LikeResponseDto[];
 
   @Expose()
-  @ApiProperty({ type: ReactionResponseDto })
+  @Type(() => ReactionResponseDto)
+  @ApiProperty({ type: () => ReactionResponseDto, isArray: true })
   reactions?: ReactionResponseDto[];
 
   @Expose()
-  @ApiProperty({ type: () => Date })
+  @Type(() => Date)
+  @ApiProperty({ type: () => Date, required: false })
   editedAt?: Date;
 
   @Expose()
-  @ApiProperty({ type: 'boolean' })
-  isDeleted?: boolean;
+  @ApiProperty()
+  isDeleted: boolean;
 }

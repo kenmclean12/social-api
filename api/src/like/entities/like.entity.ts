@@ -16,6 +16,10 @@ export class Like {
   @ApiProperty()
   id: number;
 
+  @CreateDateColumn()
+  @ApiProperty()
+  createdAt: Date;
+
   @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @ApiProperty({ type: () => User })
   user: User;
@@ -40,8 +44,4 @@ export class Like {
   })
   @ApiProperty({ type: () => Comment, required: false })
   comment?: Comment;
-
-  @CreateDateColumn()
-  @ApiProperty()
-  createdAt: Date;
 }

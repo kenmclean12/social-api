@@ -1,10 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
 export class LikeResponseDto {
   @Expose()
   @ApiProperty()
   id: number;
+
+  @Expose()
+  @Type(() => Date)
+  @ApiProperty({ type: () => Date })
+  createdAt: Date;
 
   @Expose()
   @ApiProperty()
@@ -21,8 +26,4 @@ export class LikeResponseDto {
   @Expose()
   @ApiProperty()
   commentId?: number;
-
-  @Expose()
-  @ApiProperty()
-  createdAt: Date;
 }

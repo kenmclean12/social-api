@@ -19,6 +19,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationCreateDto } from 'src/notification/dto';
 import { convertToResponseDto } from 'src/common/utils';
+import { likeMapper } from './utils/like-mapper';
 
 @Injectable()
 export class LikeService {
@@ -33,6 +34,19 @@ export class LikeService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  async findOneInternal(id: number): Promise<Like> {
+    const like = await this.likeRepo.findOne({
+      where: { id },
+      relations: ['user', 'post', 'message', 'comment'],
+    });
+
+    if (!like) {
+      throw new NotFoundException(`No like found with provided ID: ${id}`);
+    }
+
+    return like;
+  }
+
   async findLikesForEntity(
     type: EntityType,
     id: number,
@@ -44,15 +58,7 @@ export class LikeService {
       order: { createdAt: 'ASC' },
     });
 
-    return likes.map((like) =>
-      convertToResponseDto(LikeResponseDto, {
-        ...like,
-        userId: like.user.id,
-        postId: relation === 'post' ? like.post?.id : undefined,
-        commentId: relation === 'comment' ? like.comment?.id : undefined,
-        messageId: relation === 'message' ? like.message?.id : undefined,
-      }),
-    );
+    return likes.map((l) => likeMapper(l));
   }
 
   async create(dto: LikeCreateDto): Promise<LikeResponseDto> {
@@ -61,7 +67,7 @@ export class LikeService {
     const { entity, relationKey, recipientId, notificationType, contentId } =
       await this.resolveTarget(dto);
 
-    await this.ensureNotAlreadyLiked(dto.userId, entity.id, relationKey);
+    await this.ensureNoPreviousLike(dto.userId, entity.id, relationKey);
 
     const saved = await this.likeRepo.save({
       user,
@@ -76,18 +82,12 @@ export class LikeService {
       contentId,
     });
 
-    const like = await this.findLikeWithRelationsOrFail(saved.id);
-    return convertToResponseDto(LikeResponseDto, {
-      ...like,
-      userId: like.user.id,
-      postId: like.post?.id ?? undefined,
-      commentId: like.comment?.id ?? undefined,
-      messageId: like.message?.id ?? undefined,
-    });
+    const like = await this.findOneInternal(saved.id);
+    return likeMapper(like);
   }
 
   async delete(id: number, userId: number): Promise<LikeResponseDto> {
-    const like = await this.findLikeWithRelationsOrFail(id);
+    const like = await this.findOneInternal(id);
     if (like.user.id !== userId) {
       throw new UnauthorizedException(
         'Only the user who liked the content can remove the like',
@@ -145,7 +145,7 @@ export class LikeService {
     );
   }
 
-  private async ensureNotAlreadyLiked(
+  private async ensureNoPreviousLike(
     userId: number,
     entityId: number,
     relationKey: EntityType,
@@ -180,21 +180,6 @@ export class LikeService {
     if (relationKey === 'comment') payload.commentId = contentId;
 
     await this.notificationService.create(payload);
-  }
-
-  private async findLikeWithRelationsOrFail(id: number) {
-    const like = await this.likeRepo.findOne({
-      where: { id },
-      relations: ['user', 'post', 'message', 'comment'],
-    });
-
-    if (!like) {
-      throw new NotFoundException(
-        `Like with ID ${id} not found after creation`,
-      );
-    }
-
-    return like;
   }
 
   private getRelationName(type: EntityType) {
