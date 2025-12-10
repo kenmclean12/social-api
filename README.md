@@ -23,6 +23,29 @@ A fully-featured social media backend built with NestJS and Websockets. This API
 - JWT authentication & guards
 - Swagger for API documentation
 
+## Minio / File Uploads
+
+This project uses **Minio** (S3-compatible object storage) for uploading and serving media files. You **do not need a local Minio server** — you can use any hosted Minio or S3-compatible service.  
+
+### Configuration
+
+Set the following environment variables in `.env` (or copy from `env.example`):
+
+- `MINIO_BUCKET` — The bucket name for storing files (e.g., `my-bucket`)
+- `MINIO_ENDPOINT` — The URL of your hosted Minio instance (e.g., `https://your-minio-host.com`)
+- `MINIO_PUBLIC` — The public base URL to access uploaded files (e.g., `https://your-minio-host.com/my-bucket`)
+- `MINIO_ACCESS_KEY` — Your Minio access key
+- `MINIO_SECRET_KEY` — Your Minio secret key
+
+### Example
+
+```env
+MINIO_BUCKET=my-bucket
+MINIO_ENDPOINT=https://play.min.io
+MINIO_PUBLIC=https://play.min.io/my-bucket
+MINIO_ACCESS_KEY=Q3AM3UQ867SPQQA43P2F
+MINIO_SECRET_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
+
 ## Getting Started
 Make sure the Docker Daemon is running, then start all services from the project root: docker-compose up --build
 
