@@ -24,6 +24,7 @@ A fully-featured social media backend built with NestJS and Websockets. This API
 - Swagger for API documentation
 
 ## Getting Started
+Make sure the Docker Daemon is running, then start all services from the project root: docker-compose up --build
 
 ### Prerequisites
 - Node.js 20+
