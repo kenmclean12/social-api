@@ -25,11 +25,7 @@ export class MinioService {
   }
 
   async getPresignedUploadUrl(filename: string): Promise<string> {
-    return (await this.client.presignedPutObject(
-      this.bucket,
-      filename,
-      60 * 5,
-    )) as string;
+    return await this.client.presignedPutObject(this.bucket, filename, 60 * 5);
   }
 
   getPublicUrl(filename: string): string {
