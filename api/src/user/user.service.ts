@@ -31,29 +31,22 @@ export class UserService {
 
   async findOneInternal(id: number): Promise<User> {
     const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException(`User not found with provided ID: ${id}`);
+    }
+
     return user;
   }
 
   async findByIdsInternal(ids: number[]): Promise<User[]> {
-    const users = await this.userRepo.find({
-      where: { id: In(ids) },
-    });
-
-    if (users.length === 0) {
-      throw new NotFoundException(
-        'Could not fetch users with provided ID Array',
-      );
-    }
-
-    return users;
+    return await this.userRepo.find({ where: { id: In(ids) } });
   }
 
   async findOneByEmailInternal(email: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
       throw new NotFoundException(
-        `No user found with provided email address: ${email}`,
+        `No user found with the provided email address: ${email}`,
       );
     }
 
@@ -65,7 +58,6 @@ export class UserService {
       const payload = await this.jwtService.verifyAsync(token);
       const userId = payload.sub;
       if (!userId) return null;
-
       return this.findOneInternal(userId as number);
     } catch {
       return null;
@@ -81,15 +73,15 @@ export class UserService {
     const followingCount = await this.followRepo.count({
       where: { follower: { id } },
     });
-
     const followerCount = await this.followRepo.count({
       where: { following: { id } },
     });
 
-    const safeUser = convertToResponseDto(UserWithCountsResponseDto, user);
-    safeUser.followingCount = followingCount;
-    safeUser.followerCount = followerCount;
-    return safeUser;
+    return convertToResponseDto(UserWithCountsResponseDto, {
+      ...user,
+      followingCount,
+      followerCount,
+    });
   }
 
   async searchUsers(query: string): Promise<UserResponseDto[]> {
@@ -103,6 +95,22 @@ export class UserService {
       .getMany();
 
     return users.map((u) => convertToResponseDto(UserResponseDto, u));
+  }
+
+  async createInternal(dto: UserCreateDto): Promise<User> {
+    await this.assertUserFields({
+      email: dto.email,
+      userName: dto.userName,
+      phoneNumber: dto.phoneNumber,
+    });
+    const { password, ...rest } = dto;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userToSave = {
+      ...rest,
+      hashedPassword,
+    };
+
+    return await this.userRepo.save(userToSave);
   }
 
   async create(dto: UserCreateDto): Promise<UserResponseDto> {
@@ -121,22 +129,6 @@ export class UserService {
 
     const savedUser = await this.userRepo.save(userToSave);
     return convertToResponseDto(UserResponseDto, savedUser);
-  }
-
-  async createInternal(dto: UserCreateDto): Promise<User> {
-    await this.assertUserFields({
-      email: dto.email,
-      userName: dto.userName,
-      phoneNumber: dto.phoneNumber,
-    });
-    const { password, ...rest } = dto;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userToSave = {
-      ...rest,
-      hashedPassword,
-    };
-
-    return await this.userRepo.save(userToSave);
   }
 
   async update(id: number, dto: UserUpdateDto): Promise<UserResponseDto> {
