@@ -22,6 +22,7 @@ export class FeedService {
     limit = 20,
   ): Promise<PaginatedResponseDto<PostResponseDto>> {
     const skip = (page - 1) * limit;
+
     const following = await this.followService.findFollowingByUserId(userId);
     const followingIds = following.map((u) => u.id);
 
@@ -49,6 +50,7 @@ export class FeedService {
         .getRawMany();
 
       const randomIds = randomRaw.map((r) => r.post_id);
+
       if (randomIds.length > 0) {
         const randomPosts = await this.postRepo.find({
           where: { id: In(randomIds) },
@@ -58,13 +60,7 @@ export class FeedService {
       }
     }
 
-    // 4. Total posts for this feed (following + all others)
-    const total = await this.postRepo.count({
-      where:
-        followingIds.length > 0 ? { creator: { id: In(followingIds) } } : {},
-    });
-
-    // 5. Paginate: slice for the current page
+    const total = await this.postRepo.count();
     const paginatedPosts = posts.slice(skip, skip + limit);
 
     return {
