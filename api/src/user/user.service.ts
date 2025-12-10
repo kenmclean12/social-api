@@ -92,14 +92,17 @@ export class UserService {
     return safeUser;
   }
 
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.userRepo.find({ order: { createdAt: 'ASC' } });
-    const resultSet = new Set<UserResponseDto>();
-    for (const user of users) {
-      resultSet.add(convertToResponseDto(UserResponseDto, user));
-    }
+  async searchUsers(query: string): Promise<UserResponseDto[]> {
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .where('user.firstName ILIKE :q', { q: `${query}%` })
+      .orWhere('user.lastName ILIKE :q', { q: `${query}%` })
+      .orWhere('user.email ILIKE :q', { q: `${query}%` })
+      .orWhere('user.userName ILIKE :q', { q: `${query}%` })
+      .orderBy('user.firstName', 'ASC')
+      .getMany();
 
-    return Array.from(resultSet);
+    return users.map((u) => convertToResponseDto(UserResponseDto, u));
   }
 
   async create(dto: UserCreateDto): Promise<UserResponseDto> {

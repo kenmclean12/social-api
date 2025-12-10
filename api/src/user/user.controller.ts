@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -26,6 +27,14 @@ import { JwtAuthGuard } from 'src/auth/guards';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiOkResponse({ type: UserResponseDto, isArray: true })
+  @ApiOperation({ summary: 'Search users by query string' })
+  @Get('search')
+  async searchUsers(@Query('q') query: string): Promise<UserResponseDto[]> {
+    if (!query) return [];
+    return await this.userService.searchUsers(query);
+  }
+
   @ApiOkResponse({ type: UserWithCountsResponseDto })
   @ApiOperation({ summary: 'Find a user by user ID' })
   @Get(':id')
@@ -33,13 +42,6 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserWithCountsResponseDto> {
     return await this.userService.findOneWithFollowCounts(id);
-  }
-
-  @ApiOkResponse({ type: UserResponseDto, isArray: true })
-  @ApiOperation({ summary: 'Find all users' })
-  @Get()
-  async findAll(): Promise<UserResponseDto[]> {
-    return await this.userService.findAll();
   }
 
   @ApiOkResponse({ type: UserResponseDto })
