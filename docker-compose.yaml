@@ -34,12 +34,15 @@ services:
       - minio
     entrypoint: >
       /bin/sh -c "
-        sleep 5;
-        mc alias set local http://minio:9000 test test;
+        echo 'Waiting for Minio...';
+        until mc alias set local http://minio:9000 test test 2>/dev/null; do
+          sleep 1;
+        done;
         mc mb -p local/my-bucket;
         mc anonymous set public local/my-bucket;
         exit 0;
       "
+
 
 volumes:
   minio_data:
