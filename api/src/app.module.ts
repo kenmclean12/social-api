@@ -13,6 +13,7 @@ import { ReactionModule } from './reaction/reaction.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { FeedModule } from './feed/feed.module';
 import { NotificationModule } from './notification/notification.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { NotificationModule } from './notification/notification.module';
     WebsocketModule,
     FeedModule,
     NotificationModule,
+    S3Module,
   ],
 })
 export class AppModule {}
