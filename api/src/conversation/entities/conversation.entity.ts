@@ -25,7 +25,9 @@ export class Conversation {
   @ApiProperty({ description: 'Optional name for group chats' })
   name?: string;
 
-  @ManyToOne(() => User, (user) => user.initiatedConversations)
+  @ManyToOne(() => User, (user) => user.initiatedConversations, {
+    onDelete: 'CASCADE',
+  })
   @ApiProperty({ type: () => User })
   initiator: User;
 
